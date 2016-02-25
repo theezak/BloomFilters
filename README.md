@@ -1,2 +1,4 @@
 # BloomFilters
-Bloom filters focused on detecting set differences. Written in C# and in very early stages. 
+Bloom filters focused on detecting set differences. Written in C#.
+
+This work is in very early stages, exploring options, performance and characteristics. 
