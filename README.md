@@ -5,3 +5,6 @@ This work is in very early stages, exploring options, performance and characteri
 
 1. Detect not only differences between the identifier sets, but also differences between values.
 2. Add an option for splitting the hash values out in separate buckets (positive or negative impact is to be reviewed).
+
+
+Although this is initially just a testbed, an obvious wishlist item is a buffer pool to counteract some of the horrible things the Bloom Filter does to memory management.
