@@ -5,70 +5,6 @@ namespace TBag.BloomFilters
     using System.Collections.Generic;
     using System.Linq;
 
-    public class Entity<TId>
-    {
-        public virtual TId Id { get; set; }
-    }
-
-    public class Entity : Entity<long>
-    { }
-
-   
-    public interface IBloomFilterConfiguration<T, THash, TId, TIdHash>
-         where THash : struct
-        where TIdHash : struct
-    {
-        Func<T, THash> GetEntityHash { get; set; }
-
-        Func<TId, uint, IEnumerable<TIdHash>> IdHashes { get; set; }
-
-        Func<TId, TId, TId> IdXor { get; set; }
-
-        Func<TId, bool> IsIdIdentity { get; set; }
-
-        Func<T, TId> GetId { get; set; }
-
-        Func<THash, bool> IsHashIdentity { get; set; }
-
-        Func<TIdHash, bool> IsIdHashIdentity { get; set; }
-        Func<THash, THash, THash> EntityHashXor { get; set; }
-
-        /// <summary>
-        /// When true, each hashed ID will go to its own storage.
-        /// </summary>
-        bool SplitByHash { get; set; }
-    }
-
-    public abstract class BloomFilterConfiguration<T,THash, TId, TIdHash> : 
-        BloomFilterIdConfiguration<TId,TIdHash>,
-        IBloomFilterConfiguration<T, THash, TId, TIdHash>
-        where THash : struct 
-        where TIdHash : struct
-    {
-        public Func<T, THash> GetEntityHash { get; set; }
-        public Func<T,TId> GetId { get; set; }
-        public Func<THash, bool> IsHashIdentity { get; set; }
-        public Func<THash,THash,THash> EntityHashXor { get; set; }
-
-        public bool SplitByHash
-        {
-            get; set;
-        }
-    }
-
-    public abstract class BloomFilterIdConfiguration<TId, THash>
-        where THash : struct
-    {
-        public Func<TId, uint, IEnumerable<THash>> IdHashes { get; set; }
-
-        public Func<TId,TId,TId> IdXor { get; set; }
-
-        public Func<TId,bool> IsIdIdentity { get; set; }
-
-        public Func<THash, bool> IsIdHashIdentity { get; set; }
-       
-    }
-
     /// <summary>
     /// An invertible Bloom filter supports removal and additions.
     /// </summary>
@@ -77,8 +13,18 @@ namespace TBag.BloomFilters
     /// //TODO: type of Id can be anything, as long as you provide a XOR function.
     public class InvertibleBloomFilter<T, TId>
     {
-
+        #region Fields
         private readonly IBloomFilterConfiguration<T, int, TId, int> _configuration;
+        private readonly int SizeOfInt = sizeof(int);
+        private uint hashFunctionCount;
+        private readonly TId[,] IdSums;
+        private readonly int[,] hashSums;
+        private readonly int[,] Counts;
+        private readonly Func<TId, uint, IEnumerable<int>> getIdHashes;
+
+        #endregion
+
+        #region Constructors
         /// <summary>
         /// Creates a new Bloom filter, specifying an error rate of 1/capacity, using the optimal size for the underlying data structure based on the desired capacity and error rate, as well as the optimal number of hash functions.
         /// A secondary hash function will be provided for you if your type T is either string or int. Otherwise an exception will be thrown. If you are not using these types please use the overload that supports custom hash functions.
@@ -142,7 +88,9 @@ namespace TBag.BloomFilters
             getIdHashes = (id, hashCount) => _configuration.IdHashes(id, hashCount).Select(h => h % m);
            
         }
+        #endregion
 
+        #region Implementation of Bloom Filter public contract
         public void Add(T item)
         {
             var id = _configuration.GetId(item);
@@ -157,17 +105,9 @@ namespace TBag.BloomFilters
         }
 
         /// <summary>
-        /// Add a new item at the given position in the filter.
+        /// Remove the given item from the Bloom filter.
         /// </summary>
         /// <param name="item"></param>
-        /// <param name="position"></param>
-        private void Add(TId id, int valueHash, int row, int position)
-        {
-            Counts[row,position]++;
-            IdSums[row,position] = _configuration.IdXor(IdSums[row,position], id);
-            hashSums[row,position] = _configuration.EntityHashXor(hashSums[row,position], valueHash);
-        }
-
         public void Remove(T item)
         {
             var id = _configuration.GetId(item);
@@ -180,21 +120,16 @@ namespace TBag.BloomFilters
             }
         }
 
-        private bool IsPure(int row, int position)
-        {
-            return Math.Abs(Counts[row, position]) == 1;
-        }
-
         /// <summary>
-        /// Remove an item at the given position.
+        /// Add a new item at the given position in the filter.
         /// </summary>
         /// <param name="item"></param>
         /// <param name="position"></param>
-        private void Remove(TId idValue, int hashValue, int row, int position)
+        private void Add(TId id, int valueHash, int row, int position)
         {
-            Counts[row,position]--;
-            IdSums[row,position] = _configuration.IdXor(IdSums[row,position], idValue);
-            hashSums[row,position] = _configuration.EntityHashXor(hashSums[row,position], hashValue);
+            Counts[row,position]++;
+            IdSums[row,position] = _configuration.IdXor(IdSums[row,position], id);
+            hashSums[row,position] = _configuration.EntityHashXor(hashSums[row,position], valueHash);
         }
 
         /// <summary>
@@ -221,7 +156,6 @@ namespace TBag.BloomFilters
             }
             return true;
         }
-
 
         /// <summary>
         /// Fully subtract another Bloom filter. 
@@ -324,14 +258,26 @@ namespace TBag.BloomFilters
             }
             return true;
         }
+        #endregion
 
-        private readonly int SizeOfInt = sizeof(int);
-        private uint hashFunctionCount;
-        private readonly TId[,] IdSums;
-        private readonly int[,] hashSums;
-        private readonly int[,] Counts;
-         private readonly Func<TId, uint, IEnumerable<int>> getIdHashes;
-     
+        #region Methods
+        private bool IsPure(int row, int position)
+        {
+            return Math.Abs(Counts[row, position]) == 1;
+        }
+
+        /// <summary>
+        /// Remove an item at the given position.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="position"></param>
+        private void Remove(TId idValue, int hashValue, int row, int position)
+        {
+            Counts[row,position]--;
+            IdSums[row,position] = _configuration.IdXor(IdSums[row,position], idValue);
+            hashSums[row,position] = _configuration.EntityHashXor(hashSums[row,position], hashValue);
+        }
+
         private static uint bestK(int capacity, float errorRate)
         {
             return (uint)Math.Abs(Math.Round(Math.Log(2.0) * bestM(capacity, errorRate) / capacity));
@@ -350,30 +296,30 @@ namespace TBag.BloomFilters
             else
                 return (float)Math.Pow(0.6185, int.MaxValue / capacity); // http://www.cs.princeton.edu/courses/archive/spring02/cs493/lec7.pdf
         }
+        #endregion
 
-       
 
-        /// <summary>
-        /// Hashes a string using Bob Jenkin's "One At A Time" method from Dr. Dobbs (http://burtleburtle.net/bob/hash/doobs.html).
-        /// Runtime is suggested to be 9x+9, where x = input.Length. 
-        /// </summary>
-        /// <param name="input">The string to hash.</param>
-        /// <returns>The hashed result.</returns>
-        private static int hashString(T input)
-        {
-            string s = input as string;
-            int hash = 0;
+        ///// <summary>
+        ///// Hashes a string using Bob Jenkin's "One At A Time" method from Dr. Dobbs (http://burtleburtle.net/bob/hash/doobs.html).
+        ///// Runtime is suggested to be 9x+9, where x = input.Length. 
+        ///// </summary>
+        ///// <param name="input">The string to hash.</param>
+        ///// <returns>The hashed result.</returns>
+        //private static int hashString(T input)
+        //{
+        //    string s = input as string;
+        //    int hash = 0;
 
-            for (int i = 0; i < s.Length; i++)
-            {
-                hash += s[i];
-                hash += (hash << 10);
-                hash ^= (hash >> 6);
-            }
-            hash += (hash << 3);
-            hash ^= (hash >> 11);
-            hash += (hash << 15);
-            return hash;
-        }
+        //    for (int i = 0; i < s.Length; i++)
+        //    {
+        //        hash += s[i];
+        //        hash += (hash << 10);
+        //        hash ^= (hash >> 6);
+        //    }
+        //    hash += (hash << 3);
+        //    hash ^= (hash >> 11);
+        //    hash += (hash << 15);
+        //    return hash;
+        //}
     }
 }

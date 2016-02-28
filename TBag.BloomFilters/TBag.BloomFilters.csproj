@@ -40,6 +40,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BloomFilterConfigurationBase.cs" />
+    <Compile Include="BloomFilterIdConfigurationBase.cs" />
+    <Compile Include="Domain\Entity.cs" />
+    <Compile Include="Domain\Entity.Generic.cs" />
+    <Compile Include="IBloomFilterConfiguration.Generic.cs" />
     <Compile Include="InvertibleBloomFilter.cs" />
     <Compile Include="BloomFilter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

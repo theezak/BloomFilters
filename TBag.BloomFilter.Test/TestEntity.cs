@@ -1,5 +1,5 @@
 ﻿
-using TBag.BloomFilters;
+using TBag.BloomFilters.Domain;
 
 namespace TBag.BloomFilter.Test
 {

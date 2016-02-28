@@ -8,7 +8,7 @@ using TBag.HashAlgorithms;
 
 namespace TBag.BloomFilter.Test
 {
-    internal class SingleBucketBloomFilterConfiguration : BloomFilterConfiguration<TestEntity, int, long, int>
+    internal class SingleBucketBloomFilterConfiguration : BloomFilterConfigurationBase<TestEntity, int, long, int>
     {
         private readonly IMurmurHash _murmurHash;
         private readonly IXxHash _xxHash;
