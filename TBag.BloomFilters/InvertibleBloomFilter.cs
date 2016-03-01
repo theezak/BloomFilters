@@ -21,7 +21,6 @@ namespace TBag.BloomFilters
         private readonly int[,] hashSums;
         private readonly int[,] Counts;
         private readonly Func<TId, uint, IEnumerable<int>> getIdHashes;
-
         #endregion
 
         #region Constructors
@@ -65,7 +64,12 @@ namespace TBag.BloomFilters
         /// <param name="hashFunction">The function to hash the input values. Do not use GetHashCode(). If it is null, and T is string or int a hash function will be provided for you.</param>
         /// <param name="m">The number of elements in the BitArray.</param>
         /// <param name="k">The number of hash functions to use.</param>
-        public InvertibleBloomFilter(int capacity, float errorRate, IBloomFilterConfiguration<T,int,TId,int> bloomFilterConfiguration, int m, uint k)
+        public InvertibleBloomFilter(
+            int capacity, 
+            float errorRate, 
+            IBloomFilterConfiguration<T,int,TId,int> bloomFilterConfiguration, 
+            int m, 
+            uint k)
         {
             // validate the params are in range
             if (capacity < 1)
@@ -97,9 +101,9 @@ namespace TBag.BloomFilters
             //TODO: should actually be across T ? But then we can't decode well, because we can't know T at decoding time.
             var hashValue = _configuration.GetEntityHash(item);
             var row = 0;
-            foreach (var bucket in getIdHashes(id, hashFunctionCount))
+            foreach(var position in getIdHashes(id, hashFunctionCount))
             {
-                Add(id, hashValue, row, bucket);
+                Add(id, hashValue, row, position);
                 if (_configuration.SplitByHash) row++;
             }
         }
@@ -113,9 +117,9 @@ namespace TBag.BloomFilters
             var id = _configuration.GetId(item);
             var hashValue = _configuration.GetEntityHash(item);
             var row = 0;
-            foreach (var bucket in getIdHashes(id, hashFunctionCount))
+            foreach (var position in getIdHashes(id, hashFunctionCount))
             {
-                Remove(id, hashValue, row, bucket);
+                Remove(id, hashValue, row, position);
                 if (_configuration.SplitByHash) row++;
             }
         }
@@ -146,7 +150,9 @@ namespace TBag.BloomFilters
                 if (IsPure(row, position))
                 {
                     if (hashSums[row, position] != hash)
+                    {
                         return false;
+                    }
                 }
                 else if (Counts[row, position] == 0)
                 {

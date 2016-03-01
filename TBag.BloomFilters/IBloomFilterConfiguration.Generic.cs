@@ -26,6 +26,10 @@ namespace TBag.BloomFilters
         /// When true, each hashed ID will go to its own storage.
         /// </summary>
         bool SplitByHash { get; set; }
+
+        bool UseRecurringMinimum { get; set; }
+
+        float RecurringMinimumSizeFactor { get; set; }
     }
 
 }

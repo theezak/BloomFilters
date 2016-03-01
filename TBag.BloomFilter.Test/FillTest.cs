@@ -70,6 +70,7 @@ namespace TBag.BloomFilter.Test
             {
                 bloomFilter.Add(itm);
             }
+            //make one change
             testData[0].Value = -testData[0].Value;
             var secondBloomFilter = new InvertibleBloomFilter<TestEntity, long>(size, errorRate, configuration);
             foreach (var itm in testData)
@@ -84,7 +85,7 @@ namespace TBag.BloomFilter.Test
             bloomFilter
                 .Decode(onlyInFirst, onlyInSecond, changed);
             
-            Assert.IsTrue(changed.Count != 1, "Incorrect number of changes detected");
+            Assert.IsTrue(changed.Count == 1, "Incorrect number of changes detected");
             Assert.IsTrue(onlyInFirst.Count == 0, "False positive on only in first");
             Assert.IsTrue(onlyInSecond.Count == 0, "False positive on only in second");
         }

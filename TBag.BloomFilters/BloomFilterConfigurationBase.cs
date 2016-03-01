@@ -21,6 +21,16 @@ namespace TBag.BloomFilters
         {
             get; set;
         }
+
+        public bool UseRecurringMinimum
+        {
+            get; set;
+        }
+
+        public float RecurringMinimumSizeFactor
+        {
+            get; set;
+        } = 0.5F;
     }
 }
 
