@@ -169,7 +169,7 @@ namespace TBag.BloomFilters
         /// <param name="filter"></param>
         /// <param name="idsWithChanges">Optional list for identifiers of entities that we detected a change in value for.</param>
         /// <remarks>Original algorithm was focused on differences in the sets of Ids, not on differences in the value. This optionally also provides you list of Ids for entities with changes.</remarks>
-        public void Substract(InvertibleBloomFilter<T, TId> filter, HashSet<TId> idsWithChanges = null)
+        public void Subtract(InvertibleBloomFilter<T, TId> filter, HashSet<TId> idsWithChanges = null)
         {
             //TODO: throw nice exception when counts are different.
             if (filter == null || filter.Counts.Length != Counts.Length) return;

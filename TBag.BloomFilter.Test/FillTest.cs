@@ -81,7 +81,7 @@ namespace TBag.BloomFilter.Test
             var onlyInFirst = new HashSet<long>();
             var onlyInSecond = new HashSet<long>();
             bloomFilter
-                .Substract(secondBloomFilter, changed);
+                .Subtract(secondBloomFilter, changed);
             bloomFilter
                 .Decode(onlyInFirst, onlyInSecond, changed);
             
