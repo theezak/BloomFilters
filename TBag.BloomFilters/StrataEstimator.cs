@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace TBag.BloomFilters
 {
     /// <summary>
-    /// The strate estimator helps estimate the number of differences between two (sub)sets.
+    /// The strata estimator helps estimate the number of differences between two (sub)sets.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="TId"></typeparam>
