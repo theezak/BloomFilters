@@ -46,7 +46,7 @@ namespace TBag.BloomFilters
     /// A b-bits min hash estimator.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class BBitsMinHashEstimator<T>
+    public class BBitMinWiseHashEstimator<T>
     {
         private readonly int _hashCount;
 
@@ -65,7 +65,7 @@ namespace TBag.BloomFilters
         /// <param name="bitSize">The number of bits to store per hash</param>
         /// <param name="hashCount">The number of hash functions to use.</param>
         /// <remarks>By using bitSize = 1 or bitSize = 2, the accuracy is decreased, thus the hashCount needs to be increased. However, when resemblance is not too small, for example > 0.5, bitSize = 1 can yield similar results as bitSize = 64 with only 3 times the hash count.</remarks>
-        public BBitsMinHashEstimator(int universeSize, Func<T, int> entityMap, byte bitSize, int hashCount)
+        public BBitMinwiseHashEstimator(int universeSize, Func<T, int> entityMap, byte bitSize, int hashCount)
         {
             Debug.Assert(universeSize > 0);
             _bitSize = bitSize;
@@ -83,7 +83,7 @@ namespace TBag.BloomFilters
             }
         }
 
-        public double Similarity(BBitsMinHashEstimator<T> set2)
+        public double Similarity(BBitMinwiseHashEstimator<T> set2)
         {
             if (set2 == null ||
                 set2._bitSize != _bitSize ||
