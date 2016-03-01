@@ -63,16 +63,24 @@ namespace TBag.BloomFilters
                 var estimatorIbf = default(InvertibleBloomFilter<T, TId>);
                 if (!estimator._strataFilters.TryGetValue(ibfPair.Key, out estimatorIbf))
                 {
-                    return (int)Math.Pow(2, i+1)*(setA.Count + setB.Count + setC.Count);
+                    return (int)(Math.Pow(2, i+1)*DecodeCountFactor*(setA.Count + setB.Count + setC.Count));
                 }
                 ibfPair.Value.Subtract(estimatorIbf);
                 if (!ibfPair.Value.Decode(setA, setB, setC))
                 {
-                    return (int)Math.Pow(2, i+1) * (setA.Count + setB.Count + setC.Count);
+                    return (int)(Math.Pow(2, i+1) * DecodeCountFactor * (setA.Count + setB.Count + setC.Count));
                 }
                
             }
-            return setA.Count + setB.Count + setC.Count;
+            return (int)(DecodeCountFactor * (setA.Count + setB.Count + setC.Count));
+        }
+        
+        private double DecodeCountFactor
+        {
+            get
+            {
+                return _capacity > 80 ? 1.39D : 1.0D;
+            }
         }
 
       private static int NumTrailingBinaryZeros(int n)
