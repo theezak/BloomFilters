@@ -16,20 +16,13 @@ namespace TBag.BloomFilters
         // <returns></returns>
         public static IEnumerable<byte> ToBytes(this BitArray bits)
         {
-            // calculate the number of bytes
-            int numBytes = bits.Count/8;
-            // add an extra byte if the bit-count is not divisible by 8
-            if (bits.Count%8 != 0) numBytes++;
-            // reserve the correct number of bytes
-            byte[] bytes = new byte[numBytes];
-            // get the 4 bytes that make up the 32 bit integer of the bitcount
-            var prefix = BitConverter.GetBytes(bits.Count);
-            // copy the bit-array into the byte array
-            bits.CopyTo(bytes, 0);
-            // read off the prefix
-            foreach (var b in prefix)
+              var prefix = BitConverter.GetBytes(bits.Count);
+             foreach (var b in prefix)
                 yield return b;
-            // read off the body
+             int numBytes = bits.Count/8;
+             if (bits.Count%8 != 0) numBytes++;
+             byte[] bytes = new byte[numBytes];
+            bits.CopyTo(bytes, 0);
             foreach (var b in bytes)
                 yield return b;
         }
@@ -42,13 +35,9 @@ namespace TBag.BloomFilters
         /// <returns></returns>
         public static BitArray ToBitArray(this IEnumerable<byte> bytes)
         {
-            // take the first 4 bytes and restore a 32 bit integer indicating the bit-length
             int numBits = BitConverter.ToInt32(bytes.Take(4).ToArray(), 0);
-            // skipping the 4 leader bytes, restore the bitarray
             var ba = new BitArray(bytes.Skip(4).ToArray());
-            // set the length exactly
             ba.Length = numBits;
-            // return the bit-array;
             return ba;
         }
     }
