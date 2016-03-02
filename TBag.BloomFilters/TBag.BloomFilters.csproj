@@ -40,8 +40,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BitMinwiseHashEstimator.Generic.cs" />
     <Compile Include="BloomFilterConfigurationBase.cs" />
     <Compile Include="BloomFilterIdConfigurationBase.cs" />
+    <Compile Include="Collections\BitArrayExtensions.cs" />
     <Compile Include="Domain\Entity.cs" />
     <Compile Include="Domain\Entity.Generic.cs" />
     <Compile Include="IBloomFilterConfiguration.Generic.cs" />
@@ -49,6 +51,7 @@
     <Compile Include="BloomFilter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StrataEstimator.cs" />
+    <Compile Include="System\ByteExtensions.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

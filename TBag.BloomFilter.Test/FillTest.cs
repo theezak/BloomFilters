@@ -10,22 +10,11 @@ namespace TBag.BloomFilter.Test
     [TestClass]
     public class FillTest
     {
-        private IEnumerable<TestEntity> DataGenerator()
-        {
-            var id = 1L;
-            var mers = new MersenneTwister();
-            while(id < long.MaxValue)
-            {
-                yield return new TestEntity { Id = id, Value = mers.NextInt32() };
-                id++;
-            }
-        }
-
         [TestMethod]
         public void FalsePositiveTest()
         {
             var addSize = 100000;
-            var testData = DataGenerator().Take(addSize).ToArray();
+            var testData = DataGenerator.Generate().Take(addSize).ToArray();
            var errorRate = 0.02F;
             var size = testData.Length;
             var configuration = new SingleBucketBloomFilterConfiguration();
@@ -45,7 +34,7 @@ namespace TBag.BloomFilter.Test
             }
             Assert.IsTrue(notFoundCount <= errorRate * size, "False negative error rate violated");
             notFoundCount = 0;
-            foreach(var itm in DataGenerator().Skip(addSize).Take(addSize))
+            foreach(var itm in DataGenerator.Generate().Skip(addSize).Take(addSize))
             {
                 if (bloomFilter.Contains(itm))
                 {
@@ -60,7 +49,7 @@ namespace TBag.BloomFilter.Test
         public void SetNoDiffTest()
         {
             var addSize = 100000;
-            var testData = DataGenerator().Take(addSize).ToArray();
+            var testData = DataGenerator.Generate().Take(addSize).ToArray();
             var errorRate = 0.02F;
             var size = testData.Length;
             var configuration = new SingleBucketBloomFilterConfiguration();

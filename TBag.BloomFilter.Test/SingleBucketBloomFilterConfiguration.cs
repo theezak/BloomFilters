@@ -18,7 +18,7 @@ namespace TBag.BloomFilter.Test
             _xxHash = new XxHash();
             GetId = e => e.Id;
             UseRecurringMinimum = true;
-            GetEntityHash = entity => BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(entity.Value)), 0);
+            GetEntityHash = entity => BitConverter.ToInt32(_murmurHash.Hash(Encoding.Unicode.GetBytes($"{entity.Id}::{entity.Value}")), 0);
             IdHashes = (id, hashCount) =>
             {
                 //generate the given number of hashes.
