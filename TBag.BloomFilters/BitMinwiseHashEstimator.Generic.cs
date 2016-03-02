@@ -199,16 +199,17 @@ namespace TBag.BloomFilters
                 var count = Math.Min(minHash1Length, minHash2Length);
                 var blockSize = count * bitSize;
                 unions = numHashFunctions * Math.Max(minHash1Length, minHash2Length) + elementCountDiff;
+                var idx = 0;
                 for (int i = 0; i < numHashFunctions; i++)
                 {
                     for (int j = 0; j < count; j++)
                     {
-                        var idx = (i * blockSize) + (bitSize * j);
                         if (bitRange
                             .All(b => minHashValues1.Get(idx + b) == minHashValues2.Get(idx + b)))
                         {
                             identicalMinHashes++;
                         }
+                        idx += bitSize;
                     }
                 }
             }
