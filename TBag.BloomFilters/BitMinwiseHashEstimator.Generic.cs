@@ -95,7 +95,7 @@ namespace TBag.BloomFilters
         {
             _hashValues = new BitArray(_bitSize * slots.GetLength(0) * slots.GetLength(1));
             var valueCount = slots.GetLength(1);
-            var blockSize = valueCount * _bitSize;
+            var idx = 0;
             for (var hashCount = 0; hashCount < slots.GetLength(0); hashCount++)
             {
                 for (var eltCount = 0; eltCount < valueCount ; eltCount++)
@@ -108,9 +108,10 @@ namespace TBag.BloomFilters
                         _hashValues.Set(idx + b, (byteValue[byteValueIdx] & (1 << (b%8))) != 0);
                         if (b > 0 && b % 8 == 0)
                         {
-                            byteValueIdx++;
+                            byteValueIdx = (byteValueIdx+1)%byteValue.Length;
                         }
                     }
+                    idx += _bitSize;
                 }
             }
         }
@@ -197,7 +198,6 @@ namespace TBag.BloomFilters
                 var minHash1Length = minHashValues1.Count / (bitSize * numHashFunctions);
                 var minHash2Length = minHashValues2.Count / (bitSize * numHashFunctions);
                 var count = Math.Min(minHash1Length, minHash2Length);
-                var blockSize = count * bitSize;
                 unions = numHashFunctions * Math.Max(minHash1Length, minHash2Length) + elementCountDiff;
                 var idx = 0;
                 for (int i = 0; i < numHashFunctions; i++)
