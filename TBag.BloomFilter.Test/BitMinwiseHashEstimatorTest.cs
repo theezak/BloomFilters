@@ -66,16 +66,16 @@ namespace TBag.BloomFilter.Test
             var data = DataGenerator.Generate().Take(100000).ToArray();
             var configuration = new SingleBucketBloomFilterConfiguration();
             var estimator = new BitMinwiseHashEstimator<TestEntity>(
-                int.MaxValue, 
+                int.MaxValue,
                 e => configuration.GetEntityHash(e),
                 e => configuration.IdHashes(configuration.GetId(e), 1).First(),
-                2, 
+                2,
                 50,
                 10000);
             estimator.Add(new HashSet<TestEntity>(data));
             var estimator2 = new BitMinwiseHashEstimator<TestEntity>(int.MaxValue, e => configuration.GetEntityHash(e),
                 e => configuration.IdHashes(configuration.GetId(e), 1).First(), 2, 50, 10000);
-            foreach(var elt in data.Take(1000))
+            foreach (var elt in data.Take(1000))
             {
                 elt.Id += 200000;
             }
@@ -84,7 +84,8 @@ namespace TBag.BloomFilter.Test
                 elt.Value += 10;
             }
             estimator2.Add(new HashSet<TestEntity>(data));
-            var differenceCount = 100000 - estimator.Similarity(estimator2)*100000;
+            var differenceCount = 100000 - estimator.Similarity(estimator2) * 100000;
+            Assert.IsTrue(differenceCount >= 2000 && differenceCount < 2450);
         }
     }
 }

@@ -102,7 +102,6 @@ namespace TBag.BloomFilters
                 {
                     var byteValue = BitConverter.GetBytes(slots[hashCount, eltCount]);
                     var byteValueIdx = 0;
-                    var idx = (hashCount * blockSize)+(eltCount* _bitSize);
                     for (int b = 0; b < _bitSize; b++)
                     {
                         _hashValues.Set(idx + b, (byteValue[byteValueIdx] & (1 << (b%8))) != 0);
