@@ -59,29 +59,29 @@ namespace TBag.BloomFilters
             var setA = new HashSet<TId>();
         var setB = new HashSet<TId>();
         var setC = new HashSet<TId>();
-            var missedStratas = 0;
+            int missedStratas = 0;
             for(int i = _strataFilters.Length-1; i >= 0; i--)
             {
                 var ibf = _strataFilters[i];
                 var estimatorIbf = estimator._strataFilters[i];
                 if (ibf == null && estimatorIbf == null) continue;
-                if (ibf == null || estimatorIbf == null)
+                if (missedStratas == 0 && (ibf == null || estimatorIbf == null))
                 {
                     //TODO: review this.
-                    missedStratas++;
+                    missedStratas = i+1;
                     continue;
                     // return (uint)(Math.Pow(2, i+1)*DecodeCountFactor*Math.Max(setA.Count + setB.Count + setC.Count, 1));
                 }
                 ibf.Subtract(estimatorIbf);
-                if (!ibf.Decode(setA, setB, setC))
+                if (!ibf.Decode(setA, setB, setC) && missedStratas == 0)
                 {
-                    missedStratas++;
+                    missedStratas = i + 1;
                     //TODO:review this
                     //return (uint)(Math.Pow(2, i+1) * DecodeCountFactor * Math.Max(setA.Count + setB.Count + setC.Count, 1));
                 }
                
             }
-            return (uint)(Math.Pow(2, missedStratas + 1) * DecodeCountFactor * (setA.Count + setB.Count + setC.Count));
+            return (uint)(Math.Pow(2, missedStratas) * DecodeCountFactor * (setA.Count + setB.Count + setC.Count));
         }
         
         private double DecodeCountFactor
