@@ -194,7 +194,7 @@ namespace TBag.BloomFilters
                 var minHash1Length = minHashValues1.Count / bitSize;
                 var minHash2Length = minHashValues2.Count / bitSize;
                 var count = Math.Min(minHash1Length, minHash2Length);
-                unions =  Math.Max(minHash1Length, minHash2Length) + Math.Abs(minHash1Length - minHash2Length);
+                unions =  Math.Max(minHash1Length, minHash2Length);
                 var idx = 0;
                 for (int i = 0; i < count; i++)
                 {
