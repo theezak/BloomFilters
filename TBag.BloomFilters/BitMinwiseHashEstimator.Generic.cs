@@ -9,48 +9,38 @@ namespace TBag.BloomFilters
     /// A b-bits min hash estimator.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class BitMinwiseHashEstimator<T>
+    /// /// <typeparam name="TId"></typeparam>
+    public class BitMinwiseHashEstimator<T,TId>
     {
         #region Fields
         private readonly int _hashCount;
-        private delegate int Hash(int item);
-        private readonly Hash[] m_hashFunctions;
+        private readonly Func<T, IEnumerable<int>> _hashFunctions;
+        private readonly Func<TId, int> _idHash;
         private BitArray _hashValues;
         private readonly byte _bitSize;
-        private readonly Func<T, int> _entityHash;
-        private readonly Func<T, int> _idHash;
+        private readonly IBloomFilterConfiguration<T, int, TId, int> _configuration;
         private readonly uint _capacity;
-        private long _elementCount;
+        private int[,] _slots;
         #endregion
 
         #region Constructor
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="universeSize">The range for hash values</param>
         /// <param name="entityMap">Map an entity to a numeric identifier/value</param>
         /// <param name="bitSize">The number of bits to store per hash</param>
         /// <param name="hashCount">The number of hash functions to use.</param>
         /// <remarks>By using bitSize = 1 or bitSize = 2, the accuracy is decreased, thus the hashCount needs to be increased. However, when resemblance is not too small, for example > 0.5, bitSize = 1 can yield similar results as bitSize = 64 with only 3 times the hash count.</remarks>
-        public BitMinwiseHashEstimator(int universeSize, Func<T, int> entityMap, Func<T,int> idMap, 
+        public BitMinwiseHashEstimator(IBloomFilterConfiguration<T,int,TId,int> configuration,
             byte bitSize, int hashCount, uint capacity)
         {
-            Debug.Assert(universeSize > 0);
             _bitSize = bitSize;
-            _hashCount = hashCount;
-            m_hashFunctions = new Hash[_hashCount];
-            _entityHash = entityMap;
-            _idHash = idMap;
             _capacity = capacity;
-            Random r = new Random(11);
-            for (int i = 0; i < _hashCount; i++)
-            {
-                uint a = (uint)r.Next(universeSize);
-                uint b = (uint)r.Next(universeSize);
-                uint c = (uint)r.Next(universeSize);
-                m_hashFunctions[i] = itm => QHash(itm, a, b, c, (uint)universeSize);
-
-            }
+            _hashCount = hashCount;
+            _configuration = configuration;
+            _hashFunctions = GenerateHashes();
+            _idHash = id => (int)(Math.Abs(configuration.IdHashes(id, 1).First())% _capacity);
+            _slots = GetMinHashSlots(_hashCount, _capacity);
         }
         #endregion
 
@@ -61,28 +51,23 @@ namespace TBag.BloomFilters
         /// <param name="set2"></param>
         /// <returns></returns>
         /// <remarks>Zero is no similarity, one is completely similar.</remarks>
-        public double Similarity(BitMinwiseHashEstimator<T> set2)
+        public double Similarity(BitMinwiseHashEstimator<T,TId> set2)
         {
+            Convert();
             if (set2 == null ||
-                set2._bitSize != _bitSize ||
-                set2.m_hashFunctions == null ||
-                m_hashFunctions == null ||
-                set2.m_hashFunctions.Length != m_hashFunctions.Length) return 0.0D;
-            return ComputeSimilarityFromSignatures(_hashValues, set2._hashValues, _hashCount, _bitSize,
-                Math.Abs(_elementCount - set2._elementCount));
+                set2._bitSize != _bitSize) return 0.0D;
+            set2.Convert();
+            return ComputeSimilarityFromSignatures(_hashValues, set2._hashValues, _hashCount, _bitSize);
         }
 
         /// <summary>
         /// Add the set to estimator.
         /// </summary>
         /// <param name="set1"></param>
-        public void Add(HashSet<T> set1)
+        public void Add(T item)
         {
-            Debug.Assert(set1.Count > 0);
-            var slots = GetMinHashSlots(_hashCount, _capacity);
-            ComputeMinHashForSet(slots, set1);
-            _elementCount += set1.LongCount();
-            Convert(slots);
+            Debug.Assert(item != null);
+            ComputeMinHash(item);
         }
         #endregion
 
@@ -90,17 +75,16 @@ namespace TBag.BloomFilters
         /// <summary>
         /// Convert array to bit array.
         /// </summary>
-        /// <param name="slots"></param>
-        private void Convert(int[,] slots)
+        private void Convert()
         {
-            _hashValues = new BitArray(_bitSize * slots.GetLength(0) * slots.GetLength(1));
-            var valueCount = slots.GetLength(1);
+            _hashValues = new BitArray(_bitSize * _slots.GetLength(0) * _slots.GetLength(1));
+            var valueCount = _slots.GetLength(1);
             var idx = 0;
-            for (var hashCount = 0; hashCount < slots.GetLength(0); hashCount++)
+            for (var hashCount = 0; hashCount < _slots.GetLength(0); hashCount++)
             {
                 for (var eltCount = 0; eltCount < valueCount ; eltCount++)
                 {
-                    var byteValue = BitConverter.GetBytes(slots[hashCount, eltCount]);
+                    var byteValue = BitConverter.GetBytes(_slots[hashCount, eltCount]);
                     var byteValueIdx = 0;
                     for (int b = 0; b < _bitSize; b++)
                     {
@@ -115,26 +99,43 @@ namespace TBag.BloomFilters
             }
         }
 
-        /// <summary>
-        /// Compute the hash for the given set.
-        /// </summary>
-        /// <param name="minHashValues"></param>
-        /// <param name="set1"></param>
-        private void ComputeMinHashForSet(int[,] minHashValues, HashSet<T> set1)
+        private Func<T,IEnumerable<int>> GenerateHashes()
         {
-            foreach(var element in set1)
-             {
-                 var idHash = _idHash(element)%_capacity;
-                var entityHash = _entityHash(element);
-                 for (int i = 0; i < _hashCount; i++)
-                 {
-                     int hindex = m_hashFunctions[i](entityHash);
-                     if (hindex < minHashValues[i, idHash])
-                     {
-                         minHashValues[i, idHash] = hindex;
-                     }
-                 }
-             };
+            var universeSize = int.MaxValue;
+            var bound = (uint)universeSize;
+            Random r = new Random(11);
+            var hashFuncs = new Func<int, int>[_hashCount];
+           for(int i = 0; i < _hashCount; i++)
+            {
+                uint a = (uint)r.Next(universeSize);
+                uint b = (uint)r.Next(universeSize);
+                uint c = (uint)r.Next(universeSize);
+               hashFuncs[i] = hash => QHash(hash, a, b, c, bound);
+
+            }
+            return entity =>
+            {
+                var entityHash = _configuration.GetEntityHash(entity);
+                return hashFuncs.Select(f => f(entityHash));
+            };
+        }
+
+
+    /// <summary>
+    /// Compute the hash for the given element.
+    /// </summary>
+    /// <param name="element"></param>
+    private void ComputeMinHash(T element)
+        {
+            var idhash = _idHash(_configuration.GetId(element));
+            var entityHashes = _hashFunctions(element).ToArray();
+            for(int i = 0; i < _hashCount; i++)
+            {
+                if (entityHashes[i]< _slots[i, idhash])
+                {
+                    _slots[i, idhash] = entityHashes[i];
+                }
+            }
         }
 
         /// <summary>
@@ -146,70 +147,63 @@ namespace TBag.BloomFilters
         private static int[,] GetMinHashSlots(int numHashFunctions, uint setSize)
         {
             var minHashValues = new int[numHashFunctions, setSize];
-            Enumerable
-                .Range(0, numHashFunctions - 1)
-                .ToArray()
-                .AsParallel()
-                .ForAll(i =>
-              {
-                  for (var j = 0; j < setSize; j++)
-                  {
-                      minHashValues[i, j] = Int32.MaxValue;
-                  }
-              });
+            for (uint i = 0; i < numHashFunctions; i++)
+            {
+                for (var j = 0; j < setSize; j++)
+                {
+                    minHashValues[i, j] = Int32.MaxValue;
+                }
+            }
             return minHashValues;
         }
 
-        /// <summary>
-        /// QHash.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <param name="c"></param>
-        /// <param name="bound"></param>
-        /// <returns></returns>
-        private static int QHash(int id, uint a, uint b, uint c, uint bound)
+    /// <summary>
+    /// QHash.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <param name="c"></param>
+    /// <param name="bound"></param>
+    /// <returns></returns>
+    private static int QHash(int id, uint a, uint b, uint c, uint bound)
+    {
+
+        //Modify the hash family as per the size of possible elements in a Set
+        int hashValue = (int)((a * (id >> 4) + b * id + c) & 131071);
+        return (int)(Math.Abs(hashValue) % bound);
+    }
+
+
+    /// <summary>
+    /// Compute similarity.
+    /// </summary>
+    /// <param name="minHashValues1"></param>
+    /// <param name="minHashValues2"></param>
+    /// <param name="numHashFunctions"></param>
+    /// <param name="bitSize"></param>
+    /// <returns></returns>
+    private static double ComputeSimilarityFromSignatures(BitArray minHashValues1, BitArray minHashValues2,
+            int numHashFunctions, byte bitSize)
         {
-
-            //Modify the hash family as per the size of possible elements in a Set
-            int hashValue = (int)((a * (id >> 4) + b * id + c) & 131071);
-            return (int)(Math.Abs(hashValue) % bound);
-        }
-
-
-        /// <summary>
-        /// Compute similarity.
-        /// </summary>
-        /// <param name="minHashValues1"></param>
-        /// <param name="minHashValues2"></param>
-        /// <param name="numHashFunctions"></param>
-        /// <param name="bitSize"></param>
-        /// <returns></returns>
-        private static double ComputeSimilarityFromSignatures(BitArray minHashValues1, BitArray minHashValues2,
-            int numHashFunctions, byte bitSize, long elementCountDiff)
-        {
-            int identicalMinHashes = 0;
+            uint identicalMinHashes = 0;
             var unions = (long)numHashFunctions;
             if (minHashValues1 != null && minHashValues2 != null)
             {
                 var bitRange = Enumerable.Range(0, bitSize).ToArray();
-                var minHash1Length = minHashValues1.Count / (bitSize * numHashFunctions);
-                var minHash2Length = minHashValues2.Count / (bitSize * numHashFunctions);
+                var minHash1Length = minHashValues1.Count / bitSize;
+                var minHash2Length = minHashValues2.Count / bitSize;
                 var count = Math.Min(minHash1Length, minHash2Length);
-                unions = numHashFunctions * Math.Max(minHash1Length, minHash2Length) + elementCountDiff;
+                unions =  Math.Max(minHash1Length, minHash2Length) + Math.Abs(minHash1Length - minHash2Length);
                 var idx = 0;
-                for (int i = 0; i < numHashFunctions; i++)
+                for (int i = 0; i < count; i++)
                 {
-                    for (int j = 0; j < count; j++)
+                    if (bitRange
+                        .All(b => minHashValues1.Get(idx + b) == minHashValues2.Get(idx + b)))
                     {
-                        if (bitRange
-                            .All(b => minHashValues1.Get(idx + b) == minHashValues2.Get(idx + b)))
-                        {
-                            identicalMinHashes++;
-                        }
-                        idx += bitSize;
+                        identicalMinHashes++;
                     }
+                    idx += bitSize;
                 }
             }
             return (1.0D * identicalMinHashes) / unions;

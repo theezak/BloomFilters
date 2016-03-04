@@ -52,6 +52,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="HybridEstimatorTest.cs" />
     <Compile Include="BitMinwiseHashEstimatorTest.cs" />
     <Compile Include="DataGenerator.cs" />
     <Compile Include="FillTest.cs" />

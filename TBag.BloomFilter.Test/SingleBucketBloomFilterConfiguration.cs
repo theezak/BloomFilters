@@ -22,7 +22,7 @@ namespace TBag.BloomFilter.Test
             IdHashes = (id, hashCount) =>
             {
                 //generate the given number of hashes.
-                var hash1 = BitConverter.ToInt32(_xxHash.Hash(BitConverter.GetBytes(id)), 0);
+                var hash1 = BitConverter.ToInt32(_xxHash.Hash(BitConverter.GetBytes(id), (uint)(Math.Abs(id % uint.MaxValue))), 0);
                 var hash2 = BitConverter.ToInt64(_murmurHash.Hash(BitConverter.GetBytes(id), (uint)hash1), 0).GetHashCode();
                 return computeHash(hash1, hash2, hashCount);
             };

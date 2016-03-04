@@ -46,6 +46,7 @@
     <Compile Include="Collections\BitArrayExtensions.cs" />
     <Compile Include="Domain\Entity.cs" />
     <Compile Include="Domain\Entity.Generic.cs" />
+    <Compile Include="HybridEstimator.cs" />
     <Compile Include="IBloomFilterConfiguration.Generic.cs" />
     <Compile Include="InvertibleBloomFilter.cs" />
     <Compile Include="BloomFilter.cs" />

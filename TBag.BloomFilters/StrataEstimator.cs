@@ -14,12 +14,11 @@ namespace TBag.BloomFilters
     /// <remarks>For higher strata's, MinWise gives a better accurace/size balance.</remarks>
     public class StrataEstimator<T, TId>
     {
-        private readonly Func<TId, int> _idHash;
-        private readonly Func<T, TId> _getEntityId;
+        protected readonly Func<TId, int> _idHash;
         private readonly int _capacity;
-        private readonly IDictionary<int, InvertibleBloomFilter<T, TId>> _strataFilters = 
+        protected readonly IDictionary<int, InvertibleBloomFilter<T, TId>> _strataFilters = 
             new Dictionary<int, InvertibleBloomFilter<T,TId>>();
-        private readonly IBloomFilterConfiguration<T, int, TId, int> _configuration;
+        protected readonly IBloomFilterConfiguration<T, int, TId, int> _configuration;
 
         /// <summary>
         /// Constructor
@@ -28,14 +27,21 @@ namespace TBag.BloomFilters
         public StrataEstimator(int capacity, IBloomFilterConfiguration<T,int,TId,int> configuration)
         {
             _idHash = id => configuration.IdHashes(id, 1).First();
-            _getEntityId = configuration.GetId;
             _capacity = capacity;
             _configuration = configuration;
         }
 
-        public void Add(T item)
+        /// <summary>
+        /// Add an item to strata filter.
+        /// </summary>
+        /// <param name="item"></param>
+        public virtual void Add(T item)
         {
-            var idx = NumTrailingBinaryZeros(_idHash(_getEntityId(item)));
+            Add(item, NumTrailingBinaryZeros(_idHash(_configuration.GetId(item))));
+        }
+
+        protected void Add(T item, int idx)
+        {
             var ibf = default(InvertibleBloomFilter<T, TId>);
             if (_strataFilters.TryGetValue(idx, out ibf))
             {
@@ -48,9 +54,9 @@ namespace TBag.BloomFilters
             }
         }
 
-        public int Decode(StrataEstimator<T, TId> estimator)
+        public virtual uint Decode(StrataEstimator<T, TId> estimator)
         {
-            var count = 0;
+            uint count = 0;
             if (estimator == null ||
                 estimator._capacity != _capacity ||
                 estimator._strataFilters.Count != _strataFilters.Count) return count;
@@ -63,16 +69,16 @@ namespace TBag.BloomFilters
                 var estimatorIbf = default(InvertibleBloomFilter<T, TId>);
                 if (!estimator._strataFilters.TryGetValue(ibfPair.Key, out estimatorIbf))
                 {
-                    return (int)(Math.Pow(2, i+1)*DecodeCountFactor*(setA.Count + setB.Count + setC.Count));
+                    return (uint)(Math.Pow(2, i+1)*DecodeCountFactor*Math.Max(setA.Count + setB.Count + setC.Count, 1));
                 }
                 ibfPair.Value.Subtract(estimatorIbf);
                 if (!ibfPair.Value.Decode(setA, setB, setC))
                 {
-                    return (int)(Math.Pow(2, i+1) * DecodeCountFactor * (setA.Count + setB.Count + setC.Count));
+                    return (uint)(Math.Pow(2, i+1) * DecodeCountFactor * Math.Max(setA.Count + setB.Count + setC.Count, 1));
                 }
                
             }
-            return (int)(DecodeCountFactor * (setA.Count + setB.Count + setC.Count));
+            return (uint)(DecodeCountFactor * (setA.Count + setB.Count + setC.Count));
         }
         
         private double DecodeCountFactor
@@ -83,7 +89,7 @@ namespace TBag.BloomFilters
             }
         }
 
-      private static int NumTrailingBinaryZeros(int n)
+      protected static int NumTrailingBinaryZeros(int n)
         {
             int mask = 1;
             for (int i = 0; i < 32; i++, mask <<= 1)

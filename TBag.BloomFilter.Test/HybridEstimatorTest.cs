@@ -8,12 +8,12 @@ using TBag.BloomFilters;
 namespace TBag.BloomFilter.Test
 {
     /// <summary>
-    /// Summary description for BitMinwiseHashEstimatorTest
+    /// Summary description for hybridEstimatorTest
     /// </summary>
     [TestClass]
-    public class BitMinwiseHashEstimatorTest
+    public class HybridEstimatorTest
     {
-        public BitMinwiseHashEstimatorTest()
+        public HybridEstimatorTest()
         {
             //
             // TODO: Add constructor logic here
@@ -65,26 +65,33 @@ namespace TBag.BloomFilter.Test
         {
             var data = DataGenerator.Generate().Take(100000).ToArray();
             var configuration = new SingleBucketBloomFilterConfiguration();
-            var estimator = new BitMinwiseHashEstimator<TestEntity, long>(
-               configuration,
+            var estimator = new HybridEstimator<TestEntity, long>(
+                80,
                 2,
                 50,
-                10000);
-            foreach(var element in data)
-            estimator.Add(element);
-            var estimator2 = new BitMinwiseHashEstimator<TestEntity,long>(configuration, 2, 50, 10000);
-            foreach (var elt in data.Take(1000))
+                (uint)data.Length,
+                7,
+               configuration);
+            foreach (var element in data)
+                estimator.Add(element);
+            var estimator2 = new HybridEstimator<TestEntity, long>(
+                80,
+                2,
+                50,
+                (uint)data.Length,
+                7,
+               configuration);
+            foreach (var elt in data.Take(20000))
             {
                 elt.Id += 200000;
             }
-            foreach (var elt in data.Skip(1000).Take(1000))
+            foreach (var elt in data.Skip(20000).Take(20000))
             {
                 elt.Value += 10;
             }
-            foreach(var element in data)
-            estimator2.Add(element);
-            var differenceCount = 100000 - estimator.Similarity(estimator2) * 100000;
-            Assert.IsTrue(differenceCount >= 2000 && differenceCount < 2500);
+            foreach (var element in data)
+                estimator2.Add(element);
+            var differenceCount = estimator.Decode(estimator2);
         }
     }
 }
