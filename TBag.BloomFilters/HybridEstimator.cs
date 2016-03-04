@@ -16,7 +16,6 @@ namespace TBag.BloomFilters
         private readonly BitMinwiseHashEstimator<T, TId> _minwiseEstimator;
         private readonly byte _maxStrata;
         private readonly uint _setSize;
-
         /// <summary>
         /// 
         /// </summary>
@@ -36,8 +35,8 @@ namespace TBag.BloomFilters
             IBloomFilterConfiguration<T, int, TId, int> configuration) :
             base(capacity, configuration)
         {
-            _maxStrata = maxStrata;
-            _setSize = setSize;
+            _maxStrata = Math.Min(_maxTrailingZeros, maxStrata);
+            _setSize = setSize*((uint)_maxTrailingZeros - _maxStrata)/_maxTrailingZeros;
             _minwiseEstimator = new BitMinwiseHashEstimator<T, TId>(configuration, bitSize, minWiseHashCount, setSize);
         }
 
@@ -48,11 +47,14 @@ namespace TBag.BloomFilters
         public override void Add(T item)
         {
             var idx = NumTrailingBinaryZeros(_idHash(_configuration.GetId(item)));
-            if (_strataFilters.Keys.Count < _maxStrata || _strataFilters.Keys.Contains(idx))
+            if (idx < _maxStrata)
             {
                 base.Add(item, idx);
             }
-            _minwiseEstimator.Add(item);
+            else
+            {
+                _minwiseEstimator.Add(item);
+            }
         }
 
         /// <summary>
