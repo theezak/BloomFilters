@@ -67,12 +67,12 @@ namespace TBag.BloomFilter.Test
             var configuration = new SingleBucketBloomFilterConfiguration();
             var estimator = new BitMinwiseHashEstimator<TestEntity, long>(
                configuration,
-                2,
-                50,
+               2,
+               5,
                 10000);
             foreach(var element in data)
             estimator.Add(element);
-            var estimator2 = new BitMinwiseHashEstimator<TestEntity,long>(configuration, 2, 50, 10000);
+            var estimator2 = new BitMinwiseHashEstimator<TestEntity,long>(configuration, 2, 5, 10000);
             foreach (var elt in data.Take(1000))
             {
                 elt.Id += 200000;
@@ -81,10 +81,11 @@ namespace TBag.BloomFilter.Test
             {
                 elt.Value += 10;
             }
-            foreach(var element in data)
+            foreach(var element in data.Reverse())
+                //just making sure we do not depend upon the order of adding things.
             estimator2.Add(element);
             var differenceCount = 100000 - estimator.Similarity(estimator2) * 100000;
-            Assert.IsTrue(differenceCount >= 2000 && differenceCount < 2500);
+            Assert.IsTrue(differenceCount >= 2000 && differenceCount < 2550);
         }
     }
 }

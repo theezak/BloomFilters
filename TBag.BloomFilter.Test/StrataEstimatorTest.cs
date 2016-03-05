@@ -28,7 +28,9 @@ namespace TBag.BloomFilter.Test
                 testData.Remove(remove);
             }
             var estimator2 = new StrataEstimator<TestEntity, long>(80, configuration);
-            foreach (var itm in testData)
+            testData.Reverse();
+            //just making sure we do not depend upon the order of adding things.
+            foreach (var itm in testData) 
             {
                 estimator2.Add(itm);
             }

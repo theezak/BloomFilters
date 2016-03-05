@@ -56,9 +56,7 @@ namespace TBag.BloomFilters
             if (estimator == null ||
                 estimator._capacity != _capacity ||
                 estimator._strataFilters.Length != _strataFilters.Length) return count;
-            var setA = new HashSet<TId>();
-        var setB = new HashSet<TId>();
-        var setC = new HashSet<TId>();
+            var setA = new HashSet<TId>();       
             int missedStratas = 0;
             for(int i = _strataFilters.Length-1; i >= 0; i--)
             {
@@ -68,27 +66,27 @@ namespace TBag.BloomFilters
                 if (missedStratas == 0 && (ibf == null || estimatorIbf == null))
                 {
                     //TODO: review this.
-                    missedStratas = i+1;
-                    continue;
-                    // return (uint)(Math.Pow(2, i+1)*DecodeCountFactor*Math.Max(setA.Count + setB.Count + setC.Count, 1));
+                    //missedStratas = i+1;
+                    //continue;
+                     return (uint)(Math.Pow(2, i+1)*DecodeCountFactor*Math.Max(setA.Count, 1));
                 }
                 ibf.Subtract(estimatorIbf);
-                if (!ibf.Decode(setA, setB, setC) && missedStratas == 0)
+                if (!ibf.Decode(setA, setA, setA) && missedStratas == 0)
                 {
-                    missedStratas = i + 1;
+                    //missedStratas = i + 1;
                     //TODO:review this
-                    //return (uint)(Math.Pow(2, i+1) * DecodeCountFactor * Math.Max(setA.Count + setB.Count + setC.Count, 1));
+                    return (uint)(Math.Pow(2, i+1) * DecodeCountFactor * Math.Max(setA.Count, 1));
                 }
                
             }
-            return (uint)(Math.Pow(2, missedStratas) * DecodeCountFactor * (setA.Count + setB.Count + setC.Count));
+            return (uint)(Math.Pow(2, missedStratas) * DecodeCountFactor * setA.Count);
         }
         
-        private double DecodeCountFactor
+       protected virtual double DecodeCountFactor
         {
             get
             {
-                return _capacity > 80 ? 1.39D : 1.0D;
+                return _capacity >= 20? 1.39D : 1.0D;
             }
         }
 

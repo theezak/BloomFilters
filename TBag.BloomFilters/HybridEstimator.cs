@@ -14,9 +14,11 @@ namespace TBag.BloomFilters
     public class HybridEstimator<T, TId> : StrataEstimator<T, TId>
     {
         private readonly BitMinwiseHashEstimator<T, TId> _minwiseEstimator;
-        private readonly byte _maxStrata;
+        private readonly int _maxStrata;
+        private readonly int _capacity;
         private readonly uint _setSize;
-        /// <summary>
+
+          /// <summary>
         /// 
         /// </summary>
         /// <param name="capacity">Capacity for strata estimator (good default is 80)</param>
@@ -35,11 +37,12 @@ namespace TBag.BloomFilters
             IBloomFilterConfiguration<T, int, TId, int> configuration) :
             base(capacity, configuration)
         {
-            _maxStrata = Math.Min(_maxTrailingZeros, maxStrata);
+            _capacity = capacity;
+            _maxStrata = maxStrata;
             var max = Math.Pow(2, _maxTrailingZeros);
-            var inMinWise = Math.Pow(2, _maxTrailingZeros - _maxStrata);
+            var inStrata = max - Math.Pow(2, _maxTrailingZeros - maxStrata);
             //TODO: clean up math.
-            _setSize = (uint)(setSize * inMinWise / max);
+            _setSize = (uint)(setSize * (1-(inStrata / max)));
             _minwiseEstimator = new BitMinwiseHashEstimator<T, TId>(configuration, bitSize, minWiseHashCount, _setSize);
         }
 
@@ -59,6 +62,8 @@ namespace TBag.BloomFilters
                 _minwiseEstimator.Add(item);
             }
         }
+
+        protected override double DecodeCountFactor => _capacity >= 20 ? 1.45D : 1.0D;
 
         /// <summary>
         /// Decode the given hybrid estimator.

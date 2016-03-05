@@ -1,4 +1,6 @@
 ﻿
+using System.Globalization;
+
 namespace TBag.BloomFilters
 {
     using System;
@@ -95,6 +97,17 @@ namespace TBag.BloomFilters
         #endregion
 
         #region Implementation of Bloom Filter public contract
+
+        public long Count
+        {
+            get
+            {
+                return
+                    Enumerable.Range(0, Counts.GetLength(0))
+                        .SelectMany(i => Enumerable.Range(0, Counts.GetLength(1)).Select(j => Counts[i, j]))
+                        .Sum()/hashFunctionCount;
+            }
+        }
         public void Add(T item)
         {
             var id = _configuration.GetId(item);

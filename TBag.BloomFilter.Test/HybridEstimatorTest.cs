@@ -63,33 +63,40 @@ namespace TBag.BloomFilter.Test
         [TestMethod]
         public void BasicFillAndEstimate()
         {
-            var data = DataGenerator.Generate().Take(100000).ToArray();
+            var data = DataGenerator.Generate().Take(200000).ToArray();
             var configuration = new SingleBucketBloomFilterConfiguration();
             var estimator = new HybridEstimator<TestEntity, long>(
-                80,
-                2,
+                220,
+               /* quick initial testing shows:
+                220 can handle a 100% error rate on 200000 elements
+                160 can handle a 100% error rate on 100000
+                80 can handle 10% error rate on 100000
+                15 can handle 0.25% error rate on 100000 
+                But the whole point is to explore this. The idea is: if this estimate results in an actual bloom filter that doesn't decode, increase this number on the estimator, estimate again and decode again.*/
+               1,
                 50,
                 (uint)data.Length,
-                7,
+            7,
                configuration);
             foreach (var element in data)
                 estimator.Add(element);
             var estimator2 = new HybridEstimator<TestEntity, long>(
-                80,
-                2,
+                220,
+               1,
                 50,
                 (uint)data.Length,
-                7,
+              7,
                configuration);
-            foreach (var elt in data.Take(20000))
+            foreach (var elt in data.Take(100000))
             {
-                elt.Id += 200000;
+                elt.Id += 1000000;
             }
-            foreach (var elt in data.Skip(20000).Take(20000))
+            foreach (var elt in data.Skip(100000).Take(100000))
             {
                 elt.Value += 10;
             }
-            foreach (var element in data)
+            foreach (var element in data.Reverse())
+                //just making sure we do not depend upon the order of adding things.
                 estimator2.Add(element);
             var differenceCount = estimator.Decode(estimator2);
         }
