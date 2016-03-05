@@ -43,7 +43,7 @@ namespace TBag.BloomFilters
             var inStrata = max - Math.Pow(2, _maxTrailingZeros - maxStrata);
             //TODO: clean up math.
             _setSize = (uint)(setSize * (1-(inStrata / max)));
-            _minwiseEstimator = new BitMinwiseHashEstimator<T, TId>(configuration, bitSize, minWiseHashCount, _setSize);
+            _minwiseEstimator = new BitMinwiseHashEstimator<T, TId>(configuration, bitSize, minWiseHashCount, Math.Max(_setSize,1));
         }
 
         /// <summary>

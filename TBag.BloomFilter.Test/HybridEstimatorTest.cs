@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using TBag.BloomFilters;
+using System.IO;
 
 namespace TBag.BloomFilter.Test
 {
@@ -59,6 +60,55 @@ namespace TBag.BloomFilter.Test
         // public void MyTestCleanup() { }
         //
         #endregion
+
+       // [TestMethod]
+        public void HybridEstimatorPerformanceMeasurement()
+        {
+            var configuration = new SingleBucketBloomFilterConfiguration();
+            var testSizes = new int[] { 1000, 10000, 100000, 250000, 500000, 1000000 };
+            var errorSizes = new int[] { 0, 1, 5, 10, 20, 50, 75, 100 };
+            var capacities = new int[] { 15, 50, 100, 250, 1000, 2000 };
+            var stratas = new byte[] { 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 32 };
+            foreach (var dataSize in testSizes)
+            {
+                foreach (var capacity in capacities)
+                {
+                    foreach (var strata in stratas)
+                    {
+                        using (var writer = new StreamWriter(System.IO.File.Open($"hybridestimator-{dataSize}-{capacity}-{strata}.csv", FileMode.Create)))
+                        {
+                            writer.WriteLine("duration,dataSize,strata,capacity,modCount,estimatedModCount,countDiff");
+                            foreach (var errorSize in errorSizes)
+                            {
+
+                                var testData = DataGenerator.Generate().Take(dataSize).ToList();
+                                var modCount = (int)((dataSize / 100.0D) * errorSize);
+                                var testData2 = DataGenerator.Generate().Take(dataSize).ToList();
+                                DataGenerator.Modify(testData2, modCount);
+                                var startTime = DateTime.UtcNow;
+                                var estimator1 = new HybridEstimator<TestEntity, long>(capacity, 2, 30, (uint)testData.Count, strata, configuration);
+                                foreach (var item in testData)
+                                {
+                                    estimator1.Add(item);
+                                }
+                                var estimator2 = new HybridEstimator<TestEntity, long>(capacity, 2, 30, (uint)testData2.Count, strata, configuration);
+                                foreach (var item in testData2)
+                                {
+                                    estimator2.Add(item);
+                                }
+                                var measuredModCount = estimator1.Decode(estimator2);
+                                var time = DateTime.UtcNow.Subtract(startTime);
+                                writer.WriteLine($"{time.TotalMilliseconds},{dataSize},{strata},{capacity},{modCount},{measuredModCount},{ measuredModCount-modCount}");
+                            }
+                        }
+                    }
+                }
+
+            }
+        
+
+        }
+
 
         [TestMethod]
         public void BasicFillAndEstimate()

@@ -98,16 +98,10 @@ namespace TBag.BloomFilters
 
         #region Implementation of Bloom Filter public contract
 
-        public long Count
-        {
-            get
-            {
-                return
-                    Enumerable.Range(0, Counts.GetLength(0))
-                        .SelectMany(i => Enumerable.Range(0, Counts.GetLength(1)).Select(j => Counts[i, j]))
-                        .Sum()/hashFunctionCount;
-            }
-        }
+     /// <summary>
+     /// Add an item to the Bloom filter.
+     /// </summary>
+     /// <param name="item"></param>
         public void Add(T item)
         {
             var id = _configuration.GetId(item);
@@ -135,18 +129,6 @@ namespace TBag.BloomFilters
                 Remove(id, hashValue, row, position);
                 if (_configuration.SplitByHash) row++;
             }
-        }
-
-        /// <summary>
-        /// Add a new item at the given position in the filter.
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="position"></param>
-        private void Add(TId id, int valueHash, int row, int position)
-        {
-            Counts[row,position]++;
-            IdSums[row,position] = _configuration.IdXor(IdSums[row,position], id);
-            hashSums[row,position] = _configuration.EntityHashXor(hashSums[row,position], valueHash);
         }
 
         /// <summary>
@@ -280,6 +262,18 @@ namespace TBag.BloomFilters
         #endregion
 
         #region Methods
+        /// <summary>
+        /// Add a new item at the given position in the filter.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="position"></param>
+        private void Add(TId id, int valueHash, int row, int position)
+        {
+            Counts[row, position]++;
+            IdSums[row, position] = _configuration.IdXor(IdSums[row, position], id);
+            hashSums[row, position] = _configuration.EntityHashXor(hashSums[row, position], valueHash);
+        }
+
         private bool IsPure(int row, int position)
         {
             return Math.Abs(Counts[row, position]) == 1;
@@ -316,29 +310,5 @@ namespace TBag.BloomFilters
                 return (float)Math.Pow(0.6185, int.MaxValue / capacity); // http://www.cs.princeton.edu/courses/archive/spring02/cs493/lec7.pdf
         }
         #endregion
-
-
-        ///// <summary>
-        ///// Hashes a string using Bob Jenkin's "One At A Time" method from Dr. Dobbs (http://burtleburtle.net/bob/hash/doobs.html).
-        ///// Runtime is suggested to be 9x+9, where x = input.Length. 
-        ///// </summary>
-        ///// <param name="input">The string to hash.</param>
-        ///// <returns>The hashed result.</returns>
-        //private static int hashString(T input)
-        //{
-        //    string s = input as string;
-        //    int hash = 0;
-
-        //    for (int i = 0; i < s.Length; i++)
-        //    {
-        //        hash += s[i];
-        //        hash += (hash << 10);
-        //        hash ^= (hash >> 6);
-        //    }
-        //    hash += (hash << 3);
-        //    hash ^= (hash >> 11);
-        //    hash += (hash << 15);
-        //    return hash;
-        //}
     }
 }
