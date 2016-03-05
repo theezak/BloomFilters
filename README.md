@@ -2,6 +2,7 @@
 Bloom filters focused on detecting set differences. Written in C#.
 
 This work is in very early stages, exploring options, performance and characteristics.  The first approach is based upon invertible Bloom filters, as described in http://conferences.sigcomm.org/sigcomm/2011/papers/sigcomm/p218.pdf . A Bloom filter is presented that with a substraction operation to determine the difference between two Bloom filters. Although the article presents a Bloom filter that stores key/value paris, the decode algorithm presented does not actually detect changes in the value. The following additions were made in this implementation to account for this:
+
 1. Any pure items that after substraction have count zero, but do not have zero for the value hash, will have their Id added to the set of differences.
 2. During decoding, a list will be kept of all locations that have the Id of a pure item substracted. If any of the locations finally become pure, but have a hash value that does not zero out, all identifiers in the list for that location will be added to the set of differences. Note that items that have not changed might be added, but any of the items is a potential candidate for causing the mismatch.
 
