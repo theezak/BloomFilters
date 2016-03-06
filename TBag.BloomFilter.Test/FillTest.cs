@@ -16,7 +16,7 @@ namespace TBag.BloomFilter.Test
             var addSize = 100000;
             var testData = DataGenerator.Generate().Take(addSize).ToArray();
            var errorRate = 0.02F;
-            var size = testData.Length;
+            var size = (ulong)testData.Length;
             var configuration = new SingleBucketBloomFilterConfiguration();
             configuration.SplitByHash = true;
             var bloomFilter = new InvertibleBloomFilter<TestEntity, long>(size, errorRate, configuration);
@@ -51,7 +51,7 @@ namespace TBag.BloomFilter.Test
             var addSize = 100000;
             var testData = DataGenerator.Generate().Take(addSize).ToArray();
             var errorRate = 0.02F;
-            var size = testData.Length;
+            ulong size = (ulong)testData.LongLength;
             var configuration = new SingleBucketBloomFilterConfiguration();
             configuration.SplitByHash = true;
             var bloomFilter = new InvertibleBloomFilter<TestEntity, long>(size, errorRate, configuration);

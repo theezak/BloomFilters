@@ -11,23 +11,24 @@ namespace TBag.BloomFilter.Test
     [TestClass]
     public class StrataEstimatorTest
     {
-       // [TestMethod]
+      // [TestMethod]
         public void StrataEstimatorPerformanceMeasurement()
         {
             var configuration = new SingleBucketBloomFilterConfiguration();
-            var testSizes = new int[] { 1000, 10000, 100000, 250000, 500000, 1000000 };
+            var testSizes = new int[] { 1000, 10000, 100000,  500000 };
             var errorSizes = new int[] { 0, 1, 5, 10, 20, 50, 75, 100 };
-            var capacities = new int[] { 15, 50, 100, 250, 1000, 2000 };
+            var capacities = new ulong[] { 15, 100, 1000 };
             foreach (var dataSize in testSizes)
             {
                
-                    foreach (var capacity in capacities)
-                    {
-                    using (var writer = new StreamWriter(System.IO.File.Open($"trataestimator-{dataSize}-{capacity}.csv", FileMode.Create)))
+                    using (var writer = new StreamWriter(System.IO.File.Open($"trataestimator-{dataSize}.csv", FileMode.Create)))
                     {
                         writer.WriteLine("duration,dataSize,capacity,modCount,estimatedModCount,modDiff");
-                        foreach (var errorSize in errorSizes)
-                        {
+                    foreach (var errorSize in errorSizes)
+                    {
+                        foreach (var capacity in capacities)
+                    {
+                      
                             var testData = DataGenerator.Generate().Take(dataSize).ToList();
                             var modCount = (int)((dataSize / 100.0D) * errorSize);
                             var testData2 = DataGenerator.Generate().Take(dataSize).ToList();

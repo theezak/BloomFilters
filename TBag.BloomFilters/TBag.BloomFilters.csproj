@@ -32,6 +32,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -47,6 +48,7 @@
     <Compile Include="Domain\Entity.cs" />
     <Compile Include="Domain\Entity.Generic.cs" />
     <Compile Include="HybridEstimator.cs" />
+    <Compile Include="HybridEstimatorFactory..cs" />
     <Compile Include="IBloomFilterConfiguration.Generic.cs" />
     <Compile Include="InvertibleBloomFilter.cs" />
     <Compile Include="BloomFilter.cs" />

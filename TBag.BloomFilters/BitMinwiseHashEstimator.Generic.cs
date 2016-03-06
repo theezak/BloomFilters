@@ -5,6 +5,23 @@ namespace TBag.BloomFilters
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Runtime.Serialization;
+
+    [DataContract, Serializable]
+    public class BitMinwiseHashEstimatorData
+    {
+        [DataMember(Order = 1)]
+        public byte BitSize { get; set; }
+
+        [DataMember(Order = 2)]
+        public ulong Capacity { get; set; }
+
+        [DataMember(Order = 3)]
+        public int HashCount { get; set; }
+
+        [DataMember(Order = 4)]
+        public byte[] Values { get; set; }
+    }
     /// <summary>
     /// A b-bits min hash estimator.
     /// </summary>
@@ -15,11 +32,11 @@ namespace TBag.BloomFilters
         #region Fields
         private readonly int _hashCount;
         private readonly Func<T, IEnumerable<int>> _hashFunctions;
-        private readonly Func<TId, int> _idHash;
+        private readonly Func<TId, long> _idHash;
         private BitArray _hashValues;
         private readonly byte _bitSize;
-        private readonly IBloomFilterConfiguration<T, int, TId, int> _configuration;
-        private readonly uint _capacity;
+        private readonly IBloomFilterConfiguration<T, int, TId,long> _configuration;
+        private readonly ulong _capacity;
         private int[,] _slots;
         #endregion
 
@@ -31,15 +48,15 @@ namespace TBag.BloomFilters
         /// <param name="bitSize">The number of bits to store per hash</param>
         /// <param name="hashCount">The number of hash functions to use.</param>
         /// <remarks>By using bitSize = 1 or bitSize = 2, the accuracy is decreased, thus the hashCount needs to be increased. However, when resemblance is not too small, for example > 0.5, bitSize = 1 can yield similar results as bitSize = 64 with only 3 times the hash count.</remarks>
-        public BitMinwiseHashEstimator(IBloomFilterConfiguration<T,int,TId,int> configuration,
-            byte bitSize, int hashCount, uint capacity)
+        public BitMinwiseHashEstimator(IBloomFilterConfiguration<T,int,TId,long> configuration,
+            byte bitSize, int hashCount, ulong capacity)
         {
             _bitSize = bitSize;
             _capacity = capacity;
             _hashCount = hashCount;
             _configuration = configuration;
             _hashFunctions = GenerateHashes();
-            _idHash = id => (int)(Math.Abs(configuration.IdHashes(id, 1).First())% _capacity);
+            _idHash = id => (Math.Abs(configuration.IdHashes(id, 1).First()))% (long)_capacity;
             _slots = GetMinHashSlots(_hashCount, _capacity);
         }
         #endregion
@@ -68,6 +85,17 @@ namespace TBag.BloomFilters
         {
             Debug.Assert(item != null);
             ComputeMinHash(item);
+        }
+
+        public BitMinwiseHashEstimatorData Extract()
+        {
+            return new BitMinwiseHashEstimatorData
+            {
+                 BitSize = _bitSize,
+                 Capacity = _capacity,
+                  HashCount = _hashCount,
+                  Values = _hashValues.ToBytes().ToArray()
+            };
         }
         #endregion
 
@@ -144,12 +172,12 @@ namespace TBag.BloomFilters
         /// <param name="numHashFunctions"></param>
         /// <param name="setSize"></param>
         /// <returns></returns>
-        private static int[,] GetMinHashSlots(int numHashFunctions, uint setSize)
+        private static int[,] GetMinHashSlots(int numHashFunctions, ulong setSize)
         {
             var minHashValues = new int[numHashFunctions, setSize];
             for (uint i = 0; i < numHashFunctions; i++)
             {
-                for (var j = 0; j < setSize; j++)
+                for (ulong j = 0; j < setSize; j++)
                 {
                     minHashValues[i, j] = Int32.MaxValue;
                 }

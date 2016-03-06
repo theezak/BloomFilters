@@ -61,26 +61,28 @@ namespace TBag.BloomFilter.Test
         //
         #endregion
 
-       // [TestMethod]
+        //[TestMethod]
         public void HybridEstimatorPerformanceMeasurement()
         {
             var configuration = new SingleBucketBloomFilterConfiguration();
-            var testSizes = new int[] { 1000, 10000, 100000, 250000, 500000, 1000000 };
+            var testSizes = new int[] { 1000, 10000, 100000, 500000 };
             var errorSizes = new int[] { 0, 1, 5, 10, 20, 50, 75, 100 };
-            var capacities = new int[] { 15, 50, 100, 250, 1000, 2000 };
-            var stratas = new byte[] { 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 32 };
+            var capacities = new ulong[] { 15, 100, 1000 };
+            var stratas = new byte[] { 3, 7, 13,  19, 25, 32 };
             foreach (var dataSize in testSizes)
             {
-                foreach (var capacity in capacities)
-                {
-                    foreach (var strata in stratas)
+              
+                    foreach (var errorSize in errorSizes)
                     {
-                        using (var writer = new StreamWriter(System.IO.File.Open($"hybridestimator-{dataSize}-{capacity}-{strata}.csv", FileMode.Create)))
+                        using (var writer = new StreamWriter(System.IO.File.Open($"hybridestimator-{dataSize}-{errorSize}.csv", FileMode.Create)))
                         {
                             writer.WriteLine("duration,dataSize,strata,capacity,modCount,estimatedModCount,countDiff");
-                            foreach (var errorSize in errorSizes)
-                            {
 
+                        foreach (var capacity in capacities)
+                        {
+                            foreach (var strata in stratas)
+                    {
+                        
                                 var testData = DataGenerator.Generate().Take(dataSize).ToList();
                                 var modCount = (int)((dataSize / 100.0D) * errorSize);
                                 var testData2 = DataGenerator.Generate().Take(dataSize).ToList();
@@ -98,7 +100,7 @@ namespace TBag.BloomFilter.Test
                                 }
                                 var measuredModCount = estimator1.Decode(estimator2);
                                 var time = DateTime.UtcNow.Subtract(startTime);
-                                writer.WriteLine($"{time.TotalMilliseconds},{dataSize},{strata},{capacity},{modCount},{measuredModCount},{ measuredModCount-modCount}");
+                                writer.WriteLine($"{time.TotalMilliseconds},{dataSize},{strata},{capacity},{modCount},{measuredModCount},{ measuredModCount-(ulong)modCount}");
                             }
                         }
                     }

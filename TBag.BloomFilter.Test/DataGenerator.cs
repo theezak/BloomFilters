@@ -21,29 +21,34 @@ namespace TBag.BloomFilter.Test
         internal static void Modify(this IList<TestEntity> entities, int changeCount)
         {
             if (entities == null || changeCount == 0) return;
+            var added = new List<TestEntity>();
             var idSeed = long.MaxValue;
             var random = new MersenneTwister();
             var rand = new Random(11);
+            var eIndex = 0;
             for(int i=0; i < changeCount; i++)
             {
                 var operation = random.NextInt32() % 3;
-                if (operation == 0)
+                if (operation == 0 && eIndex < entities.Count)
                 {
                     var index = rand.Next(0, entities.Count - 1);
-                    entities.RemoveAt(index);
+                    entities.RemoveAt(eIndex);
                 }
-                else if (operation == 1)
+                else if (operation==1 && eIndex < entities.Count)
                 {
-                    entities.Add(new TestEntity { Id = idSeed, Value = random.NextInt32() });
+                    entities[eIndex++].Value = random.NextInt32();
+                }
+                else 
+                {
+                    added.Add(new TestEntity { Id = idSeed, Value = random.NextInt32() });
                     idSeed--;
                 }
-                else
-                {
-                    var index = rand.Next(0, entities.Count - 1);
-                    entities[index].Value = random.NextInt32();
-                }
+               
             }
-
+            foreach (var itm in added)
+            {
+                entities.Add(itm);
+            }
         }
     }
 }

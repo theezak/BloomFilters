@@ -1,11 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace TBag.BloomFilters
 {
+    [DataContract, Serializable]
+    public class HybridEstimatorData<TId>
+    {
+        /// <summary>
+        /// The capacity
+        /// </summary>
+        [DataMember(Order = 1)]
+        public ulong Capacity { get; set; }
+
+        [DataMember(Order = 2)]
+        public StrataEstimatorData<TId> StrataEstimator { get; set; }
+
+        [DataMember(Order = 3)]
+        public int StrataCount { get; set; }
+
+        [DataMember(Order = 4)]
+        public BitMinwiseHashEstimatorData BitMinwiseEstimator { get; set; }
+    }
+
     /// <summary>
     /// A hybrid estimator with a limited strata that cuts over to a bit minwise estimator.
     /// </summary>
@@ -15,8 +35,8 @@ namespace TBag.BloomFilters
     {
         private readonly BitMinwiseHashEstimator<T, TId> _minwiseEstimator;
         private readonly int _maxStrata;
-        private readonly int _capacity;
-        private readonly uint _setSize;
+        private readonly ulong _capacity;
+        private readonly ulong _setSize;
 
           /// <summary>
         /// 
@@ -29,12 +49,12 @@ namespace TBag.BloomFilters
         /// <param name="configuration">The configuration</param>
         /// <remarks>TODO: clean up configuration</remarks>
         public HybridEstimator(
-            int capacity,
+            ulong capacity,
             byte bitSize,
             int minWiseHashCount,
-            uint setSize,
+            ulong setSize,
             byte maxStrata,
-            IBloomFilterConfiguration<T, int, TId, int> configuration) :
+            IBloomFilterConfiguration<T, int, TId, long> configuration) :
             base(capacity, configuration)
         {
             _capacity = capacity;
@@ -63,6 +83,21 @@ namespace TBag.BloomFilters
             }
         }
 
+        /// <summary>
+        /// Extract the hybrid estimator in a serializable format.
+        /// </summary>
+        /// <returns></returns>
+        public HybridEstimatorData<TId> ExtractHybrid()
+        {
+            return new HybridEstimatorData<TId>
+            {
+                Capacity = _capacity,
+                BitMinwiseEstimator = _minwiseEstimator.Extract(),
+                StrataEstimator = Extract(),
+                StrataCount = _maxStrata
+            };
+        }
+
         protected override double DecodeCountFactor => _capacity >= 20 ? 1.45D : 1.0D;
 
         /// <summary>
@@ -70,10 +105,10 @@ namespace TBag.BloomFilters
         /// </summary>
         /// <param name="estimator"></param>
         /// <returns></returns>
-        public uint Decode(HybridEstimator<T, TId> estimator)
+        public ulong Decode(HybridEstimator<T, TId> estimator)
         {
             var strataSize = base.Decode(estimator);
-            var minWiseSize =  (uint)(_setSize - (_minwiseEstimator.Similarity(estimator._minwiseEstimator) * _setSize));
+            var minWiseSize =  (ulong)(_setSize - (_minwiseEstimator.Similarity(estimator._minwiseEstimator) * _setSize));
             return strataSize + minWiseSize;
         }
     }
