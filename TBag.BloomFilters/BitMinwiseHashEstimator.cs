@@ -5,8 +5,7 @@ namespace TBag.BloomFilters
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Runtime.Serialization;
-
+ 
     /// <summary>
     /// A b-bits min hash estimator.
     /// </summary>

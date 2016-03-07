@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Interface for an invertible Bloom filter.
     /// </summary>
@@ -25,9 +25,9 @@ namespace TBag.BloomFilters
         /// <summary>
         /// Decode the Bloom filter.
         /// </summary>
-        /// <param name="listA"></param>
-        /// <param name="listB"></param>
-        /// <param name="modifiedEntities"></param>
+        /// <param name="listA">identifiers of entities in this filter, but not in the subtracted filter.</param>
+        /// <param name="listB">identifiers of ntities in the subtracted filter, but not in this filter.</param>
+        /// <param name="modifiedEntities">identifiers of entities in both filters, but with a different value.</param>
         /// <returns></returns>
         /// <remarks>Currently destructive.</remarks>
         bool Decode(HashSet<TId> listA, HashSet<TId> listB, HashSet<TId> modifiedEntities);
@@ -53,8 +53,8 @@ namespace TBag.BloomFilters
         /// <summary>
         /// Subtract two Bloom filters 
         /// </summary>
-        /// <param name="filter"></param>
-        /// <param name="idsWithChanges"></param>
+        /// <param name="filter">The Bloom filter to subtract.</param>
+        /// <param name="idsWithChanges">identifiers of entities recognized to be in both sets of identifiers, but with a different value.</param>
         /// <remarks>Result is the difference between the two Bloom filters</remarks>
         void Subtract(InvertibleBloomFilter<T, TId> filter, HashSet<TId> idsWithChanges = null);
 

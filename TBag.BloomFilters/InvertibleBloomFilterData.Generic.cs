@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters
 {
+    using System;
+    using System.Runtime.Serialization;
+
+    /// <summary>
+    /// Implementation of <see cref="IInvertibleBloomFilterData{TId}"/>
+    /// </summary>
+    /// <typeparam name="TId"></typeparam>
     [DataContract, Serializable]
     public class InvertibleBloomFilterData<TId> : IInvertibleBloomFilterData<TId>
     {

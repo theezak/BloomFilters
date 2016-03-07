@@ -46,6 +46,7 @@ namespace TBag.BloomFilters
             }
             return result;
         }
+
         /// <summary>
         /// Add an item to strata filter.
         /// </summary>
@@ -85,16 +86,11 @@ namespace TBag.BloomFilters
                 if (ibf == null && estimatorIbf == null) continue;
                 if (missedStratas == 0 && (ibf == null || estimatorIbf == null))
                 {
-                    //TODO: review this.
-                    //missedStratas = i+1;
-                    //continue;
                      return (uint)(Math.Pow(2, i+1)*DecodeCountFactor*Math.Max(setA.Count, 1));
                 }
                 ibf.Subtract(estimatorIbf);
                 if (!ibf.Decode(setA, setA, setA) && missedStratas == 0)
                 {
-                    //missedStratas = i + 1;
-                    //TODO:review this
                     return (uint)(Math.Pow(2, i+1) * DecodeCountFactor * Math.Max(setA.Count, 1));
                 }
                
