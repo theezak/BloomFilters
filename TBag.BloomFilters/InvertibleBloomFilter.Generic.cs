@@ -64,16 +64,14 @@
             // validate the params are in range
             if (m < 1) // from overflow in bestM calculation
                 throw new ArgumentOutOfRangeException("The provided capacity and errorRate values would result in an array of length > int.MaxValue. Please reduce either the capacity or the error rate.");
-            _data.HashFunctionCount = k;
             _configuration = bloomFilterConfiguration;
-            uint rows = 1;
             if (_configuration.SplitByHash)
             {
                 m = m / (long)k;
-                rows = _data.HashFunctionCount;
             }
+            _data.HashFunctionCount = k;
             _data.BlockSize = m;
-            var size = rows * m;
+            var size = _data.BlockSize * _data.HashFunctionCount;
             _data.Counts = new int[size];
             _data.IdSums = new TId[size];
             _data.HashSums = new int[size];
