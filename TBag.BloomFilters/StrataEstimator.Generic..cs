@@ -7,18 +7,6 @@ using System.Threading.Tasks;
 
 namespace TBag.BloomFilters
 {
-    [DataContract, Serializable]
-    public class StrataEstimatorData<TId>
-    {
-        /// <summary>
-        /// The capacity
-        /// </summary>
-        [DataMember(Order =1)]
-        public ulong Capacity { get; set; }
-
-        [DataMember(Order = 2)]
-        public InvertibleBloomFilterData<TId>[] BloomFilters { get; set; }
-    }
     /// <summary>
     /// The strata estimator helps estimate the number of differences between two (sub)sets.
     /// </summary>

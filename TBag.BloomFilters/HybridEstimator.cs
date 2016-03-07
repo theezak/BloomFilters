@@ -8,23 +8,7 @@ using System.Threading.Tasks;
 namespace TBag.BloomFilters
 {
     [DataContract, Serializable]
-    public class HybridEstimatorData<TId>
-    {
-        /// <summary>
-        /// The capacity
-        /// </summary>
-        [DataMember(Order = 1)]
-        public ulong Capacity { get; set; }
 
-        [DataMember(Order = 2)]
-        public StrataEstimatorData<TId> StrataEstimator { get; set; }
-
-        [DataMember(Order = 3)]
-        public int StrataCount { get; set; }
-
-        [DataMember(Order = 4)]
-        public BitMinwiseHashEstimatorData BitMinwiseEstimator { get; set; }
-    }
 
     /// <summary>
     /// A hybrid estimator with a limited strata that cuts over to a bit minwise estimator.
