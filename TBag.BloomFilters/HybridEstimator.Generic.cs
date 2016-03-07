@@ -59,6 +59,15 @@ namespace TBag.BloomFilters
             }
         }
 
+        public override void Remove(T item)
+        {
+            if (_maxStrata < _maxTrailingZeros)
+            {
+                throw new NotSupportedException("Removal not supported on a hybrid estimator.");
+            }
+            base.Remove(item);
+        }
+
         /// <summary>
         /// Extract the hybrid estimator in a serializable format.
         /// </summary>

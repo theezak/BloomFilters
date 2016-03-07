@@ -48,7 +48,7 @@
     <Compile Include="Collections\BitArrayExtensions.cs" />
     <Compile Include="Domain\Entity.cs" />
     <Compile Include="Domain\Entity.Generic.cs" />
-    <Compile Include="HybridEstimator.cs" />
+    <Compile Include="HybridEstimator.Generic.cs" />
     <Compile Include="HybridEstimatorData.Generic..cs" />
     <Compile Include="HybridEstimatorFactory..cs" />
     <Compile Include="IBloomFilterConfiguration.Generic.cs" />

@@ -46,7 +46,7 @@ namespace TBag.BloomFilter.Test
                             }
                             var measuredModCount = estimator1.Decode(estimator2);
                             var time = DateTime.UtcNow.Subtract(startTime);
-                            writer.WriteLine($"{time.TotalMilliseconds},{dataSize},{capacity},{modCount},{measuredModCount},{measuredModCount-modCount}");
+                            writer.WriteLine($"{time.TotalMilliseconds},{dataSize},{capacity},{modCount},{measuredModCount},{measuredModCount-(ulong)modCount}");
                         }
 
                     }

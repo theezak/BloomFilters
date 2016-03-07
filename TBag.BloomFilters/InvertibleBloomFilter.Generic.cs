@@ -92,7 +92,7 @@
             var hasRows = _data.HasRows();
             foreach (var position in _configuration.IdHashes(id, _data.HashFunctionCount).Select(p =>
             {
-                var res = (p%_data.BlockSize) + idx;
+                var res = (p % _data.BlockSize) + idx;
                 if (hasRows)
                 {
                     idx += _data.BlockSize;
@@ -100,7 +100,9 @@
                 return res;
             }))
             {
-                Add(id, hashValue, position);
+                _data.Counts[position]++;
+                _data.IdSums[position] = _configuration.IdXor(_data.IdSums[position], id);
+                _data.HashSums[position] = _configuration.EntityHashXor(_data.HashSums[position], hashValue);
             }
         }
 
@@ -301,17 +303,7 @@
         #endregion
 
         #region Methods
-        /// <summary>
-        /// Add a new item at the given position in the filter.
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="position"></param>
-        private void Add(TId id, int valueHash, long position)
-        {
-            _data.Counts[position]++;
-            _data.IdSums[position] = _configuration.IdXor(_data.IdSums[position], id);
-            _data.HashSums[position] = _configuration.EntityHashXor(_data.HashSums[position], valueHash);
-        }
+       
 
         private static bool IsPure(IInvertibleBloomFilterData<TId> data, long position)
         {

@@ -58,12 +58,21 @@ namespace TBag.BloomFilters
 
         protected void Add(T item, long idx)
         {
-            var ibf = _strataFilters[idx];
-            if (ibf==null)
+            if (_strataFilters[idx] == null)
             {
-                _strataFilters[idx] = ibf = new InvertibleBloomFilter<T, TId>(_capacity, _configuration);
+                _strataFilters[idx] = new InvertibleBloomFilter<T, TId>(_capacity, _configuration);
             }
-            ibf.Add(item);
+            _strataFilters[idx].Add(item);
+        }
+
+        public virtual void Remove(T item)
+        {
+            Remove(item, NumTrailingBinaryZeros(_idHash(_configuration.GetId(item))));
+        }
+
+        protected void Remove(T item, long idx)
+        {
+            _strataFilters[idx]?.Remove(item);
         }
 
         /// <summary>
@@ -71,31 +80,30 @@ namespace TBag.BloomFilters
         /// </summary>
         /// <param name="estimator"></param>
         /// <returns></returns>
-        public virtual uint Decode(StrataEstimator<T, TId> estimator)
+        public virtual ulong Decode(StrataEstimator<T, TId> estimator)
         {
-            uint count = 0;
+            ulong count = 0L;
             if (estimator == null ||
                 estimator._capacity != _capacity ||
                 estimator._strataFilters.Length != _strataFilters.Length) return count;
             var setA = new HashSet<TId>();       
-            int missedStratas = 0;
             for(int i = _strataFilters.Length-1; i >= 0; i--)
             {
                 var ibf = _strataFilters[i];
                 var estimatorIbf = estimator._strataFilters[i];
                 if (ibf == null && estimatorIbf == null) continue;
-                if (missedStratas == 0 && (ibf == null || estimatorIbf == null))
+                if (ibf == null || estimatorIbf == null)
                 {
-                     return (uint)(Math.Pow(2, i+1)*DecodeCountFactor*Math.Max(setA.Count, 1));
+                     return (ulong)(Math.Pow(2, i+1)*DecodeCountFactor*Math.Max(setA.Count, 1));
                 }
                 ibf.Subtract(estimatorIbf);
-                if (!ibf.Decode(setA, setA, setA) && missedStratas == 0)
+                if (!ibf.Decode(setA, setA, setA))
                 {
-                    return (uint)(Math.Pow(2, i+1) * DecodeCountFactor * Math.Max(setA.Count, 1));
+                    return (ulong)(Math.Pow(2, i+1) * DecodeCountFactor * Math.Max(setA.Count, 1));
                 }
                
             }
-            return (uint)(Math.Pow(2, missedStratas) * DecodeCountFactor * setA.Count);
+            return (ulong)(DecodeCountFactor * setA.LongCount());
         }
         
        protected virtual double DecodeCountFactor

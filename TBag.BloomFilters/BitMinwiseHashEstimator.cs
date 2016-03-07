@@ -62,9 +62,9 @@ namespace TBag.BloomFilters
         }
 
         /// <summary>
-        /// Add the set to estimator.
+        /// Add the item to estimator.
         /// </summary>
-        /// <param name="set1"></param>
+        /// <param name="item"></param>
         public void Add(T item)
         {
             Debug.Assert(item != null);
@@ -133,17 +133,17 @@ namespace TBag.BloomFilters
         }
 
 
-    /// <summary>
-    /// Compute the hash for the given element.
-    /// </summary>
-    /// <param name="element"></param>
-    private void ComputeMinHash(T element)
+        /// <summary>
+        /// Compute the hash for the given element.
+        /// </summary>
+        /// <param name="element"></param>
+        private void ComputeMinHash(T element)
         {
             var idhash = _idHash(_configuration.GetId(element));
             var entityHashes = _hashFunctions(element).ToArray();
-            for(int i = 0; i < _hashCount; i++)
+            for (int i = 0; i < _hashCount; i++)
             {
-                if (entityHashes[i]< _slots[i, idhash])
+                if (entityHashes[i] < _slots[i, idhash])
                 {
                     _slots[i, idhash] = entityHashes[i];
                 }
