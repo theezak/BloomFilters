@@ -87,7 +87,6 @@
         public void Add(T item)
         {
             var id = _configuration.GetId(item);
-            //TODO: should actually be across T ? But then we can't decode well, because we can't know T at decoding time.
             var hashValue = _configuration.GetEntityHash(item);
             var idx = 0L;
             var hasRows = _data.HasRows();
@@ -200,8 +199,8 @@
         /// <remarks>Original algorithm was focused on differences in the sets of Ids, not on differences in the value. This optionally also provides you list of Ids for entities with changes.</remarks>
         public void Subtract(IInvertibleBloomFilterData<TId> filter, HashSet<TId> idsWithChanges = null)
         {
-            //TODO: throw nice exception when counts are different.
-            if (!filter.IsCompatibleWith(_data)) return;
+            if (!filter.IsCompatibleWith(_data))
+                throw new ArgumentException("Subtracted invertible Bloom filters are not compatible.");
             var detectChanges = idsWithChanges != null;
             for (long i = 0L; i < _data.Counts.LongLength; i++)
             {
@@ -209,7 +208,7 @@
                 _data.HashSums[i] = _configuration.EntityHashXor(_data.HashSums[i], filter.HashSums[i]);
                 var idXorResult = _configuration.IdXor(_data.IdSums[i], filter.IdSums[i]);
                 if (detectChanges &&
-                    !_configuration.IsHashIdentity(_data.HashSums[i]) &&
+                    !_configuration.IsEntityHashIdentity(_data.HashSums[i]) &&
                     _data.Counts[i] == 0 &&
                     IsPure(filter, i) &&
                     _configuration.IsIdIdentity(idXorResult))
@@ -240,7 +239,7 @@
                 if (!IsPure(_data, pureIdx))
                 {
                     if (_data.Counts[pureIdx] == 0 &&
-                       !_configuration.IsHashIdentity(_data.HashSums[pureIdx]) &&
+                       !_configuration.IsEntityHashIdentity(_data.HashSums[pureIdx]) &&
                        _configuration.IsIdIdentity(_data.IdSums[pureIdx]) &&
                        idMap.ContainsKey($"{pureIdx}"))
                     {
@@ -293,7 +292,7 @@
             for (var position = 0L; position < _data.Counts.LongLength; position++)
             {
                 if (!_configuration.IsIdIdentity(_data.IdSums[position]) ||
-                    !_configuration.IsHashIdentity(_data.HashSums[position]) ||
+                    !_configuration.IsEntityHashIdentity(_data.HashSums[position]) ||
                         _data.Counts[position] != 0)
                     return false;
             }

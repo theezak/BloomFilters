@@ -8,16 +8,22 @@ using TBag.HashAlgorithms;
 
 namespace TBag.BloomFilter.Test
 {
+    /// <summary>
+    /// A test Bloom filter configuration.
+    /// </summary>
     internal class SingleBucketBloomFilterConfiguration : BloomFilterConfigurationBase<TestEntity, int, long, long>
     {
         private readonly IMurmurHash _murmurHash;
         private readonly IXxHash _xxHash;
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public SingleBucketBloomFilterConfiguration()
         {
             _murmurHash = new Murmur3();
             _xxHash = new XxHash();
             GetId = e => e.Id;
-            UseRecurringMinimum = true;
             GetEntityHash = entity => BitConverter.ToInt32(_murmurHash.Hash(Encoding.Unicode.GetBytes($"{entity.Id}::{entity.Value}")), 0);
             IdHashes = (id, hashCount) =>
             {
@@ -29,8 +35,7 @@ namespace TBag.BloomFilter.Test
             };
             IdXor = (id1, id2) => id1 ^ id2;
             IsIdIdentity = id1 => id1 == 0;
-            IsHashIdentity = id1 => id1 == 0;
-            IsIdHashIdentity = id1 => id1 == 0;
+            IsEntityHashIdentity = id1 => id1 == 0;
             EntityHashXor = (h1, h2) => h1 ^ h2;
         }
 

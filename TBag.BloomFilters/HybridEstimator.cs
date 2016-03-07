@@ -1,15 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TBag.BloomFilters
 {
-    [DataContract, Serializable]
-
-
     /// <summary>
     /// A hybrid estimator with a limited strata that cuts over to a bit minwise estimator.
     /// </summary>

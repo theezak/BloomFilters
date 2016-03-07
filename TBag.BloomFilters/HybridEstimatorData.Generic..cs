@@ -1,7 +1,9 @@
-﻿using System.Runtime.Serialization;
+﻿using System;
+using System.Runtime.Serialization;
 
 namespace TBag.BloomFilters
-{
+{ 
+    [DataContract, Serializable]
     public class HybridEstimatorData<TId>
     {
         /// <summary>
