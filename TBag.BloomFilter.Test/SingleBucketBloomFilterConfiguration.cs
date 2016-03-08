@@ -45,6 +45,11 @@ namespace TBag.BloomFilter.Test
             CountSubtract = (c1, c2) => (byte)(c1 - c2);
         }
 
+        public override bool Supports(ulong capacity, ulong size)
+        {
+            return (byte.MaxValue - 10) * size < capacity;
+        }
+
 
 
         /// <summary>

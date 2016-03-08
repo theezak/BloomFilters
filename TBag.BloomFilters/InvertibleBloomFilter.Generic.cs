@@ -51,7 +51,7 @@
         /// <param name="errorRate">The accepable false-positive rate (e.g., 0.01F = 1%)</param>
         /// <param name="hashFunction">The function to hash the input values. Do not use GetHashCode(). If it is null, and T is string or int a hash function will be provided for you.</param>
         public InvertibleBloomFilter(long capacity, float errorRate, IBloomFilterConfiguration<TEntity,int,TId,long, TCount> bloomFilterConfiguration) : 
-            this(bloomFilterConfiguration, BestM(capacity, errorRate), BestK(capacity, errorRate)) { }
+            this(capacity, bloomFilterConfiguration, BestM(capacity, errorRate), BestK(capacity, errorRate)) { }
 
         /// <summary>
         /// Creates a new Bloom filter.
@@ -59,7 +59,7 @@
         /// <param name="bloomFilterConfiguration">The function to hash the input values. Do not use GetHashCode(). If it is null, and T is string or int a hash function will be provided for you.</param>
         /// <param name="m">The number of elements in the BitArray.</param>
         /// <param name="k">The number of hash functions to use.</param>
-        public InvertibleBloomFilter(
+        public InvertibleBloomFilter(long capacity,
             IBloomFilterConfiguration<TEntity, int, TId, long, TCount> bloomFilterConfiguration,
             long m,
             uint k)
@@ -75,6 +75,10 @@
             _data.HashFunctionCount = k;
             _data.BlockSize = m;
             var size = _data.BlockSize * _data.HashFunctionCount;
+            if (!bloomFilterConfiguration.Supports((ulong)capacity, (ulong)size))
+            {
+                throw new ArgumentOutOfRangeException($"The size {size} of the Bloom filter is not large enough to hold {capacity} items.");
+            }
             _data.Counts = new TCount[size];
             _data.IdSums = new TId[size];
             _data.HashSums = new int[size];
