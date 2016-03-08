@@ -164,10 +164,11 @@
         public bool Contains(TEntity item)
         {
             var hash = _configuration.GetEntityHash(item);
+            var id = _configuration.GetId(item);
             var idx = 0L;
             var hasRows = _data.HasRows();
             var countIdentity = _configuration.CountIdentity();
-            foreach (var position in _configuration.IdHashes(_configuration.GetId(item), _data.HashFunctionCount)
+            foreach (var position in _configuration.IdHashes(id, _data.HashFunctionCount)
                 .Select(p => {
                     var res = (p % _data.BlockSize) + idx;
                     if (hasRows)
@@ -179,7 +180,8 @@
             {
                 if (IsPure(_data, position))
                 {
-                    if (_data.HashSums[position] != hash)
+                    if (_data.HashSums[position] != hash || 
+                        !_configuration.IsIdIdentity(_configuration.IdXor(_data.IdSums[position], id)))
                     {
                         return false;
                     }
