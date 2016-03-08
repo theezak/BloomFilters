@@ -51,7 +51,7 @@
         /// <param name="errorRate">The accepable false-positive rate (e.g., 0.01F = 1%)</param>
         /// <param name="hashFunction">The function to hash the input values. Do not use GetHashCode(). If it is null, and T is string or int a hash function will be provided for you.</param>
         public InvertibleBloomFilter(long capacity, float errorRate, IBloomFilterConfiguration<TEntity,int,TId,long, TCount> bloomFilterConfiguration) : 
-            this(capacity, bloomFilterConfiguration, BestM(capacity, errorRate), BestK(capacity, errorRate)) { }
+            this(capacity, bloomFilterConfiguration, BestCompressedM(capacity, errorRate), BestK(capacity, errorRate)) { }
 
         /// <summary>
         /// Creates a new Bloom filter.
@@ -341,11 +341,20 @@
            return Math.Max(2, k);
         }
 
+        private static long BestCompressedM(long capacity, float errorRate)
+        {
+            return (long)(BestM(capacity, errorRate) * Math.Log(2.0D));
+        }
         private static long BestM(long capacity, float errorRate)
         {
             return (long) Math.Abs((capacity*Math.Log(errorRate))/Math.Pow(2, Math.Log(2.0D)));
         }
 
+        /// <summary>
+        /// This determines an error rate assuming that at higher capacity a higher error rate is acceptable as a trade off for space. Provide your own error rate if this does not work for you.
+        /// </summary>
+        /// <param name="capacity"></param>
+        /// <returns></returns>
         private static float BestErrorRate(long capacity)
         {
             var errRate = Math.Min(0.5F, (float)(0.00001F *  Math.Pow(2.0D, Math.Log(capacity))));

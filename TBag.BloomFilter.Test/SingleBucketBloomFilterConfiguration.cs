@@ -47,7 +47,7 @@ namespace TBag.BloomFilter.Test
 
         public override bool Supports(ulong capacity, ulong size)
         {
-            return (byte.MaxValue - 10) * size < capacity;
+            return ((byte.MaxValue-15) * size) > capacity;
         }
 
 
