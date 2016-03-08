@@ -1,8 +1,8 @@
 ﻿namespace TBag.BloomFilters
 {
-    public interface IStrataEstimatorData<TId>
+    public interface IStrataEstimatorData<TId,TCount>
     {
-        IInvertibleBloomFilterData<TId>[] BloomFilters { get; set; }
-        ulong Capacity { get; set; }
+        IInvertibleBloomFilterData<TId,TCount>[] BloomFilters { get; set; }
+        long Capacity { get; set; }
     }
 }

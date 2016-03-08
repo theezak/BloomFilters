@@ -12,32 +12,34 @@ namespace TBag.BloomFilters
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="TId"></typeparam>
+    /// <typeparam name="TCount"></typeparam>
     /// <remarks>For higher strata's, MinWise gives a better accurace/size balance.</remarks>
-    public class StrataEstimator<T, TId>
+    public class StrataEstimator<T, TId, TCount>
+        where TCount : struct
     {
         protected readonly Func<TId, long> _idHash;
-        private readonly ulong _capacity;
-        protected readonly InvertibleBloomFilter<T, TId>[] _strataFilters = 
-            new InvertibleBloomFilter<T,TId>[_maxTrailingZeros];
-        protected readonly IBloomFilterConfiguration<T, int, TId, long> _configuration;
+        private readonly long _capacity;
+        protected readonly InvertibleBloomFilter<T, TId, TCount>[] _strataFilters = 
+            new InvertibleBloomFilter<T,TId,TCount>[_maxTrailingZeros];
+        protected readonly IBloomFilterConfiguration<T, int, TId, long,TCount> _configuration;
         protected const byte _maxTrailingZeros = sizeof(long)*8;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="idHash"></param>
-        public StrataEstimator(ulong capacity, IBloomFilterConfiguration<T,int,TId,long> configuration)
+        public StrataEstimator(long capacity, IBloomFilterConfiguration<T,int,TId,long,TCount> configuration)
         {
             _idHash = id => configuration.IdHashes(id, 1).First();
             _capacity = capacity;
             _configuration = configuration;
         }
 
-        public StrataEstimatorData<TId> Extract()
+        public StrataEstimatorData<TId, TCount> Extract()
         {
-            var result = new StrataEstimatorData<TId> {
+            var result = new StrataEstimatorData<TId, TCount> {
                 Capacity = _capacity,
-                BloomFilters = new InvertibleBloomFilterData<TId>[_maxTrailingZeros]
+                BloomFilters = new InvertibleBloomFilterData<TId, TCount>[_maxTrailingZeros]
             };
             for(int i=0; i < _strataFilters.Length; i++)
             {
@@ -60,7 +62,7 @@ namespace TBag.BloomFilters
         {
             if (_strataFilters[idx] == null)
             {
-                _strataFilters[idx] = new InvertibleBloomFilter<T, TId>(_capacity, _configuration);
+                _strataFilters[idx] = new InvertibleBloomFilter<T, TId, TCount>(_capacity, _configuration);
             }
             _strataFilters[idx].Add(item);
         }
@@ -80,7 +82,7 @@ namespace TBag.BloomFilters
         /// </summary>
         /// <param name="estimator"></param>
         /// <returns></returns>
-        public virtual ulong Decode(StrataEstimator<T, TId> estimator)
+        public virtual ulong Decode(StrataEstimator<T, TId, TCount> estimator)
         {
             ulong count = 0L;
             if (estimator == null ||

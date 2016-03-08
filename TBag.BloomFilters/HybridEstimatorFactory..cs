@@ -12,15 +12,16 @@
         /// <typeparam name="TId"></typeparam>
         /// <param name="configuration">Bloom filter configuration</param>
         /// <param name="setSize">Number of elements in the set that is added.</param>
-        /// <param name="failedDecode">Number of times decoding has failed based upon the provided estimator.</param>
+        /// <param name="failedDecodeCount">Number of times decoding has failed based upon the provided estimator.</param>
         /// <returns></returns>
-        public HybridEstimator<T,TId> Create<T,TId>(
-            IBloomFilterConfiguration<T,int,TId,long> configuration, 
+        public HybridEstimator<T,TId,TCount> Create<T,TId,TCount>(
+            IBloomFilterConfiguration<T,int,TId,long,TCount> configuration, 
             ulong setSize, 
             byte failedDecodeCount = 0)
+            where TCount : struct
         {
             byte strata = 7;
-            ulong capacity = 15;
+            var capacity = 15L;
             if (setSize < 10000L && failedDecodeCount >0)
             {
                 capacity = capacity * failedDecodeCount * 10;
@@ -45,7 +46,7 @@
                     strata = 19;
                 }
             }
-            return new HybridEstimator<T, TId>(capacity, 2, 40, setSize, strata, configuration);
+            return new HybridEstimator<T, TId, TCount>(capacity, 2, 40, setSize, strata, configuration);
         }
     }
 }

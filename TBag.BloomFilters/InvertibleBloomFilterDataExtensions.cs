@@ -9,7 +9,7 @@
         /// <param name="filter"></param>
         /// <param name="otherFilter"></param>
         /// <returns></returns>
-        public static bool IsCompatibleWith<TId>(this IInvertibleBloomFilterData<TId> filter, IInvertibleBloomFilterData<TId> otherFilter)
+        public static bool IsCompatibleWith<TId,TCount>(this IInvertibleBloomFilterData<TId, TCount> filter, IInvertibleBloomFilterData<TId,TCount> otherFilter)
         {
             if (!filter.IsValid() || !otherFilter.IsValid()) return false;
             return filter.BlockSize == otherFilter.BlockSize &&
@@ -23,7 +23,7 @@
         /// <typeparam name="TId"></typeparam>
         /// <param name="filter"></param>
         /// <returns></returns>
-        public static bool IsValid<TId>(this IInvertibleBloomFilterData<TId> filter)
+        public static bool IsValid<TId,TCount>(this IInvertibleBloomFilterData<TId,TCount> filter)
         {
             if (filter == null) return true;
             if (filter.Counts == null ||
@@ -42,7 +42,7 @@
         /// <typeparam name="TId"></typeparam>
         /// <param name="filter"></param>
         /// <returns></returns>
-        public static bool HasRows<TId>(this IInvertibleBloomFilterData<TId> filter)
+        public static bool HasRows<TId,TCount>(this IInvertibleBloomFilterData<TId,TCount> filter)
         {
             if (filter == null || filter.Counts == null) return false;
             return filter.BlockSize != filter.Counts.LongLength;

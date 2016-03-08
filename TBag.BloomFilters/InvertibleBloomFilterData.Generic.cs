@@ -8,7 +8,7 @@
     /// </summary>
     /// <typeparam name="TId"></typeparam>
     [DataContract, Serializable]
-    public class InvertibleBloomFilterData<TId> : IInvertibleBloomFilterData<TId>
+    public class InvertibleBloomFilterData<TId, TCount> : IInvertibleBloomFilterData<TId, TCount>
     {
         [DataMember(Order=1)]
         public long BlockSize { get; set; }
@@ -23,6 +23,6 @@
         public int[] HashSums { get; set; }
 
         [DataMember(Order = 5)]
-        public int[] Counts { get; set; }
+        public TCount[] Counts { get; set; }
     }
 }

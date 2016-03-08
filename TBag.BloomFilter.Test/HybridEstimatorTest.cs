@@ -61,20 +61,23 @@ namespace TBag.BloomFilter.Test
         //
         #endregion
 
-        //[TestMethod]
+       // [TestMethod]
         public void HybridEstimatorPerformanceMeasurement()
         {
-            var configuration = new SingleBucketBloomFilterConfiguration();
+            var configuration = new SingleBucketBloomFilterConfiguration
+            {
+                 SplitByHash =  true
+            };
             var testSizes = new int[] { 1000, 10000, 100000, 500000 };
             var errorSizes = new int[] { 0, 1, 5, 10, 20, 50, 75, 100 };
-            var capacities = new ulong[] { 15, 100, 1000 };
+            var capacities = new long[] { 15, 100, 1000 };
             var stratas = new byte[] { 3, 7, 13,  19, 25, 32 };
             foreach (var dataSize in testSizes)
             {
               
                     foreach (var errorSize in errorSizes)
                     {
-                        using (var writer = new StreamWriter(System.IO.File.Open($"hybridestimator-{dataSize}-{errorSize}.csv", FileMode.Create)))
+                        using (var writer = new StreamWriter(System.IO.File.Open($"multibucket-hybridestimator-{dataSize}-{errorSize}.csv", FileMode.Create)))
                         {
                             writer.WriteLine("duration,dataSize,strata,capacity,modCount,estimatedModCount,countDiff");
 
@@ -88,19 +91,19 @@ namespace TBag.BloomFilter.Test
                                 var testData2 = DataGenerator.Generate().Take(dataSize).ToList();
                                 DataGenerator.Modify(testData2, modCount);
                                 var startTime = DateTime.UtcNow;
-                                var estimator1 = new HybridEstimator<TestEntity, long>(capacity, 2, 30, (uint)testData.Count, strata, configuration);
+                                var estimator1 = new HybridEstimator<TestEntity, long,byte>(capacity, 2, 30, (uint)testData.Count, strata, configuration);
                                 foreach (var item in testData)
                                 {
                                     estimator1.Add(item);
                                 }
-                                var estimator2 = new HybridEstimator<TestEntity, long>(capacity, 2, 30, (uint)testData2.Count, strata, configuration);
+                                var estimator2 = new HybridEstimator<TestEntity, long,byte>(capacity, 2, 30, (uint)testData2.Count, strata, configuration);
                                 foreach (var item in testData2)
                                 {
                                     estimator2.Add(item);
                                 }
                                 var measuredModCount = estimator1.Decode(estimator2);
                                 var time = DateTime.UtcNow.Subtract(startTime);
-                                writer.WriteLine($"{time.TotalMilliseconds},{dataSize},{strata},{capacity},{modCount},{measuredModCount},{ measuredModCount-(ulong)modCount}");
+                                writer.WriteLine($"{time.TotalMilliseconds},{dataSize},{strata},{capacity},{modCount},{measuredModCount},{ (long)measuredModCount-modCount}");
                             }
                         }
                     }
@@ -117,7 +120,7 @@ namespace TBag.BloomFilter.Test
         {
             var data = DataGenerator.Generate().Take(200000).ToArray();
             var configuration = new SingleBucketBloomFilterConfiguration();
-            var estimator = new HybridEstimator<TestEntity, long>(
+            var estimator = new HybridEstimator<TestEntity, long, byte>(
                 220,
                /* quick initial testing shows:
                 220 can handle a 100% error rate on 200000 elements
@@ -132,7 +135,7 @@ namespace TBag.BloomFilter.Test
                configuration);
             foreach (var element in data)
                 estimator.Add(element);
-            var estimator2 = new HybridEstimator<TestEntity, long>(
+            var estimator2 = new HybridEstimator<TestEntity, long, byte>(
                 220,
                1,
                 50,

@@ -7,7 +7,8 @@
     /// </summary>
     /// <typeparam name="T">The entity type</typeparam>
     /// <typeparam name="TId">The entity identifier type.</typeparam>
-    public interface IInvertibleBloomFilter<T, TId>
+    public interface IInvertibleBloomFilter<T, TId, TCount>
+        where TCount : struct
     {
         /// <summary>
         /// Add an entity to the Bloom filter.
@@ -36,13 +37,13 @@
         /// Extract the Bloom filter data in a serializable format.
         /// </summary>
         /// <returns></returns>
-        IInvertibleBloomFilterData<TId> Extract();
+        IInvertibleBloomFilterData<TId, TCount> Extract();
 
         /// <summary>
         /// Rehydrate the Bloom filter data.
         /// </summary>
         /// <param name="data"></param>
-        void Rehydrate(IInvertibleBloomFilterData<TId> data);
+        void Rehydrate(IInvertibleBloomFilterData<TId, TCount> data);
 
         /// <summary>
         /// Remove the entity from the Bloom filter.
@@ -56,7 +57,7 @@
         /// <param name="filter">The Bloom filter to subtract.</param>
         /// <param name="idsWithChanges">identifiers of entities recognized to be in both sets of identifiers, but with a different value.</param>
         /// <remarks>Result is the difference between the two Bloom filters</remarks>
-        void Subtract(InvertibleBloomFilter<T, TId> filter, HashSet<TId> idsWithChanges = null);
+        void Subtract(InvertibleBloomFilter<T, TId, TCount> filter, HashSet<TId> idsWithChanges = null);
 
         /// <summary>
         /// Subtract the Bloom filter data
@@ -64,6 +65,6 @@
         /// <param name="filter"></param>
         /// <param name="idsWithChanges"></param>
         /// <remarks>Result is the difference between the two Bloom filters.</remarks>
-        void Subtract(IInvertibleBloomFilterData<TId> filter, HashSet<TId> idsWithChanges = null);
+        void Subtract(IInvertibleBloomFilterData<TId, TCount> filter, HashSet<TId> idsWithChanges = null);
     }
 }

@@ -4,7 +4,8 @@
     /// interface for invertible Bloom filter data.
     /// </summary>
     /// <typeparam name="TId"></typeparam>
-    public interface IInvertibleBloomFilterData<TId>
+    /// <typeparam name="TCount">The type for the count</typeparam>
+    public interface IInvertibleBloomFilterData<TId,TCount>
     {
         /// <summary>
         /// The block size 
@@ -15,7 +16,7 @@
         /// <summary>
         /// The counts
         /// </summary>
-        int[] Counts { get; set; }
+        TCount[] Counts { get; set; }
 
         /// <summary>
         /// The number of hash functions used.

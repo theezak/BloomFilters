@@ -13,11 +13,12 @@ namespace TBag.BloomFilters
     /// <typeparam name="THash"></typeparam>
     /// <typeparam name="TId"></typeparam>
     /// <typeparam name="TIdHash"></typeparam>
-    public abstract class BloomFilterConfigurationBase<T, THash, TId, TIdHash> :
+    public abstract class BloomFilterConfigurationBase<T, THash, TId, TIdHash, TCount> :
         BloomFilterIdConfigurationBase<TId, TIdHash>,
-        IBloomFilterConfiguration<T, THash, TId, TIdHash>
+        IBloomFilterConfiguration<T, THash, TId, TIdHash, TCount>
         where THash : struct
         where TIdHash : struct
+        where TCount : struct
     {
         /// <summary>
         /// Get the hash for the values of an entity.
@@ -38,6 +39,36 @@ namespace TBag.BloomFilters
         /// Calculate the XOR of two entity hasehs.
         /// </summary>
         public Func<THash, THash, THash> EntityHashXor { get; set; }
+
+        /// <summary>
+        /// The unity for the count type.
+        /// </summary>
+        public Func<TCount> CountUnity { get; set; }
+
+        /// <summary>
+        /// Determine if the count is pure.
+        /// </summary>
+        public Func<TCount, bool> IsPureCount { get; set; }
+
+        /// <summary>
+        /// Increase the count.
+        /// </summary>
+        public Func<TCount,TCount> CountIncrease { get; set; }
+
+        /// <summary>
+        /// Decrease the count
+        /// </summary>
+        public Func<TCount,TCount> CountDecrease { get; set; }
+
+        /// <summary>
+        /// Count identity.
+        /// </summary>
+        public Func<TCount> CountIdentity { get; set; }
+
+        /// <summary>
+        /// Subtract two counts.
+        /// </summary>
+        public Func<TCount, TCount, TCount> CountSubtract { get; set; }
     }
 }
 

@@ -10,9 +10,10 @@ namespace TBag.BloomFilters
     /// <typeparam name="THash"></typeparam>
     /// <typeparam name="TId"></typeparam>
     /// <typeparam name="TIdHash"></typeparam>
-    public interface IBloomFilterConfiguration<T, THash, TId, TIdHash>
+    public interface IBloomFilterConfiguration<T, THash, TId, TIdHash, TCount>
        where THash : struct
       where TIdHash : struct
+        where TCount : struct
     {
         /// <summary>
         /// Function to get the value of an entity (hashed).
@@ -54,6 +55,24 @@ namespace TBag.BloomFilters
         /// When true, each hashed ID will go to its own storage.
         /// </summary>
         bool SplitByHash { get; set; }
+
+        /// <summary>
+        /// Function to provide the count unity
+        /// </summary>
+        Func<TCount> CountUnity { get; set; }
+
+        /// <summary>
+        /// Function to determine if the count is pure.
+        /// </summary>
+        Func<TCount,bool> IsPureCount { get; set; }
+
+        Func<TCount,TCount> CountIncrease { get; set; }
+
+        Func<TCount,TCount> CountDecrease { get; set; }
+
+        Func<TCount> CountIdentity { get; set; }
+
+        Func<TCount,TCount,TCount> CountSubtract { get; set; }
     }
 
 }

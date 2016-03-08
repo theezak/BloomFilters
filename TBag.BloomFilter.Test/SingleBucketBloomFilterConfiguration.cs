@@ -11,7 +11,7 @@ namespace TBag.BloomFilter.Test
     /// <summary>
     /// A test Bloom filter configuration.
     /// </summary>
-    internal class SingleBucketBloomFilterConfiguration : BloomFilterConfigurationBase<TestEntity, int, long, long>
+    internal class SingleBucketBloomFilterConfiguration : BloomFilterConfigurationBase<TestEntity, int, long, long, byte>
     {
         private readonly IMurmurHash _murmurHash;
         private readonly IXxHash _xxHash;
@@ -37,6 +37,12 @@ namespace TBag.BloomFilter.Test
             IsIdIdentity = id1 => id1 == 0;
             IsEntityHashIdentity = id1 => id1 == 0;
             EntityHashXor = (h1, h2) => h1 ^ h2;
+            CountUnity = () => 1;
+            IsPureCount = c => Math.Abs(c) == 1;
+            CountIdentity = () => 0;
+            CountDecrease = c => (byte)(c-1);
+            CountIncrease = c => (byte)(c+1);
+            CountSubtract = (c1, c2) => (byte)(c1 - c2);
         }
 
 

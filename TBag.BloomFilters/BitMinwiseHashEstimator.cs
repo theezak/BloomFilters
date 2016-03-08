@@ -11,7 +11,8 @@ namespace TBag.BloomFilters
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// /// <typeparam name="TId"></typeparam>
-    public class BitMinwiseHashEstimator<T,TId>
+    public class BitMinwiseHashEstimator<T,TId, TCount>
+        where TCount : struct
     {
         #region Fields
         private readonly int _hashCount;
@@ -19,7 +20,7 @@ namespace TBag.BloomFilters
         private readonly Func<TId, long> _idHash;
         private BitArray _hashValues;
         private readonly byte _bitSize;
-        private readonly IBloomFilterConfiguration<T, int, TId,long> _configuration;
+        private readonly IBloomFilterConfiguration<T, int, TId,long, TCount> _configuration;
         private readonly ulong _capacity;
         private int[,] _slots;
         #endregion
@@ -32,7 +33,7 @@ namespace TBag.BloomFilters
         /// <param name="bitSize">The number of bits to store per hash</param>
         /// <param name="hashCount">The number of hash functions to use.</param>
         /// <remarks>By using bitSize = 1 or bitSize = 2, the accuracy is decreased, thus the hashCount needs to be increased. However, when resemblance is not too small, for example > 0.5, bitSize = 1 can yield similar results as bitSize = 64 with only 3 times the hash count.</remarks>
-        public BitMinwiseHashEstimator(IBloomFilterConfiguration<T,int,TId,long> configuration,
+        public BitMinwiseHashEstimator(IBloomFilterConfiguration<T,int,TId,long,TCount> configuration,
             byte bitSize, int hashCount, ulong capacity)
         {
             _bitSize = bitSize;
@@ -52,7 +53,7 @@ namespace TBag.BloomFilters
         /// <param name="set2"></param>
         /// <returns></returns>
         /// <remarks>Zero is no similarity, one is completely similar.</remarks>
-        public double Similarity(BitMinwiseHashEstimator<T,TId> set2)
+        public double Similarity(BitMinwiseHashEstimator<T,TId, TCount> set2)
         {
             Convert();
             if (set2 == null ||

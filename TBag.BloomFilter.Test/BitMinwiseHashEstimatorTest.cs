@@ -65,14 +65,14 @@ namespace TBag.BloomFilter.Test
         {
             var data = DataGenerator.Generate().Take(100000).ToArray();
             var configuration = new SingleBucketBloomFilterConfiguration();
-            var estimator = new BitMinwiseHashEstimator<TestEntity, long>(
+            var estimator = new BitMinwiseHashEstimator<TestEntity, long, byte>(
                configuration,
                2,
                5,
                 10000);
             foreach(var element in data)
             estimator.Add(element);
-            var estimator2 = new BitMinwiseHashEstimator<TestEntity,long>(configuration, 2, 5, 10000);
+            var estimator2 = new BitMinwiseHashEstimator<TestEntity,long, byte>(configuration, 2, 5, 10000);
             foreach (var elt in data.Take(1000))
             {
                 elt.Id += 200000;
