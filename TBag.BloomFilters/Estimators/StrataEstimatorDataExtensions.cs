@@ -42,7 +42,7 @@ namespace TBag.BloomFilters.Estimators
                     return (ulong)(Math.Pow(2, i + 1) * data.DecodeCountFactor * Math.Max(setA.Count, 1));
                 }
             }
-            return (ulong)(data.DecodeCountFactor * setA.LongCount());
+           return (ulong)(Math.Max(data.DecodeCountFactor, otherEstimatorData.DecodeCountFactor) * setA.LongCount());
         }
     }
 }

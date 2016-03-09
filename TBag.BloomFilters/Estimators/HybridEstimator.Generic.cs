@@ -115,10 +115,10 @@
         /// </summary>
         /// <param name="estimator"></param>
         /// <returns></returns>
-        public ulong Decode(IHybridEstimatorData<TId,TCount> estimator)
+        public ulong Decode(IHybridEstimatorData<TId, TCount> estimator)
         {
-            if (estimator == null) return (ulong) _capacity;
-            return base.Decode(estimator.StrataEstimator) + (ulong)(_setSize - (_minwiseEstimator.Similarity(estimator.BitMinwiseEstimator) * _setSize));
+            if (estimator == null) return (ulong)_capacity;
+            return ExtractHybrid().Decode(estimator, Configuration);
         }
         #endregion
     }
