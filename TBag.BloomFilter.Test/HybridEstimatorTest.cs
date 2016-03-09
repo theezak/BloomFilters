@@ -68,7 +68,7 @@ namespace TBag.BloomFilter.Test
             var configuration = new LargeBloomFilterConfiguration();
             var testSizes = new int[] { 1000, 10000, 100000, 500000 };
             var errorSizes = new int[] { 0, 1, 5, 10, 20, 50, 75, 100 };
-            var capacities = new long[] { 80, 250, 2000 };
+            var capacities = new long[] { 15, 250, 2000 };
             var stratas = new byte[] { 3, 7, 13,  19, 25, 32 };
             foreach (var dataSize in testSizes)
             {
