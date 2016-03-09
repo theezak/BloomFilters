@@ -283,7 +283,7 @@
         /// <returns></returns>
         private static float BestErrorRate(long capacity)
         {
-            var errRate = Math.Min(0.5F, (float)(0.00001F * Math.Pow(1.2D, Math.Log(capacity))));
+            var errRate = Math.Min(0.5F, (float)(0.00001F * Math.Pow(2.0D, Math.Log(capacity))));
             return Math.Min(0.5F, (float)Math.Pow(0.6185D, BestM(capacity, errRate) / capacity));
             // http://www.cs.princeton.edu/courses/archive/spring02/cs493/lec7.pdf
         }

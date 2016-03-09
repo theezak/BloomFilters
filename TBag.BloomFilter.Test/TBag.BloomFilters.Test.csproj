@@ -58,13 +58,14 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="LargeBloomFilterConfiguration.cs" />
     <Compile Include="HybridEstimatorTest.cs" />
     <Compile Include="BitMinwiseHashEstimatorTest.cs" />
     <Compile Include="DataGenerator.cs" />
     <Compile Include="InvertibleBloomFilterFillTest.cs" />
     <Compile Include="InvertibleBloomFilterSerializationTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SingleBucketBloomFilterConfiguration.cs" />
+    <Compile Include="DefaultBloomFilterConfiguration.cs" />
     <Compile Include="StrataEstimatorTest.cs" />
     <Compile Include="TestEntity.cs" />
   </ItemGroup>

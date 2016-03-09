@@ -8,7 +8,7 @@
     /// <summary>
     /// A test Bloom filter configuration.
     /// </summary>
-    internal class SingleBucketBloomFilterConfiguration : DefaultBloomFilterConfigurationBase<TestEntity>
+    internal class DefaultBloomFilterConfiguration : DefaultBloomFilterConfigurationBase<TestEntity>
     {
         private readonly IMurmurHash _murmurHash = new Murmur3();
 

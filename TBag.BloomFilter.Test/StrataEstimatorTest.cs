@@ -15,7 +15,7 @@ namespace TBag.BloomFilter.Test
       // [TestMethod]
         public void StrataEstimatorPerformanceMeasurement()
         {
-            var configuration = new SingleBucketBloomFilterConfiguration {SplitByHash = true};
+            var configuration = new DefaultBloomFilterConfiguration {SplitByHash = true};
             var testSizes = new int[] { 1000, 10000, 100000,  500000 };
             var errorSizes = new int[] { 0, 1, 5, 10, 20, 50, 75, 100 };
             var capacities = new long[] { 15, 100, 1000 };
@@ -60,7 +60,7 @@ namespace TBag.BloomFilter.Test
         [TestMethod]
         public void SimpleStrata()
         {
-            var configuration = new SingleBucketBloomFilterConfiguration();
+            var configuration = new DefaultBloomFilterConfiguration();
             configuration.SplitByHash = true;
             var testData = DataGenerator.Generate().Take(10000).ToList();
             IHashAlgorithm murmurHash = new Murmur3();

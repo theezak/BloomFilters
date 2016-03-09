@@ -65,7 +65,7 @@ namespace TBag.BloomFilter.Test
         public void BasicFillAndEstimate()
         {
             var data = DataGenerator.Generate().Take(100000).ToList();
-            var configuration = new SingleBucketBloomFilterConfiguration();
+            var configuration = new DefaultBloomFilterConfiguration();
             var estimator = new BitMinwiseHashEstimator<TestEntity, long, sbyte>(
                configuration,
                2,
