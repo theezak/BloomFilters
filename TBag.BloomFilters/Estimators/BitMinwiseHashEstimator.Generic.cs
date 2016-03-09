@@ -143,11 +143,14 @@ namespace TBag.BloomFilters.Estimators
             var hashFuncs = new Func<int, int>[_hashCount];
             for (var i = 0; i < _hashCount; i++)
             {
+                var a = (uint)r.Next(universeSize);
+                var b = (uint)r.Next(universeSize);
+                var c = (uint)r.Next(universeSize);
                 hashFuncs[i] = hash => QHash(
                     hash,
-                    (uint) r.Next(universeSize),
-                    (uint) r.Next(universeSize),
-                    (uint) r.Next(universeSize),
+                   a,
+                   b,
+                   c,
                     bound);
             }
             return entity =>

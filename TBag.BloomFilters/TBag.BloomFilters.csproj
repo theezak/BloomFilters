@@ -41,12 +41,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BloomFilterConfigurationBase.cs" />
-    <Compile Include="BloomFilterIdConfigurationBase.cs" />
+    <Compile Include="BloomFilterConfigurationBase.Generic.cs" />
+    <Compile Include="BloomFilterIdConfigurationBase.Generic.cs" />
     <Compile Include="Collections\BitArrayExtensions.cs" />
-    <Compile Include="Domain\Entity.cs" />
-    <Compile Include="Domain\Entity.Generic.cs" />
-    <Compile Include="Estimators\BitMinwiseHashEstimator.cs" />
+    <Compile Include="HighUtilizationBloomFilterConfigurationBase.Generic.cs" />
+    <Compile Include="Estimators\BitMinwiseHashEstimator.Generic.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimatorData.Generic.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimatorExtensions.cs" />
     <Compile Include="Estimators\HybridEstimator.Generic.cs" />
@@ -72,6 +71,13 @@
     <Compile Include="InvertibleBloomFilterDataExtensions.cs" />
     <Compile Include="InvertibleBloomFilterFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="DefaultBloomFilterConfigurationBase.Generic.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TBag.HashAlgorithms\TBag.HashAlgorithms.csproj">
+      <Project>{8d5bdb3f-01e3-4343-8116-6ab9fb12acdc}</Project>
+      <Name>TBag.HashAlgorithms</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

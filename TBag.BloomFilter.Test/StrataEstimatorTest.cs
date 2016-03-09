@@ -35,12 +35,12 @@ namespace TBag.BloomFilter.Test
                             var testData2 = DataGenerator.Generate().Take(dataSize).ToList();
                             DataGenerator.Modify(testData2, modCount);
                             var startTime = DateTime.UtcNow;
-                            var estimator1 = new StrataEstimator<TestEntity, long,byte>(capacity, configuration);
+                            var estimator1 = new StrataEstimator<TestEntity, long,sbyte>(capacity, configuration);
                             foreach (var item in testData)
                             {
                                 estimator1.Add(item);
                             }
-                            var estimator2 = new StrataEstimator<TestEntity, long,byte>(capacity, configuration);
+                            var estimator2 = new StrataEstimator<TestEntity, long,sbyte>(capacity, configuration);
                             foreach (var item in testData2)
                             {
                                 estimator2.Add(item);
@@ -64,7 +64,7 @@ namespace TBag.BloomFilter.Test
             configuration.SplitByHash = true;
             var testData = DataGenerator.Generate().Take(10000).ToList();
             IHashAlgorithm murmurHash = new Murmur3();
-            var estimator1 = new StrataEstimator<TestEntity, long, byte>(80, configuration);
+            var estimator1 = new StrataEstimator<TestEntity, long, sbyte>(80, configuration);
             foreach(var itm in testData)
             {
                 estimator1.Add(itm);
@@ -73,7 +73,7 @@ namespace TBag.BloomFilter.Test
             {
                 testData.Remove(remove);
             }
-            var estimator2 = new StrataEstimator<TestEntity, long, byte>(80, configuration);
+            var estimator2 = new StrataEstimator<TestEntity, long, sbyte>(80, configuration);
             testData.Reverse();
             //just making sure we do not depend upon the order of adding things.
             foreach (var itm in testData) 

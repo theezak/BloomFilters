@@ -74,6 +74,8 @@ namespace TBag.BloomFilters
         Func<TCount> CountIdentity { get; set; }
 
         Func<TCount,TCount,TCount> CountSubtract { get; set; }
+
+        bool Supports(ulong capacity, ulong size);
     }
 
 }

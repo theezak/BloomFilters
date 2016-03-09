@@ -69,6 +69,14 @@ namespace TBag.BloomFilters
         /// Subtract two counts.
         /// </summary>
         public Func<TCount, TCount, TCount> CountSubtract { get; set; }
+
+        /// <summary>
+        /// Determine if the configuration supports the given capacity and set size.
+        /// </summary>
+        /// <param name="capacity">Capacity for the Bloom filter</param>
+        /// <param name="size">The actual set size.</param>
+        /// <returns></returns>
+        public abstract bool Supports(ulong capacity, ulong size);
     }
 }
 

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters
 {
+    using System;
+    using System.Collections.Generic;
+  
     /// <summary>
     /// Base class for the Bloom filter configuration for identifiers.
     /// </summary>

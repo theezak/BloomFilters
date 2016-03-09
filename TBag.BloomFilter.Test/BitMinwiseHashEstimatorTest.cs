@@ -64,29 +64,22 @@ namespace TBag.BloomFilter.Test
         [TestMethod]
         public void BasicFillAndEstimate()
         {
-            var data = DataGenerator.Generate().Take(100000).ToArray();
+            var data = DataGenerator.Generate().Take(100000).ToList();
             var configuration = new SingleBucketBloomFilterConfiguration();
-            var estimator = new BitMinwiseHashEstimator<TestEntity, long, byte>(
+            var estimator = new BitMinwiseHashEstimator<TestEntity, long, sbyte>(
                configuration,
                2,
-               5,
-                10000);
+              20,
+                (ulong)data.LongCount());
             foreach(var element in data)
             estimator.Add(element);
-            var estimator2 = new BitMinwiseHashEstimator<TestEntity,long, byte>(configuration, 2, 5, 10000);
-            foreach (var elt in data.Take(1000))
-            {
-                elt.Id += 200000;
-            }
-            foreach (var elt in data.Skip(1000).Take(1000))
-            {
-                elt.Value += 10;
-            }
-            foreach(var element in data.Reverse())
+            var estimator2 = new BitMinwiseHashEstimator<TestEntity,long, sbyte>(configuration, 2, 20, (ulong)data.LongCount());
+            DataGenerator.Modify(data, 2000);
+            foreach(var element in data)
                 //just making sure we do not depend upon the order of adding things.
             estimator2.Add(element);
-            var differenceCount = 100000 - estimator.Similarity(estimator2) * 100000;
-            Assert.IsTrue(differenceCount >= 2000 && differenceCount < 2550);
+            var differenceCount = data.LongCount() - estimator.Similarity(estimator2) * data.LongCount();
+            Assert.IsTrue(differenceCount >= 900 && differenceCount < 2550);
         }
     }
 }

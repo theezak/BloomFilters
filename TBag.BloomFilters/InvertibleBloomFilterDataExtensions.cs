@@ -37,14 +37,13 @@ namespace TBag.BloomFilters
         public static bool IsValid<TId,TCount>(this IInvertibleBloomFilterData<TId,TCount> filter)
             where TCount : struct
         {
-            if (filter == null) return true;
+            if (filter == null) return false;
             if (filter.Counts == null ||
                 filter.HashSums == null ||
                 filter.IdSums == null) return false;
             if (filter.Counts.LongLength != filter.HashSums.LongLength ||
                 filter.Counts.LongLength != filter.IdSums.LongLength) return false;
-            if (filter.BlockSize * filter.HashFunctionCount != filter.Counts.LongLength &&
-                filter.BlockSize != filter.Counts.LongLength) return false;
+            if (filter.BlockSize * filter.HashFunctionCount != filter.Counts.LongLength) return false;
             return true;
         }
 
@@ -107,16 +106,17 @@ namespace TBag.BloomFilters
                 result.Counts[i] = configuration.CountSubtract(filterData.Counts[i], otherFilterData.Counts[i]);
                 result.HashSums[i] = configuration.EntityHashXor(filterData.HashSums[i], otherFilterData.HashSums[i]);
                 var idXorResult = configuration.IdXor(filterData.IdSums[i], otherFilterData.IdSums[i]);
-                if (detectChanges &&
-                    !configuration.IsEntityHashIdentity(filterData.HashSums[i]) &&
-                    countEqualityComparer.Equals(filterData.Counts[i], countsIdentity) &&
+                if (!configuration.IsEntityHashIdentity(result.HashSums[i]) &&
+                    countEqualityComparer.Equals(result.Counts[i], countsIdentity) &&
                     configuration.IsPureCount(otherFilterData.Counts[i])  &&
                     configuration.IsIdIdentity(idXorResult))
                 {
-                    idsWithChanges.Add(filterData.IdSums[i]);
-                    //recognized the difference, not a decode error: funky way of setting the id sum to the identity value for the identifier type.
-                    result.IdSums[i] = configuration.IdXor(filterData.IdSums[i], filterData.IdSums[i]);
-                    continue;
+                    if (detectChanges)
+                    {
+                        idsWithChanges.Add(filterData.IdSums[i]);
+                    }
+                    //recognized the difference is not a decode error
+                    result.HashSums[i] = 0;
                 }
                 result.IdSums[i] = idXorResult;
             }

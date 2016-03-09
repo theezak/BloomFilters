@@ -92,12 +92,12 @@ namespace TBag.BloomFilter.Test
                                 var testData2 = DataGenerator.Generate().Take(dataSize).ToList();
                                 DataGenerator.Modify(testData2, modCount);
                                 var startTime = DateTime.UtcNow;
-                                var estimator1 = new HybridEstimator<TestEntity, long,byte>(capacity, 2, 30, (uint)testData.Count, strata, configuration);
+                                var estimator1 = new HybridEstimator<TestEntity, long,sbyte>(capacity, 2, 30, (uint)testData.Count, strata, configuration);
                                 foreach (var item in testData)
                                 {
                                     estimator1.Add(item);
                                 }
-                                var estimator2 = new HybridEstimator<TestEntity, long,byte>(capacity, 2, 30, (uint)testData2.Count, strata, configuration);
+                                var estimator2 = new HybridEstimator<TestEntity, long,sbyte>(capacity, 2, 30, (uint)testData2.Count, strata, configuration);
                                 foreach (var item in testData2)
                                 {
                                     estimator2.Add(item);
@@ -121,7 +121,7 @@ namespace TBag.BloomFilter.Test
         {
             var data = DataGenerator.Generate().Take(200000).ToArray();
             var configuration = new SingleBucketBloomFilterConfiguration();
-            var estimator = new HybridEstimator<TestEntity, long, byte>(
+            var estimator = new HybridEstimator<TestEntity, long, sbyte>(
                 220,
                /* quick initial testing shows:
                 220 can handle a 100% error rate on 200000 elements
@@ -136,7 +136,7 @@ namespace TBag.BloomFilter.Test
                configuration);
             foreach (var element in data)
                 estimator.Add(element);
-            var estimator2 = new HybridEstimator<TestEntity, long, byte>(
+            var estimator2 = new HybridEstimator<TestEntity, long, sbyte>(
                 220,
                1,
                 50,
