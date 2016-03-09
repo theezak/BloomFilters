@@ -10,6 +10,7 @@ namespace TBag.BloomFilters
     /// <typeparam name="THash"></typeparam>
     /// <typeparam name="TId"></typeparam>
     /// <typeparam name="TIdHash"></typeparam>
+    /// <typeparam name="TCount"></typeparam>
     public interface IBloomFilterConfiguration<T, THash, TId, TIdHash, TCount>
        where THash : struct
       where TIdHash : struct
@@ -73,8 +74,6 @@ namespace TBag.BloomFilters
         Func<TCount> CountIdentity { get; set; }
 
         Func<TCount,TCount,TCount> CountSubtract { get; set; }
-
-        bool Supports(ulong capacity, ulong size);
     }
 
 }

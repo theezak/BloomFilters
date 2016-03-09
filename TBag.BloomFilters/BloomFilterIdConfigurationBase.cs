@@ -32,7 +32,6 @@ namespace TBag.BloomFilters
         /// <summary>
         /// When <c>true</c> then hash values are split by the hash function used.
         /// </summary>
-        /// <remarks>best not used, negatively impacts the error rate.</remarks>
         public bool SplitByHash
         {
             get; set;

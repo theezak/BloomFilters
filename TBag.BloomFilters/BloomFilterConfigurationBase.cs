@@ -69,8 +69,6 @@ namespace TBag.BloomFilters
         /// Subtract two counts.
         /// </summary>
         public Func<TCount, TCount, TCount> CountSubtract { get; set; }
-
-        public abstract bool Supports(ulong capacity, ulong size);
     }
 }
 

@@ -9,6 +9,7 @@
     /// <typeparam name="TId"></typeparam>
     [DataContract, Serializable]
     public class InvertibleBloomFilterData<TId, TCount> : IInvertibleBloomFilterData<TId, TCount>
+        where TCount : struct
     {
         [DataMember(Order=1)]
         public long BlockSize { get; set; }

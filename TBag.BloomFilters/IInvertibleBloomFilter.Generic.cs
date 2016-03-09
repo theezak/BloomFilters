@@ -7,6 +7,7 @@
     /// </summary>
     /// <typeparam name="T">The entity type</typeparam>
     /// <typeparam name="TId">The entity identifier type.</typeparam>
+    /// <typeparam name="TCount"></typeparam>
     public interface IInvertibleBloomFilter<T, TId, TCount>
         where TCount : struct
     {
@@ -24,14 +25,17 @@
         bool Contains(T item);
 
         /// <summary>
-        /// Decode the Bloom filter.
+        /// Subtract and then decode.
         /// </summary>
-        /// <param name="listA">identifiers of entities in this filter, but not in the subtracted filter.</param>
-        /// <param name="listB">identifiers of ntities in the subtracted filter, but not in this filter.</param>
-        /// <param name="modifiedEntities">identifiers of entities in both filters, but with a different value.</param>
-        /// <returns></returns>
-        /// <remarks>Currently destructive.</remarks>
-        bool Decode(HashSet<TId> listA, HashSet<TId> listB, HashSet<TId> modifiedEntities);
+        /// <param name="filter">Bloom filter to subtract</param>
+        /// <param name="listA">Items in this filter, but not in <paramref name="filter"/></param>
+        /// <param name="listB">Items not in this filter, but in <paramref name="filter"/></param>
+        /// <param name="modifiedEntities">Entities in both filters, but with a different value</param>
+        /// <returns><c>true</c> when the decode was successful, otherwise <c>false</c></returns>
+        bool SubtractAndDecode(IInvertibleBloomFilterData<TId, TCount> data,
+            HashSet<TId> listA, 
+            HashSet<TId> listB, 
+            HashSet<TId> modifiedEntities);
 
         /// <summary>
         /// Extract the Bloom filter data in a serializable format.
@@ -52,19 +56,16 @@
         void Remove(T item);
 
         /// <summary>
-        /// Subtract two Bloom filters 
+        /// Subtract and then decode.
         /// </summary>
-        /// <param name="filter">The Bloom filter to subtract.</param>
-        /// <param name="idsWithChanges">identifiers of entities recognized to be in both sets of identifiers, but with a different value.</param>
-        /// <remarks>Result is the difference between the two Bloom filters</remarks>
-        void Subtract(InvertibleBloomFilter<T, TId, TCount> filter, HashSet<TId> idsWithChanges = null);
+        /// <param name="filter">Bloom filter to subtract</param>
+        /// <param name="listA">Items in this filter, but not in <paramref name="filter"/></param>
+        /// <param name="listB">Items not in this filter, but in <paramref name="filter"/></param>
+        /// <param name="modifiedEntities">Entities in both filters, but with a different value</param>
+        /// <returns><c>true</c> when the decode was successful, otherwise <c>false</c></returns>
+        bool SubtractAndDecode(IInvertibleBloomFilter<T, TId, TCount> filter, HashSet<TId> listA,
+            HashSet<TId> listB,
+            HashSet<TId> modifiedEntities);
 
-        /// <summary>
-        /// Subtract the Bloom filter data
-        /// </summary>
-        /// <param name="filter"></param>
-        /// <param name="idsWithChanges"></param>
-        /// <remarks>Result is the difference between the two Bloom filters.</remarks>
-        void Subtract(IInvertibleBloomFilterData<TId, TCount> filter, HashSet<TId> idsWithChanges = null);
     }
 }

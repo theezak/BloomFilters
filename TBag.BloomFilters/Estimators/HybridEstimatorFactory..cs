@@ -1,21 +1,22 @@
-﻿namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters.Estimators
 {
     /// <summary>
     /// Encapsulates emperical data for creating hybrid estimators.
     /// </summary>
-    public class HybridEstimatorFactory
+    public class HybridEstimatorFactory : IHybridEstimatorFactory
     {
         /// <summary>
         /// Create a hybrid estimator
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="TEntity">The entity type</typeparam>
+        /// <typeparam name="TId">The entity identifier type</typeparam>
+        /// <typeparam name="TCount">The type of occurence count.</typeparam>
         /// <param name="configuration">Bloom filter configuration</param>
         /// <param name="setSize">Number of elements in the set that is added.</param>
         /// <param name="failedDecodeCount">Number of times decoding has failed based upon the provided estimator.</param>
         /// <returns></returns>
-        public HybridEstimator<T,TId,TCount> Create<T,TId,TCount>(
-            IBloomFilterConfiguration<T,int,TId,long,TCount> configuration, 
+        public HybridEstimator<TEntity,TId,TCount> Create<TEntity,TId,TCount>(
+            IBloomFilterConfiguration<TEntity,int,TId,long,TCount> configuration, 
             ulong setSize, 
             byte failedDecodeCount = 0)
             where TCount : struct
@@ -25,8 +26,9 @@
             if (setSize < 10000L && failedDecodeCount >0)
             {
                 capacity = capacity * failedDecodeCount * 10;
-                if (failedDecodeCount >= 2 && failedDecodeCount <= 4)
+                if (failedDecodeCount >= 4 && failedDecodeCount <= 6)
                 {
+                    //higher strata is typically not preferred with lower capacities, but try it at this point.
                     strata = 13;
                 }
             }
@@ -46,7 +48,7 @@
                     strata = 19;
                 }
             }
-            return new HybridEstimator<T, TId, TCount>(capacity, 2, 40, setSize, strata, configuration);
+            return new HybridEstimator<TEntity, TId, TCount>(capacity, 2, 30, setSize, strata, configuration);
         }
     }
 }

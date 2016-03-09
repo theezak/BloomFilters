@@ -11,7 +11,7 @@ namespace TBag.BloomFilter.Test
     /// <summary>
     /// A test Bloom filter configuration.
     /// </summary>
-    internal class SingleBucketBloomFilterConfiguration : BloomFilterConfigurationBase<TestEntity, int, long, long, sbyte>
+    internal class SingleBucketBloomFilterConfiguration : BloomFilterConfigurationBase<TestEntity, int, long, long, byte>
     {
         private readonly IMurmurHash _murmurHash;
         private readonly IXxHash _xxHash;
@@ -40,14 +40,9 @@ namespace TBag.BloomFilter.Test
             CountUnity = () => 1;
             IsPureCount = c => Math.Abs(c) == 1;
             CountIdentity = () => 0;
-            CountDecrease = c => (sbyte)(c-1);
-            CountIncrease = c => (sbyte)(c+1);
-            CountSubtract = (c1, c2) => (sbyte)(c1 - c2);
-        }
-
-        public override bool Supports(ulong capacity, ulong size)
-        {
-            return ((sbyte.MaxValue-15) * size) > capacity;
+            CountDecrease = c => (byte)(c-1);
+            CountIncrease = c => (byte)(c+1);
+            CountSubtract = (c1, c2) => (byte)(c1 - c2);
         }
 
 

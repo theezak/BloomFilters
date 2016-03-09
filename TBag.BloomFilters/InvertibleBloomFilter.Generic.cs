@@ -3,18 +3,18 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-  
+
     /// <summary>
     /// An invertible Bloom filter supports removal and additions.
     /// </summary>
-    /// <typeparam name="TEntity">Type of the entity</typeparam>
-    /// <typeparam name="TId">Type of the entity identifier</typeparam>
-    /// <typeparam name="TCount">Type of the counter</typeparam>
-       public class InvertibleBloomFilter<TEntity, TId,TCount> : IInvertibleBloomFilter<TEntity, TId,TCount>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TId"></typeparam>
+    /// <typeparam name="TCount"></typeparam>
+    public class InvertibleBloomFilter<T, TId,TCount> : IInvertibleBloomFilter<T, TId,TCount>
         where TCount : struct
     {
         #region Fields
-        private readonly IBloomFilterConfiguration<TEntity, int, TId, long, TCount> _configuration;
+        private readonly IBloomFilterConfiguration<T, int, TId, long, TCount> _configuration;
         private IInvertibleBloomFilterData<TId,TCount> _data = new InvertibleBloomFilterData<TId,TCount>();
         private readonly IEqualityComparer<TCount> _countEqualityComparer = EqualityComparer<TCount>.Default;
         private readonly IComparer<TCount> _countComparer = Comparer<TCount>.Default;
@@ -41,7 +41,7 @@
         /// </summary>
         /// <param name="capacity">The anticipated number of items to be added to the filter. More than this number of items can be added, but the error rate will exceed what is expected.</param>
         /// <param name="hashFunction">The function to hash the input values. Do not use GetHashCode(). If it is null, and T is string or int a hash function will be provided for you.</param>
-        public InvertibleBloomFilter(long capacity, IBloomFilterConfiguration<TEntity,int,TId,long, TCount> bloomFilterConfiguration) : 
+        public InvertibleBloomFilter(long capacity, IBloomFilterConfiguration<T,int,TId,long, TCount> bloomFilterConfiguration) : 
             this(capacity, BestErrorRate(capacity), bloomFilterConfiguration) { }
 
         /// <summary>
@@ -50,8 +50,8 @@
         /// <param name="capacity">The anticipated number of items to be added to the filter. More than this number of items can be added, but the error rate will exceed what is expected.</param>
         /// <param name="errorRate">The accepable false-positive rate (e.g., 0.01F = 1%)</param>
         /// <param name="hashFunction">The function to hash the input values. Do not use GetHashCode(). If it is null, and T is string or int a hash function will be provided for you.</param>
-        public InvertibleBloomFilter(long capacity, float errorRate, IBloomFilterConfiguration<TEntity,int,TId,long, TCount> bloomFilterConfiguration) : 
-            this(capacity, bloomFilterConfiguration, BestCompressedM(capacity, errorRate), BestK(capacity, errorRate)) { }
+        public InvertibleBloomFilter(long capacity, float errorRate, IBloomFilterConfiguration<T,int,TId,long, TCount> bloomFilterConfiguration) : 
+            this(bloomFilterConfiguration, BestM(capacity, errorRate), BestK(capacity, errorRate)) { }
 
         /// <summary>
         /// Creates a new Bloom filter.
@@ -59,8 +59,8 @@
         /// <param name="bloomFilterConfiguration">The function to hash the input values. Do not use GetHashCode(). If it is null, and T is string or int a hash function will be provided for you.</param>
         /// <param name="m">The number of elements in the BitArray.</param>
         /// <param name="k">The number of hash functions to use.</param>
-        public InvertibleBloomFilter(long capacity,
-            IBloomFilterConfiguration<TEntity, int, TId, long, TCount> bloomFilterConfiguration,
+        public InvertibleBloomFilter(
+            IBloomFilterConfiguration<T, int, TId, long, TCount> bloomFilterConfiguration,
             long m,
             uint k)
         {
@@ -70,15 +70,11 @@
             _configuration = bloomFilterConfiguration;
             if (_configuration.SplitByHash)
             {
-                m = (long)Math.Ceiling(1.0D * m /k);
+                m = (long)Math.Ceiling(m / (1.0D)*k);
             }
             _data.HashFunctionCount = k;
             _data.BlockSize = m;
             var size = _data.BlockSize * _data.HashFunctionCount;
-            if (!bloomFilterConfiguration.Supports((ulong)capacity, (ulong)size))
-            {
-                throw new ArgumentOutOfRangeException($"The size {size} of the Bloom filter is not large enough to hold {capacity} items.");
-            }
             _data.Counts = new TCount[size];
             _data.IdSums = new TId[size];
             _data.HashSums = new int[size];
@@ -91,7 +87,7 @@
      /// Add an item to the Bloom filter.
      /// </summary>
      /// <param name="item"></param>
-        public void Add(TEntity item)
+        public void Add(T item)
         {
             var id = _configuration.GetId(item);
             var hashValue = _configuration.GetEntityHash(item);
@@ -139,7 +135,7 @@
         /// Remove the given item from the Bloom filter.
         /// </summary>
         /// <param name="item"></param>
-        public void Remove(TEntity item)
+        public void Remove(T item)
         {
             var id = _configuration.GetId(item);
             var hashValue = _configuration.GetEntityHash(item);
@@ -156,7 +152,7 @@
                 return res;
             }))
             {
-                Remove(id, hashValue, position);
+                _data.Remove(_configuration, id, hashValue, position);
             }
         }
 
@@ -165,14 +161,13 @@
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public bool Contains(TEntity item)
+        public bool Contains(T item)
         {
             var hash = _configuration.GetEntityHash(item);
-            var id = _configuration.GetId(item);
             var idx = 0L;
             var hasRows = _data.HasRows();
             var countIdentity = _configuration.CountIdentity();
-            foreach (var position in _configuration.IdHashes(id, _data.HashFunctionCount)
+            foreach (var position in _configuration.IdHashes(_configuration.GetId(item), _data.HashFunctionCount)
                 .Select(p => {
                     var res = (p % _data.BlockSize) + idx;
                     if (hasRows)
@@ -184,8 +179,7 @@
             {
                 if (IsPure(_data, position))
                 {
-                    if (_data.HashSums[position] != hash || 
-                        !_configuration.IsIdIdentity(_configuration.IdXor(_data.IdSums[position], id)))
+                    if (_data.HashSums[position] != hash)
                     {
                         return false;
                     }
@@ -198,41 +192,36 @@
             return true;
         }
 
-        public void Subtract(InvertibleBloomFilter<TEntity, TId, TCount> filter, HashSet<TId> idsWithChanges = null)
+        /// <summary>
+        /// Subtract and then decode.
+        /// </summary>
+        /// <param name="filter">Bloom filter to subtract</param>
+        /// <param name="listA">Items in this filter, but not in <paramref name="filter"/></param>
+        /// <param name="listB">Items not in this filter, but in <paramref name="filter"/></param>
+        /// <param name="modifiedEntities">Entities in both filters, but with a different value</param>
+        /// <returns><c>true</c> when the decode was successful, otherwise <c>false</c></returns>
+        public bool SubtractAndDecode(IInvertibleBloomFilter<T, TId, TCount> filter,
+            HashSet<TId> listA, 
+            HashSet<TId> listB, 
+            HashSet<TId> modifiedEntities)
         {
-            Subtract(filter.Extract(), idsWithChanges);
+            return SubtractAndDecode(filter.Extract(), listA, listB, modifiedEntities);
         }
 
         /// <summary>
-        /// Fully subtract another Bloom filter. 
+        /// Subtract and then decode.
         /// </summary>
-        /// <param name="filter"></param>
-        /// <param name="idsWithChanges">Optional list for identifiers of entities that we detected a change in value for.</param>
-        /// <remarks>Original algorithm was focused on differences in the sets of Ids, not on differences in the value. This optionally also provides you list of Ids for entities with changes.</remarks>
-        public void Subtract(IInvertibleBloomFilterData<TId, TCount> filter, HashSet<TId> idsWithChanges = null)
+        /// <param name="filter">Bloom filter to subtract</param>
+        /// <param name="listA">Items in this filter, but not in <paramref name="filter"/></param>
+        /// <param name="listB">Items not in this filter, but in <paramref name="filter"/></param>
+        /// <param name="modifiedEntities">Entities in both filters, but with a different value</param>
+        /// <returns><c>true</c> when the decode was successful, otherwise <c>false</c></returns>
+        public bool SubtractAndDecode(IInvertibleBloomFilterData<TId, TCount> filter,
+            HashSet<TId> listA,
+            HashSet<TId> listB,
+            HashSet<TId> modifiedEntities)
         {
-            if (!filter.IsCompatibleWith(_data))
-                throw new ArgumentException("Subtracted invertible Bloom filters are not compatible.");
-            var detectChanges = idsWithChanges != null;
-            var countsIdentity = _configuration.CountIdentity();
-            for (long i = 0L; i < _data.Counts.LongLength; i++)
-            {
-                _data.Counts[i] = _configuration.CountSubtract(_data.Counts[i], filter.Counts[i]);
-                _data.HashSums[i] = _configuration.EntityHashXor(_data.HashSums[i], filter.HashSums[i]);
-                var idXorResult = _configuration.IdXor(_data.IdSums[i], filter.IdSums[i]);
-                if (detectChanges &&
-                    !_configuration.IsEntityHashIdentity(_data.HashSums[i]) &&
-                    _countEqualityComparer.Equals(_data.Counts[i], countsIdentity) &&
-                    IsPure(filter, i) &&
-                    _configuration.IsIdIdentity(idXorResult))
-                {
-                    idsWithChanges.Add(_data.IdSums[i]);
-                    //recognized the difference, not a decode error.
-                    _data.IdSums[i] = _configuration.IdXor(_data.IdSums[i], _data.IdSums[i]);
-                    continue;
-                }
-                _data.IdSums[i] = idXorResult;
-            }
+            return _data.SubtractAndDecode(filter, _configuration, listA, listB, modifiedEntities);
         }
 
         /// <summary>
@@ -243,129 +232,40 @@
         /// <returns></returns>
         public bool Decode(HashSet<TId> listA, HashSet<TId> listB, HashSet<TId> modifiedEntities)
         {
-            var idMap = new Dictionary<string, HashSet<TId>>();
-            var pureList = Range(0L, _data.Counts.LongLength).Where(i => IsPure(_data, i)).Select(i => i).ToList();
-            var countsIdentity = _configuration.CountIdentity();
-            while (pureList.Any())
-            {
-                var pureIdx = pureList[0];
-                pureList.RemoveAt(0);
-                if (!IsPure(_data, pureIdx))
-                {
-                    if (_countEqualityComparer.Equals(_data.Counts[pureIdx], countsIdentity) &&
-                       !_configuration.IsEntityHashIdentity(_data.HashSums[pureIdx]) &&
-                       _configuration.IsIdIdentity(_data.IdSums[pureIdx]) &&
-                       idMap.ContainsKey($"{pureIdx}"))
-                    {
-                        //ID and counts nicely zeroed out, but the hash didn't. A changed value might have been hashed in.
-                        //this does constitute a decode error, since we couldn't exactly identify the identity that caused the difference.
-                        foreach (var associatedId in idMap[$"{pureIdx}"])
-                        {
-                            modifiedEntities.Add(associatedId);
-                        }
-                        idMap.Clear();
-                    }
-                    continue;
-                }
-                var count = _data.Counts[pureIdx];
-                var id = _data.IdSums[pureIdx];
-                if (_countComparer.Compare(count, countsIdentity) > 0)
-                {
-                    listA.Add(id);
-                }
-                else
-                {
-                    listB.Add(id);
-                }
-                var hash3 = _data.HashSums[pureIdx];
-                var idx = 0L;
-                var hasRows = _data.HasRows();
-                foreach (var position in _configuration.IdHashes(id, _data.HashFunctionCount).Select(p =>
-                {
-                    var res = (p%_data.BlockSize) + idx;
-                    if (hasRows)
-                    {
-                        idx += _data.BlockSize;
-                    }
-                    return res;
-                }))
-                {
-                    Remove(id, hash3, position);
-                    if (!idMap.ContainsKey($"{position}"))
-                    {
-                        idMap[$"{position}"] = new HashSet<TId>();
-                    }
-
-                    idMap[$"{position}"].Add(id);
-                    if (IsPure(_data, position) && pureList.All(p => p != position))
-                    {
-                        pureList.Add(position);
-                    }
-                }
-            }
-            for (var position = 0L; position < _data.Counts.LongLength; position++)
-            {
-                if (!_configuration.IsIdIdentity(_data.IdSums[position]) ||
-                    !_configuration.IsEntityHashIdentity(_data.HashSums[position]) ||
-                        !_countEqualityComparer.Equals(_data.Counts[position], countsIdentity))
-                    return false;
-            }
-            return true;
+            return Extract().Decode(_configuration, listA, listB, modifiedEntities);
         }
         #endregion
 
         #region Methods
-       
-
+    
         private  bool IsPure(IInvertibleBloomFilterData<TId,TCount> data, long position)
         {
             return _configuration.IsPureCount(data.Counts[position]);
-        }
-
-        /// <summary>
-        /// Remove an item at the given position.
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="position"></param>
-        private void Remove(TId idValue, int hashValue, long position)
-        {
-            _data.Counts[position] = _configuration.CountDecrease(_data.Counts[position]);
-            _data.IdSums[position] = _configuration.IdXor(_data.IdSums[position], idValue);
-            _data.HashSums[position] = _configuration.EntityHashXor(_data.HashSums[position], hashValue);
-        }
+        }      
 
         private static uint BestK(long capacity, float errorRate)
         {
-            var k = (uint)Math.Ceiling(Math.Abs(Math.Log(2.0D) * (1.0D * BestM(capacity, errorRate) / capacity)));
+            var k = (uint)(Math.Abs(Math.Log(2.0D)*BestM(capacity, errorRate)/capacity));
             //at least 2 hash functions.
            return Math.Max(2, k);
         }
 
-        private static long BestCompressedM(long capacity, float errorRate)
-        {
-            return (long)(BestM(capacity, errorRate) * Math.Log(2.0D));
-        }
         private static long BestM(long capacity, float errorRate)
         {
-            return (long) Math.Abs((capacity*Math.Log(errorRate))/Math.Pow(2, Math.Log(2.0D)));
+            return (long) Math.Abs(Math.Ceiling(capacity*Math.Log(errorRate)/Math.Pow(2, Math.Log(2.0D))));
         }
 
-        /// <summary>
-        /// This determines an error rate assuming that at higher capacity a higher error rate is acceptable as a trade off for space. Provide your own error rate if this does not work for you.
-        /// </summary>
-        /// <param name="capacity"></param>
-        /// <returns></returns>
         private static float BestErrorRate(long capacity)
         {
-            var errRate = Math.Min(0.5F, (float)(0.00001F *  Math.Pow(2.0D, Math.Log(capacity))));
-            return Math.Min(0.5F, (float)Math.Pow(0.6185D, BestM(capacity, errRate)/capacity));          
+            if (capacity == 0) return 0.0F;
+            if (capacity <= 1000)
+            {
+                return 1.0F/capacity;
+            }
+            //based upon article below, 70% of size gives similar error rate
+            return (float)Math.Pow(0.6185D, 0.7D*BestM(capacity, 0.01F)/capacity);          
+            //return (float) Math.Pow(0.6185, int.MaxValue / capacity);
             // http://www.cs.princeton.edu/courses/archive/spring02/cs493/lec7.pdf
-        }
-
-        private static IEnumerable<long> Range(long start, long end)
-        {
-            for (long i = start; i < end; i++)
-                yield return i;
         }
         #endregion
     }

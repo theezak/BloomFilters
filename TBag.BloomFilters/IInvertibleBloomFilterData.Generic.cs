@@ -5,7 +5,8 @@
     /// </summary>
     /// <typeparam name="TId"></typeparam>
     /// <typeparam name="TCount">The type for the count</typeparam>
-    public interface IInvertibleBloomFilterData<TId, TCount>
+    public interface IInvertibleBloomFilterData<TId,TCount>
+        where TCount : struct
     {
         /// <summary>
         /// The block size 

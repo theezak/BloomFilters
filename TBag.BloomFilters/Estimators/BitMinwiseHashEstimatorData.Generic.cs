@@ -1,10 +1,13 @@
-﻿using System;
-using System.Runtime.Serialization;
-
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters.Estimators
 {
+    using System;
+    using System.Runtime.Serialization;
+
+    /// <summary>
+    /// Implementation of <see cref="IBitMinwiseHashEstimatorData"/>.
+    /// </summary>
     [DataContract, Serializable]
-    public class BitMinwiseHashEstimatorData
+    public class BitMinwiseHashEstimatorData : IBitMinwiseHashEstimatorData
     {
         [DataMember(Order = 1)]
         public byte BitSize { get; set; }
