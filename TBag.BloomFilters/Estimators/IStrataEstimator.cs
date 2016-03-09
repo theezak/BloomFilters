@@ -22,6 +22,13 @@
         ulong Decode(IStrataEstimator<TEntity, TId, TCount> estimator);
 
         /// <summary>
+        /// Decode utilizing the given estimator, provind an estimate for the difference
+        /// </summary>
+        /// <param name="estimator"></param>
+        /// <returns>Estimated difference as the number of elements.</returns>
+        ulong Decode(IStrataEstimatorData<TId, TCount> estimator);
+
+        /// <summary>
         /// Extract the serializable data from the estimator.
         /// </summary>
         /// <returns></returns>
