@@ -53,11 +53,6 @@ namespace TBag.BloomFilters
         Func<THash, THash, THash> EntityHashXor { get; set; }
 
         /// <summary>
-        /// When true, each hashed ID will go to its own storage.
-        /// </summary>
-        bool SplitByHash { get; set; }
-
-        /// <summary>
         /// Function to provide the count unity
         /// </summary>
         Func<TCount> CountUnity { get; set; }

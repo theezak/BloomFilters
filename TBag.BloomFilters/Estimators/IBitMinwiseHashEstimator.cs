@@ -18,7 +18,7 @@
         /// Extract a serializable version of the bit minwise hash estimator.
         /// </summary>
         /// <returns></returns>
-        IBitMinwiseHashEstimatorData Extract();
+        BitMinwiseHashEstimatorData Extract();
 
         /// <summary>
         /// Determine the similarity between the hash estimator and the provided hash estimator data.

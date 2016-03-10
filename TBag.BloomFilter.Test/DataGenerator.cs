@@ -13,7 +13,7 @@ namespace TBag.BloomFilter.Test
             var mers = new MersenneTwister();
             while (id < long.MaxValue)
             {
-                yield return new TestEntity { Id = id, Value = mers.NextInt32() };
+                yield return new TestEntity { Id = id, Value = (long.MaxValue - id).ToString() };
                 id++;
             }
         }
@@ -36,11 +36,11 @@ namespace TBag.BloomFilter.Test
                 }
                 else if (operation==1 && eIndex < entities.Count)
                 {
-                    entities[eIndex++].Value = random.NextInt32();
+                    entities[eIndex++].Value = (random.NextInt32()).ToString();
                 }
                 else 
                 {
-                    added.Add(new TestEntity { Id = idSeed, Value = random.NextInt32() });
+                    added.Add(new TestEntity { Id = idSeed, Value = random.NextInt32().ToString() });
                     idSeed--;
                 }
                

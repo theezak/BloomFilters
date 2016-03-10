@@ -18,12 +18,16 @@ namespace TBag.BloomFilters.Estimators
         public long Capacity { get; set; }
 
         [DataMember(Order = 2)]
-        public IStrataEstimatorData<TId,TCount> StrataEstimator { get; set; }
+        public StrataEstimatorData<TId,TCount> StrataEstimator { get; set; }
 
         [DataMember(Order = 3)]
-        public int StrataCount { get; set; }
+        public byte StrataCount { get; set; }
 
         [DataMember(Order = 4)]
-        public IBitMinwiseHashEstimatorData BitMinwiseEstimator { get; set; }
+        public BitMinwiseHashEstimatorData BitMinwiseEstimator { get; set; }
+
+        IStrataEstimatorData<TId, TCount> IHybridEstimatorData<TId, TCount>.StrataEstimator => StrataEstimator;
+
+        IBitMinwiseHashEstimatorData IHybridEstimatorData<TId, TCount>.BitMinwiseEstimator => BitMinwiseEstimator;     
     }
 }

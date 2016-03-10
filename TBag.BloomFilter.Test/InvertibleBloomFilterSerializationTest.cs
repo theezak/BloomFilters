@@ -19,7 +19,6 @@ namespace TBag.BloomFilter.Test
             var testData = DataGenerator.Generate().Take(addSize).ToArray();
              var size = (long)testData.Length;
             var configuration = new DefaultBloomFilterConfiguration();
-            configuration.SplitByHash = true;
             var bloomFilter = new InvertibleBloomFilter<TestEntity, long, sbyte>(size, configuration);
             foreach (var itm in testData)
             {

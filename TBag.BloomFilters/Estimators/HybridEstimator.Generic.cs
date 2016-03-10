@@ -9,20 +9,15 @@
     /// <typeparam name="TId">The entity identifier type</typeparam>
     /// <typeparam name="TCount">The type of occurence count.</typeparam>
     public class HybridEstimator<TEntity, TId, TCount> : 
-        StrataEstimator<TEntity, TId, TCount>, IHybridEstimator<TEntity, TId, TCount> where TCount : struct
+        StrataEstimator<TEntity, TId, TCount>,
+        IHybridEstimator<TEntity, TId, TCount> 
+        where TCount : struct
     {
         #region Fields
         private readonly BitMinwiseHashEstimator<TEntity, TId, TCount> _minwiseEstimator;
-        private readonly int _maxStrata;
+        private readonly byte _maxStrata;
         private readonly long _capacity;
-        private readonly ulong _setSize;
-        #endregion
 
-        #region Properties
-       /// <summary>
-       /// The decode count factor.
-       /// </summary>
-        protected override double DecodeCountFactor => _capacity >= 20 ? 1.45D : 1.0D;
         #endregion
 
         #region Constructor
@@ -47,9 +42,10 @@
             _maxStrata = maxStrata;
             var max = Math.Pow(2, MaxTrailingZeros);
             var inStrata = max - Math.Pow(2, MaxTrailingZeros - maxStrata);
-            //TODO: clean up math.
-            _setSize = (uint)(setSize * (1-(inStrata / max)));
-            _minwiseEstimator = new BitMinwiseHashEstimator<TEntity, TId, TCount>(configuration, bitSize, minWiseHashCount, Math.Max(_setSize,1));
+            //TODO: clean up math. This is very close though to what actually ends up in the estimator.
+            var setSize1 = (uint)(setSize * (1-(inStrata / max)));
+            _minwiseEstimator = new BitMinwiseHashEstimator<TEntity, TId, TCount>(configuration, bitSize, minWiseHashCount, Math.Max(setSize1,1));
+            DecodeCountFactor = _capacity >= 20 ? 1.45D : 1.0D;
         }
         #endregion
 
@@ -89,7 +85,7 @@
         /// Extract the hybrid estimator in a serializable format.
         /// </summary>
         /// <returns></returns>
-        public IHybridEstimatorData<TId, TCount> ExtractHybrid()
+        IHybridEstimatorData<TId, TCount> IHybridEstimator<TEntity, TId, TCount>.Extract()
         {
             return new HybridEstimatorData<TId, TCount>
             {
@@ -99,26 +95,31 @@
                 StrataCount = _maxStrata
             };
         }
-         /// <summary>
+        /// <summary>
         /// Decode the given hybrid estimator.
         /// </summary>
-        /// <param name="estimator"></param>
-        /// <returns>Estimated number of elements that are different.</returns>
-        public ulong Decode(IHybridEstimator<TEntity, TId, TCount> estimator)
+        /// <param name="estimator">The estimator for the other set.</param>
+        /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
+        /// <returns>An estimate of the number of differences between the two sets that the estimators are based upon.</returns>
+
+        public ulong Decode(IHybridEstimator<TEntity, TId, TCount> estimator,
+            bool destructive = false)
          {
              if (estimator == null) return (ulong)_capacity;
-            return Decode(estimator.ExtractHybrid());
+            return Decode(estimator.Extract(), destructive);
         }
 
         /// <summary>
         /// Decode the given hybrid estimator data.
         /// </summary>
-        /// <param name="estimator"></param>
-        /// <returns></returns>
-        public ulong Decode(IHybridEstimatorData<TId, TCount> estimator)
+        /// <param name="estimator">The estimator for the other set.</param>
+        /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
+        /// <returns>An estimate of the number of differences between the two sets that the estimators are based upon.</returns>
+        public ulong Decode(IHybridEstimatorData<TId, TCount> estimator,
+            bool destructive = false)
         {
             if (estimator == null) return (ulong)_capacity;
-            return ExtractHybrid().Decode(estimator, Configuration);
+            return ((IHybridEstimator<TEntity, TId, TCount>) this).Extract().Decode(estimator, Configuration);
         }
         #endregion
     }

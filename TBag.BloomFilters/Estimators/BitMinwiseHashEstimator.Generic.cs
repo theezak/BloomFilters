@@ -91,7 +91,7 @@ namespace TBag.BloomFilters.Estimators
         /// Extract the estimator data in a serializable format.
         /// </summary>
         /// <returns></returns>
-        public IBitMinwiseHashEstimatorData Extract()
+        public BitMinwiseHashEstimatorData Extract()
         {
             return new BitMinwiseHashEstimatorData
             {

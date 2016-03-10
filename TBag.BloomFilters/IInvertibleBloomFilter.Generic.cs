@@ -41,7 +41,7 @@
         /// Extract the Bloom filter data in a serializable format.
         /// </summary>
         /// <returns></returns>
-        IInvertibleBloomFilterData<TId, TCount> Extract();
+        InvertibleBloomFilterData<TId, TCount> Extract();
 
         /// <summary>
         /// Rehydrate the Bloom filter data.

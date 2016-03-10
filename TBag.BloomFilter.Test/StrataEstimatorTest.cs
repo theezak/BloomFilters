@@ -15,7 +15,7 @@ namespace TBag.BloomFilter.Test
       // [TestMethod]
         public void StrataEstimatorPerformanceMeasurement()
         {
-            var configuration = new DefaultBloomFilterConfiguration {SplitByHash = true};
+            var configuration = new DefaultBloomFilterConfiguration();
             var testSizes = new int[] { 1000, 10000, 100000,  500000 };
             var errorSizes = new int[] { 0, 1, 5, 10, 20, 50, 75, 100 };
             var capacities = new long[] { 15, 100, 1000 };
@@ -31,17 +31,16 @@ namespace TBag.BloomFilter.Test
                     {
                       
                             var testData = DataGenerator.Generate().Take(dataSize).ToList();
-                            var modCount = (int)((dataSize / 100.0D) * errorSize);
-                            var testData2 = DataGenerator.Generate().Take(dataSize).ToList();
-                            DataGenerator.Modify(testData2, modCount);
+                            var modCount = (int)((dataSize / 100.0D) * errorSize);                            
                             var startTime = DateTime.UtcNow;
                             var estimator1 = new StrataEstimator<TestEntity, long,sbyte>(capacity, configuration);
                             foreach (var item in testData)
                             {
                                 estimator1.Add(item);
                             }
+                            testData.Modify(modCount);
                             var estimator2 = new StrataEstimator<TestEntity, long,sbyte>(capacity, configuration);
-                            foreach (var item in testData2)
+                            foreach (var item in testData)
                             {
                                 estimator2.Add(item);
                             }
@@ -61,7 +60,6 @@ namespace TBag.BloomFilter.Test
         public void SimpleStrata()
         {
             var configuration = new DefaultBloomFilterConfiguration();
-            configuration.SplitByHash = true;
             var testData = DataGenerator.Generate().Take(10000).ToList();
             IHashAlgorithm murmurHash = new Murmur3();
             var estimator1 = new StrataEstimator<TestEntity, long, sbyte>(80, configuration);

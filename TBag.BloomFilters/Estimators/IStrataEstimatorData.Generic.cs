@@ -11,7 +11,7 @@
         /// <summary>
         /// The bloom filters.
         /// </summary>
-        IInvertibleBloomFilterData<TId,TCount>[] BloomFilters { get; set; }
+        IInvertibleBloomFilterData<TId,TCount>[] BloomFilters { get;  }
 
         /// <summary>
         /// The capacity for the estimator.

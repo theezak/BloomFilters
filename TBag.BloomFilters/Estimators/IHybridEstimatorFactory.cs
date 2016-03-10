@@ -17,9 +17,14 @@
         /// <param name="failedDecodeCount">Optional parameter indicating the number of failed decodes.</param>
         /// <returns>A hybrid estimator</returns>
         /// <remarks>If decoding the invertible Bloom filter fails, a better hybrid estimator can be created by either providing a larger value for <paramref name="setSize"/> and/or providing a value for <paramref name="failedDecodeCount"/> (which will trigger an empirical rule for increasing the estimator size).</remarks>
-        HybridEstimator<TEntity, TId, TCount> Create<TEntity, TId, TCount>(
+        IHybridEstimator<TEntity, TId, TCount> Create<TEntity, TId, TCount>(
             IBloomFilterConfiguration<TEntity, int, TId, long, TCount> configuration, 
-            ulong setSize, 
+            long setSize, 
             byte failedDecodeCount = 0) where TCount : struct;
+
+        IHybridEstimator<TEntity, TId, TCount> CreateMatchingEstimator<TEntity, TId, TCount>(
+            IHybridEstimatorData<TId, TCount> data,
+            IBloomFilterConfiguration<TEntity, int, TId, long, TCount> configuration,
+            long setSize) where TCount : struct;
     }
 }

@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
+﻿
 namespace TBag.BloomFilters.Estimators
 {
+    using System;
+     using System.Linq;
+
     /// <summary>
     /// The strata estimator helps estimate the number of differences between two (sub)sets.
     /// </summary>
@@ -39,7 +39,7 @@ namespace TBag.BloomFilters.Estimators
         /// <summary>
         /// Decode factor.
         /// </summary>
-        protected virtual double DecodeCountFactor => _capacity >= 20 ? 1.39D : 1.0D;
+        public double DecodeCountFactor { get; set; }
         #endregion
 
         #region Constructor
@@ -53,6 +53,7 @@ namespace TBag.BloomFilters.Estimators
             IdHash = id => configuration.IdHashes(id, 1).First();
             _capacity = capacity;
             Configuration = configuration;
+            DecodeCountFactor = _capacity >= 20 ? 1.39D : 1.0D;
         }
         #endregion
 
@@ -61,12 +62,12 @@ namespace TBag.BloomFilters.Estimators
         /// Extract the data
         /// </summary>
         /// <returns></returns>
-        public IStrataEstimatorData<TId, TCount> Extract()
+        public StrataEstimatorData<TId, TCount> Extract()
         {
             var result = new StrataEstimatorData<TId, TCount> {
                 Capacity = _capacity,
                 DecodeCountFactor = DecodeCountFactor,
-                BloomFilters = new IInvertibleBloomFilterData<TId, TCount>[MaxTrailingZeros]
+                BloomFilters = new InvertibleBloomFilterData<TId, TCount>[MaxTrailingZeros]
             };
             for(var i=0; i < StrataFilters.Length; i++)
             {
@@ -98,20 +99,24 @@ namespace TBag.BloomFilters.Estimators
         /// Decode the given estimator data.
         /// </summary>
         /// <param name="estimator">Estimator data to subtract.</param>
+        /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns></returns>
-        public virtual ulong Decode(IStrataEstimatorData<TId, TCount> estimator)
+        public virtual ulong Decode(IStrataEstimatorData<TId, TCount> estimator,
+            bool destructive = false)
         {
-            return Extract().Decode(estimator, Configuration);
+            return Extract().Decode(estimator, Configuration, destructive);
         }
 
         /// <summary>
         /// Decode
         /// </summary>
         /// <param name="estimator">Other estimator.</param>
+        /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns></returns>
-        public virtual ulong Decode(IStrataEstimator<TEntity, TId, TCount> estimator)
+        public virtual ulong Decode(IStrataEstimator<TEntity, TId, TCount> estimator,
+            bool destructive = false)
         {
-            return Decode(estimator.Extract());
+            return Decode(estimator.Extract(), destructive);
         }
         #endregion
 
@@ -149,7 +154,7 @@ namespace TBag.BloomFilters.Estimators
         {
             if (StrataFilters[idx] == null)
             {
-                StrataFilters[idx] = new InvertibleBloomFilter<TEntity, TId, TCount>(_capacity, Configuration);
+                StrataFilters[idx] = new InvertibleBloomFilter<TEntity, TId, TCount>(_capacity, 0.001F, Configuration);
             }
             StrataFilters[idx].Add(item);
         }

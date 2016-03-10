@@ -25,13 +25,5 @@
         /// Determine if the identifier equals the identity value (for example: zero for numbers)
         /// </summary>
         public Func<TId, bool> IsIdIdentity { get; set; }
-
-        /// <summary>
-        /// When <c>true</c> then hash values are split by the hash function used.
-        /// </summary>
-        public bool SplitByHash
-        {
-            get; set;
-        }
     }
 }

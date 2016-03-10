@@ -30,8 +30,8 @@ namespace TBag.BloomFilters.Estimators
         /// The Bloom filters that are part of the strata estimator.
         /// </summary>
         [DataMember(Order = 3)]
-        public IInvertibleBloomFilterData<TId,TCount>[] BloomFilters { get; set; }
+        public InvertibleBloomFilterData<TId,TCount>[] BloomFilters { get; set; }
 
-
+        IInvertibleBloomFilterData<TId, TCount>[] IStrataEstimatorData<TId, TCount>.BloomFilters => BloomFilters;               
     }
 }

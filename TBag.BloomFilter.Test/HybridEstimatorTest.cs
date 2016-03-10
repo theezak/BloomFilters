@@ -86,16 +86,15 @@ namespace TBag.BloomFilter.Test
                         
                                 var testData = DataGenerator.Generate().Take(dataSize).ToList();
                                 var modCount = (int)((dataSize / 100.0D) * errorSize);
-                                var testData2 = DataGenerator.Generate().Take(dataSize).ToList();
-                                DataGenerator.Modify(testData2, modCount);
-                                var startTime = DateTime.UtcNow;
+                                 var startTime = DateTime.UtcNow;
                                 var estimator1 = new HybridEstimator<TestEntity, long,int>(capacity, 2, 30, (uint)testData.Count, strata, configuration);
                                 foreach (var item in testData)
                                 {
                                     estimator1.Add(item);
                                 }
-                                var estimator2 = new HybridEstimator<TestEntity, long,int>(capacity, 2, 30, (uint)testData2.Count, strata, configuration);
-                                foreach (var item in testData2)
+                                testData.Modify(modCount);
+                                var estimator2 = new HybridEstimator<TestEntity, long,int>(capacity, 2, 30, (uint)testData.Count, strata, configuration);
+                                foreach (var item in testData)
                                 {
                                     estimator2.Add(item);
                                 }

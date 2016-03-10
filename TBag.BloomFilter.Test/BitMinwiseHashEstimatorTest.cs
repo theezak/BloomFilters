@@ -73,9 +73,9 @@ namespace TBag.BloomFilter.Test
                 (ulong)data.LongCount());
             foreach(var element in data)
             estimator.Add(element);
-            var estimator2 = new BitMinwiseHashEstimator<TestEntity,long, sbyte>(configuration, 2, 20, (ulong)data.LongCount());
-            DataGenerator.Modify(data, 2000);
-            foreach(var element in data)
+            data.Modify(2000); 
+           var estimator2 = new BitMinwiseHashEstimator<TestEntity,long, sbyte>(configuration, 2, 20, (ulong)data.LongCount());
+             foreach(var element in data)
                 //just making sure we do not depend upon the order of adding things.
             estimator2.Add(element);
             var differenceCount = data.LongCount() - estimator.Similarity(estimator2) * data.LongCount();

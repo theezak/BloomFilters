@@ -3,6 +3,6 @@
     public class TestEntity 
     {
         public long Id { get; set; }
-        public int Value { get; set; }
+        public string Value { get; set; }
     }
 }

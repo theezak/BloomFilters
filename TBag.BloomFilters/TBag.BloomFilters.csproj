@@ -65,6 +65,7 @@
     <Compile Include="IBloomFilterConfiguration.Generic.cs" />
     <Compile Include="IInvertibleBloomFilter.Generic.cs" />
     <Compile Include="IInvertibleBloomFilterData.Generic.cs" />
+    <Compile Include="IInvertibleBloomFilterFactory.cs" />
     <Compile Include="InvertibleBloomFilterData.Generic.cs" />
     <Compile Include="InvertibleBloomFilter.Generic.cs" />
     <Compile Include="BloomFilter.cs" />

@@ -7,9 +7,21 @@ namespace TBag.BloomFilters.Estimators
     /// </summary>
     public static class HybridEstimatorDataExtensions
     {       
+        /// <summary>
+        /// Decode the hybrid estimator data instances.
+        /// </summary>
+        /// <typeparam name="TEntity">The type of the entity</typeparam>
+        /// <typeparam name="TId">The type of the entity identifier</typeparam>
+        /// <typeparam name="TCount">The type of the occurence count for the Bloom filter.</typeparam>
+        /// <param name="estimator">The estimator</param>
+        /// <param name="otherEstimatorData">The other estimator</param>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="destructive">When <c>true</c> the values of <paramref name="estimator"/> will be altered rendering it useless, otherwise <c>false</c></param>
+        /// <returns>An estimate of the difference between two sets based upon the estimators.</returns>
         public static ulong Decode<TEntity,TId,TCount>(this IHybridEstimatorData<TId,TCount> estimator,
             IHybridEstimatorData<TId,TCount> otherEstimatorData,
-            IBloomFilterConfiguration<TEntity, int, TId, long, TCount> configuration)
+            IBloomFilterConfiguration<TEntity, int, TId, long, TCount> configuration,
+             bool destructive = false)
             where TCount : struct
         {
             if (estimator == null && otherEstimatorData == null) return 0L;
@@ -17,7 +29,7 @@ namespace TBag.BloomFilters.Estimators
             if (otherEstimatorData == null) return (ulong)estimator.Capacity;
             var decodeFactor = Math.Max(estimator.StrataEstimator?.DecodeCountFactor ?? 1.0D, 
                 otherEstimatorData.StrataEstimator?.DecodeCountFactor ?? 1.0D);
-            return estimator.StrataEstimator.Decode(otherEstimatorData.StrataEstimator, configuration) + 
+            return estimator.StrataEstimator.Decode(otherEstimatorData.StrataEstimator, configuration, destructive) + 
                (ulong)(decodeFactor*(estimator.BitMinwiseEstimator.Capacity - (estimator.BitMinwiseEstimator.Similarity(otherEstimatorData.BitMinwiseEstimator) * estimator.BitMinwiseEstimator.Capacity)));
 
         }

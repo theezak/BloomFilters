@@ -15,10 +15,9 @@
     {
         #region Fields
         private readonly IBloomFilterConfiguration<TEntity, int, TId, long, TCount> _configuration;
-        private IInvertibleBloomFilterData<TId,TCount> _data = new InvertibleBloomFilterData<TId,TCount>();
+        private InvertibleBloomFilterData<TId,TCount> _data = new InvertibleBloomFilterData<TId,TCount>();
         private readonly IEqualityComparer<TCount> _countEqualityComparer = EqualityComparer<TCount>.Default;
-        private readonly IComparer<TCount> _countComparer = Comparer<TCount>.Default;
-        #endregion
+          #endregion
 
         #region Constructors
         /// <summary>
@@ -56,6 +55,7 @@
         /// <summary>
         /// Creates a new Bloom filter.
         /// </summary>
+        /// <param name="capacity"></param>
         /// <param name="bloomFilterConfiguration">The function to hash the input values. Do not use GetHashCode(). If it is null, and T is string or int a hash function will be provided for you.</param>
         /// <param name="m">The number of elements in the BitArray.</param>
         /// <param name="k">The number of hash functions to use.</param>
@@ -70,11 +70,7 @@
                 throw new ArgumentOutOfRangeException(
                     nameof(m),
                     "The provided capacity and errorRate values would result in an array of length > long.MaxValue. Please reduce either the capacity or the error rate.");
-            _configuration = bloomFilterConfiguration;
-            if (_configuration.SplitByHash)
-            {
-                m = (long)Math.Ceiling((1.0D) * m / k);
-            }
+            _configuration = bloomFilterConfiguration;          
             _data.HashFunctionCount = k;
             _data.BlockSize = m;
             var size = _data.BlockSize * _data.HashFunctionCount;
@@ -98,17 +94,7 @@
         {
             var id = _configuration.GetId(item);
             var hashValue = _configuration.GetEntityHash(item);
-            var idx = 0L;
-            var hasRows = _data.HasRows();
-            foreach (var position in _configuration.IdHashes(id, _data.HashFunctionCount).Select(p =>
-            {
-                var res = (p % _data.BlockSize) + idx;
-                if (hasRows)
-                {
-                    idx += _data.BlockSize;
-                }
-                return res;
-            }))
+             foreach (var position in _configuration.IdHashes(id, _data.HashFunctionCount).Select(p =>p % _data.Counts.LongLength))
             {
                 _data.Counts[position] = _configuration.CountIncrease(_data.Counts[position]);
                 _data.IdSums[position] = _configuration.IdXor(_data.IdSums[position], id);
@@ -120,7 +106,7 @@
         /// Extract the Bloom filter in a serializable format.
         /// </summary>
         /// <returns></returns>
-        public IInvertibleBloomFilterData<TId,TCount> Extract()
+        public InvertibleBloomFilterData<TId,TCount> Extract()
         {
             return _data;
         }
@@ -137,7 +123,7 @@
                 throw new ArgumentException(
                     "Invertible Bloom filter data is invalid.",
                     nameof(data));
-            _data = data; 
+            _data = data.ConvertToBloomFilterData();
         }
 
         /// <summary>
@@ -149,17 +135,7 @@
             var id = _configuration.GetId(item);
             var hashValue = _configuration.GetEntityHash(item);
             var idx = 0L;
-            var hasRows = _data.HasRows();
-            foreach (var position in _configuration.IdHashes(id, _data.HashFunctionCount)
-                .Select(p =>
-            {
-                var res = (p%_data.BlockSize) + idx;
-                if (hasRows)
-                {
-                    idx += _data.BlockSize;
-                }
-                return res;
-            }))
+            foreach (var position in _configuration.IdHashes(id, _data.HashFunctionCount).Select(p => p % _data.Counts.LongLength))
             {
                 _data.Remove(_configuration, id, hashValue, position);
             }
@@ -179,18 +155,8 @@
         {
             var hash = _configuration.GetEntityHash(item);
             var id = _configuration.GetId(item);
-            var idx = 0L;
-            var hasRows = _data.HasRows();
-            var countIdentity = _configuration.CountIdentity();
-            foreach (var position in _configuration.IdHashes(id, _data.HashFunctionCount)
-                .Select(p => {
-                    var res = (p % _data.BlockSize) + idx;
-                    if (hasRows)
-                    {
-                        idx += _data.BlockSize;
-                    }
-                    return res;
-                }))
+              var countIdentity = _configuration.CountIdentity();
+            foreach (var position in _configuration.IdHashes(id, _data.HashFunctionCount).Select(p => p % _data.Counts.LongLength))
             {
                 if (IsPure(_data, position))
                 {
@@ -263,8 +229,8 @@
         private static uint BestK(long capacity, float errorRate)
         {
             var k = (uint)Math.Ceiling(Math.Abs(Math.Log(2.0D) * (1.0D * BestM(capacity, errorRate) / capacity)));
-            //at least 2 hash functions.
-            return Math.Max(2, k);
+            //at least 3 hash functions.
+            return Math.Max(3, k);
         }
 
         private static long BestCompressedM(long capacity, float errorRate)

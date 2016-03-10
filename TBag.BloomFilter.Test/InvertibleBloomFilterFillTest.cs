@@ -45,11 +45,11 @@ namespace TBag.BloomFilter.Test
         }
 
         [TestMethod]
-        public void SetNoDiffTest()
+        public void SetDiffTest()
         {
             var addSize = 100000;
-            var testData = DataGenerator.Generate().Take(addSize).ToArray();
-            long size = testData.LongLength;
+            var testData = DataGenerator.Generate().Take(addSize).ToList();
+            long size = testData.LongCount();
             var configuration = new DefaultBloomFilterConfiguration();
             var bloomFilter = new InvertibleBloomFilter<TestEntity, long, sbyte>(size, 0.01F, configuration);
             foreach (var itm in testData)
@@ -57,7 +57,7 @@ namespace TBag.BloomFilter.Test
                 bloomFilter.Add(itm);
             }
             //make one change
-            testData[0].Value = -testData[0].Value;
+           testData.Modify(50);
             var secondBloomFilter = new InvertibleBloomFilter<TestEntity, long,sbyte>(size, 0.01F, configuration);
             foreach (var itm in testData)
             {
@@ -66,10 +66,10 @@ namespace TBag.BloomFilter.Test
             var changed = new HashSet<long>();
             var onlyInFirst = new HashSet<long>();
             var onlyInSecond = new HashSet<long>();
-            bloomFilter
+            var decoded = bloomFilter
                 .SubtractAndDecode(secondBloomFilter, onlyInFirst, onlyInSecond, changed);
             
-            Assert.IsTrue(changed.Count == 1, "Incorrect number of changes detected");
+            Assert.IsTrue(changed.Count == 25, "Incorrect number of changes detected");
             Assert.IsTrue(onlyInFirst.Count == 0, "False positive on only in first");
             Assert.IsTrue(onlyInSecond.Count == 0, "False positive on only in second");
         }
