@@ -7,7 +7,7 @@ namespace TBag.HashAlgorithms
     /// <summary>
     ///     xxHash algorithm.
     /// </summary>
-    public class XxHash : IXxHash
+    public sealed class XxHash : IXxHash
     {
         private const uint Prime321 = 2654435761U;
         private const uint Prime322 = 2246822519U;

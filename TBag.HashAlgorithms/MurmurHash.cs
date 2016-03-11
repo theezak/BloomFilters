@@ -2,7 +2,7 @@
 
 namespace TBag.HashAlgorithms
 {
-    public class Murmur3 : IMurmurHash
+    public sealed class Murmur3 : IMurmurHash
     {
         // 128 bit output, 64 bit platform version       
         private const ulong ReadSize = 16;

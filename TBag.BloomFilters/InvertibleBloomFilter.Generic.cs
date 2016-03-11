@@ -134,7 +134,6 @@
         {
             var id = _configuration.GetId(item);
             var hashValue = _configuration.GetEntityHash(item);
-            var idx = 0L;
             foreach (var position in _configuration.IdHashes(id, _data.HashFunctionCount).Select(p => p % _data.Counts.LongLength))
             {
                 _data.Remove(_configuration, id, hashValue, position);
