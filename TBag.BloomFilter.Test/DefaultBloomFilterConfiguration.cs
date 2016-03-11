@@ -22,7 +22,8 @@
         /// </summary>
         protected override int GetEntityHashImpl(TestEntity entity)
         {
-            return BitConverter.ToInt32(_murmurHash.Hash(Encoding.Unicode.GetBytes($"{entity.Id}::{entity.Value}")), 0);
+            var value = $"{entity.Id}::{entity.Value}";
+            return BitConverter.ToInt32(_murmurHash.Hash(Encoding.Unicode.GetBytes(value), (uint)value.GetHashCode()), 0);
         }
     }
 }
