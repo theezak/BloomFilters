@@ -12,18 +12,33 @@ namespace TBag.BloomFilters.Estimators
     public class HybridEstimatorData<TId,TCount> : IHybridEstimatorData<TId, TCount> where TCount : struct
     {
         /// <summary>
-        /// The capacity
+        /// Estimated number of elements in the set.
         /// </summary>
         [DataMember(Order = 1)]
+        public long CountEstimate { get; set; }
+
+        /// <summary>
+        /// The capacity
+        /// </summary>
+        [DataMember(Order = 2)]
         public long Capacity { get; set; }
 
-        [DataMember(Order = 2)]
+        /// <summary>
+        /// The strate estimator data
+        /// </summary>
+        [DataMember(Order = 3)]
         public StrataEstimatorData<TId,TCount> StrataEstimator { get; set; }
 
-        [DataMember(Order = 3)]
+        /// <summary>
+        /// The number of strata.
+        /// </summary>
+        [DataMember(Order = 4)]
         public byte StrataCount { get; set; }
 
-        [DataMember(Order = 4)]
+        /// <summary>
+        /// The bit minwise estimator data.
+        /// </summary>
+        [DataMember(Order = 5)]
         public BitMinwiseHashEstimatorData BitMinwiseEstimator { get; set; }
 
         IStrataEstimatorData<TId, TCount> IHybridEstimatorData<TId, TCount>.StrataEstimator => StrataEstimator;

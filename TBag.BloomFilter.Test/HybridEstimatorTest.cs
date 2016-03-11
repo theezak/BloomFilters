@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using TBag.BloomFilters;
 using System.IO;
+using System.Runtime.InteropServices;
 using TBag.BloomFilters.Estimators;
 
 namespace TBag.BloomFilter.Test
@@ -62,7 +63,7 @@ namespace TBag.BloomFilter.Test
         //
         #endregion
 
-     //  [TestMethod]
+      [TestMethod]
         public void HybridEstimatorPerformanceMeasurement()
         {
             var configuration = new LargeBloomFilterConfiguration();
@@ -75,42 +76,62 @@ namespace TBag.BloomFilter.Test
               
                     foreach (var errorSize in errorSizes)
                     {
-                        using (var writer = new StreamWriter(System.IO.File.Open($"hybridestimator-{dataSize}-{errorSize}.csv", FileMode.Create)))
+                        using (
+                            var writer =
+                                new StreamWriter(System.IO.File.Open($"hybridestimator-{dataSize}-{errorSize}.csv",
+                                    FileMode.Create)))
                         {
-                            writer.WriteLine("duration,dataSize,strata,capacity,modCount,estimatedModCount,countDiff");
+                            writer.WriteLine("duration,dataSize,strata,capacity,modCount,estimatedModCount,countDiff,countDiffSd");                          
+                                foreach (var capacity in capacities)
+                                {
+                                    foreach (var strata in stratas)
+                                    {
+                                var timeSpanAggregate = new TimeSpan[50];
+                                var countAggregate = new int[50];
+                                var modCountResultAggregate = new int[50];
 
-                        foreach (var capacity in capacities)
-                        {
-                            foreach (var strata in stratas)
-                    {
-                        
-                                var testData = DataGenerator.Generate().Take(dataSize).ToList();
-                                var modCount = (int)((dataSize / 100.0D) * errorSize);
-                                 var startTime = DateTime.UtcNow;
-                                var estimator1 = new HybridEstimator<TestEntity, long,int>(capacity, 2, 30, (uint)testData.Count, strata, configuration);
-                                foreach (var item in testData)
+                                for (var run = 0; run < 50; run++)
                                 {
-                                    estimator1.Add(item);
-                                }
-                                testData.Modify(modCount);
-                                var estimator2 = new HybridEstimator<TestEntity, long,int>(capacity, 2, 30, (uint)testData.Count, strata, configuration);
-                                foreach (var item in testData)
-                                {
-                                    estimator2.Add(item);
-                                }
-                                var measuredModCount = estimator1.Decode(estimator2);
-                                var time = DateTime.UtcNow.Subtract(startTime);
-                                writer.WriteLine($"{time.TotalMilliseconds},{dataSize},{strata},{capacity},{modCount},{measuredModCount},{ (long)measuredModCount-modCount}");
+                                    var testData = DataGenerator.Generate().Take(dataSize).ToList();
+                                        var modCount = (int) ((dataSize/100.0D)*errorSize);
+                                        var startTime = DateTime.UtcNow;
+                                        var estimator1 = new HybridEstimator<TestEntity, long, int>(capacity, 2, 10,
+                                            (uint) testData.Count, strata, configuration);
+                                        foreach (var item in testData)
+                                        {
+                                            estimator1.Add(item);
+                                        }
+                                        testData.Modify(modCount);
+                                        var estimator2 = new HybridEstimator<TestEntity, long, int>(capacity, 2, 10,
+                                            (uint) testData.Count, strata, configuration);
+                                        foreach (var item in testData)
+                                        {
+                                            estimator2.Add(item);
+                                        }
+                                        var measuredModCount = estimator1.Decode(estimator2);
+                                    timeSpanAggregate[run] = DateTime.UtcNow.Subtract(startTime);
+                                        countAggregate[run] = modCount;
+                                        modCountResultAggregate[run] = (int)measuredModCount;
+                                        
+                                    }
+                                        var timeAvg = new TimeSpan((long)timeSpanAggregate.Select(t=>t.Ticks).Average());
+                                        var countAvg = (long)countAggregate.Average();
+                                        var modCountResult = (long) modCountResultAggregate.Average();
+                                        var differenceResult =
+                                            modCountResultAggregate.Select((r,i) => r - countAggregate[i]).ToArray();
+                                        var differenceSd = Math.Sqrt(differenceResult.Variance());                                      
+                                writer.WriteLine($"{timeAvg.TotalMilliseconds},{dataSize},{strata},{capacity},{countAvg},{modCountResult},{(long)differenceResult.Average()},{differenceSd}");
                             }
-                        }
+                            }
+                        
                     }
-                }
+                    }
 
             }
         
 
         }
-
+      
 
         [TestMethod]
         public void BasicFillAndEstimate()

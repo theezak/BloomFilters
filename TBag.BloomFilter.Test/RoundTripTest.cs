@@ -49,11 +49,10 @@ namespace TBag.BloomFilter.Test
                 {
                     estimator.Add(item);
                 }
-                var differenceCount = estimator.Decode(otherEstimator);
-               //note: even though the estimator might be right on, with larger differences, a much larger filter is needed.
+                  //note: even though the estimator might be right on, with larger differences, a much larger filter is needed.
                //smaller (but not insignificant) differences with high set sizes seems to be the challenge.
                //TODO: filter will miss changed entities first unless sized larger. This is just a hack, gather some performance data.
-                var filter = _bloomFilterFactory.CreateHighUtilizationFilter(_configuration, 100*(long)differenceCount, 0.001F);
+                var filter = _bloomFilterFactory.CreateHighUtilizationFilter(_configuration, estimator.Extract(), otherEstimator);
                 foreach (var item in _dataSet)
                 {
                     filter.Add(item);
@@ -111,7 +110,7 @@ namespace TBag.BloomFilter.Test
                 bloomFilterFactory,
                 configuration);
             var dataSet2 = DataGenerator.Generate().Take(10000).ToList();
-            dataSet2.Modify(50);
+            dataSet2.Modify(10000);
             var actor2 = new Actor(
                 dataSet2,
                 estimatorFactory,

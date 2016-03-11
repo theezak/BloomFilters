@@ -17,6 +17,7 @@
         private readonly BitMinwiseHashEstimator<TEntity, TId, TCount> _minwiseEstimator;
         private readonly byte _maxStrata;
         private readonly long _capacity;
+        private readonly long _setSize;
 
         #endregion
 
@@ -34,17 +35,21 @@
             long capacity,
             byte bitSize,
             int minWiseHashCount,
-            ulong setSize,
+            long setSize,
             byte maxStrata,
             IBloomFilterConfiguration<TEntity, int, TId, long, TCount> configuration) : base(capacity, configuration)
         {
             _capacity = capacity;
             _maxStrata = maxStrata;
             var max = Math.Pow(2, MaxTrailingZeros);
-            var inStrata = max - Math.Pow(2, MaxTrailingZeros - maxStrata);
+             _setSize = setSize;
             //TODO: clean up math. This is very close though to what actually ends up in the estimator.
-            var setSize1 = (uint)(setSize * (1-(inStrata / max)));
-            _minwiseEstimator = new BitMinwiseHashEstimator<TEntity, TId, TCount>(configuration, bitSize, minWiseHashCount, Math.Max(setSize1,1));
+            var inStrata = max - Math.Pow(2, MaxTrailingZeros - maxStrata);           
+            _minwiseEstimator = new BitMinwiseHashEstimator<TEntity, TId, TCount>(
+                configuration, 
+                bitSize, 
+                minWiseHashCount, 
+                Math.Max((uint)(_setSize * (1 - (inStrata / max))), 1));
             DecodeCountFactor = _capacity >= 20 ? 1.45D : 1.0D;
         }
         #endregion
@@ -92,7 +97,8 @@
                 Capacity = _capacity,
                 BitMinwiseEstimator = _minwiseEstimator.Extract(),
                 StrataEstimator = Extract(),
-                StrataCount = _maxStrata
+                StrataCount = _maxStrata,
+                CountEstimate = _setSize
             };
         }
         /// <summary>

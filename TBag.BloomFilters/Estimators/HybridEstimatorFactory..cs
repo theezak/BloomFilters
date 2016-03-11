@@ -54,7 +54,7 @@ namespace TBag.BloomFilters.Estimators
                     strata = 19;
                 }
             }
-            var result = new HybridEstimator<TEntity, TId, TCount>(capacity, 2, 10, (ulong) setSize, strata,
+            var result = new HybridEstimator<TEntity, TId, TCount>(capacity, 2, 10, setSize, strata,
                 configuration)
             {
                 DecodeCountFactor = Math.Pow(2, failedDecodeCount)
@@ -70,7 +70,7 @@ namespace TBag.BloomFilters.Estimators
                data.Capacity, 
                data.BitMinwiseEstimator.BitSize, 
                data.BitMinwiseEstimator.HashCount, 
-               (ulong)setSize, 
+               setSize, 
                data.StrataCount, 
                configuration);
             estimator.DecodeCountFactor = data.StrataEstimator.DecodeCountFactor;

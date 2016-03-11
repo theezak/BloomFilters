@@ -1,9 +1,4 @@
-﻿
-
-using System.Runtime.Serialization.Json;
-using System.Timers;
-
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters
 {
     using System;
     using System.Collections.Generic;
@@ -16,7 +11,8 @@ namespace TBag.BloomFilters
         /// <summary>
         /// <c>true</c> when the filters are compatible, else <c>false</c>
         /// </summary>
-        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="TId">The type of entity identifier</typeparam>
+        /// <typeparam name="TCount">The type of the occurence counter for the invertible Bloom filter.</typeparam>
         /// <param name="filter"></param>
         /// <param name="otherFilter"></param>
         /// <returns></returns>
@@ -40,8 +36,7 @@ namespace TBag.BloomFilters
         public static bool IsValid<TId,TCount>(this IInvertibleBloomFilterData<TId,TCount> filter)
             where TCount : struct
         {
-            if (filter == null) return false;
-            if (filter.Counts == null ||
+            if (filter?.Counts == null ||
                 filter.HashSums == null ||
                 filter.IdSums == null) return false;
             if (filter.Counts.LongLength != filter.HashSums.LongLength ||
@@ -63,16 +58,16 @@ namespace TBag.BloomFilters
         /// <typeparam name="TId"></typeparam>
         /// <typeparam name="TCount"></typeparam>
         /// <param name="filterData"></param>
-        /// <param name="otherFilterData"></param>
+        /// <param name="subtractedFilterData"></param>
         /// <param name="configuration"></param>
-        /// <param name="listA">Items in <paramref name="filter"/>, but not in <paramref name="subtractedFiler"/></param>
-        /// <param name="listB">Items in <paramref name="subtractedFilter"/>, but not in <paramref name="filter"/></param>
+        /// <param name="listA">Items in <paramref name="filterData"/>, but not in <paramref name="subtractedFilterData"/></param>
+        /// <param name="listB">Items in <paramref name="subtractedFilterData"/>, but not in <paramref name="filterData"/></param>
         /// <param name="modifiedEntities">items in both filters, but with a different value.</param>
         /// <param name="destructive"></param>
         /// <returns></returns>
         internal static IInvertibleBloomFilterData<TId, TCount> Subtract<TEntity,  TId, TCount>(
             this IInvertibleBloomFilterData<TId, TCount> filterData,
-            IInvertibleBloomFilterData<TId, TCount> otherFilterData,
+            IInvertibleBloomFilterData<TId, TCount> subtractedFilterData,
             IBloomFilterConfiguration<TEntity, int, TId, long, TCount> configuration,
             HashSet<TId> listA,
             HashSet<TId> listB,
@@ -89,33 +84,33 @@ namespace TBag.BloomFilters
                 HashSums = new int[filterData.HashSums.LongLength],
                 IdSums = new TId[filterData.IdSums.LongLength]
             };
-            if (!filterData.IsCompatibleWith(otherFilterData))
-                throw new ArgumentException("Subtracted invertible Bloom filters are not compatible.", nameof(otherFilterData));
+            if (!filterData.IsCompatibleWith(subtractedFilterData))
+                throw new ArgumentException("Subtracted invertible Bloom filters are not compatible.", nameof(subtractedFilterData));
             var countEqualityComparer = EqualityComparer<TCount>.Default;
             var countsIdentity = configuration.CountIdentity();
             for (long i = 0L; i < filterData.Counts.LongLength; i++)
             {
                 var filterPure = configuration.IsPureCount(filterData.Counts[i]);
-                result.Counts[i] = configuration.CountSubtract(filterData.Counts[i], otherFilterData.Counts[i]);
-                result.HashSums[i] = configuration.EntityHashXor(filterData.HashSums[i], otherFilterData.HashSums[i]);
-                var idXorResult = configuration.IdXor(filterData.IdSums[i], otherFilterData.IdSums[i]);
+                result.Counts[i] = configuration.CountSubtract(filterData.Counts[i], subtractedFilterData.Counts[i]);
+                result.HashSums[i] = configuration.EntityHashXor(filterData.HashSums[i], subtractedFilterData.HashSums[i]);
+                var idXorResult = configuration.IdXor(filterData.IdSums[i], subtractedFilterData.IdSums[i]);
                 var resultPure = configuration.IsPureCount(result.Counts[i]);
                 var resultZero = countEqualityComparer.Equals(result.Counts[i], countsIdentity);
-                if (filterPure && 
+                if (filterPure &&
                     !resultPure &&
                     !resultZero)
                 {
                     listA.Add(filterData.IdSums[i]);
                 }
-                if (configuration.IsPureCount(otherFilterData.Counts[i]))
+                if (configuration.IsPureCount(subtractedFilterData.Counts[i]))
                 {
                     if (resultZero)
                     {
-                        //pure count went to zero
+                        //pure count went to zero: both filters were pure at the given position.
                         if (!configuration.IsIdIdentity(idXorResult))
                         {
                             listA.Add(filterData.IdSums[i]);
-                            listB.Add(otherFilterData.IdSums[i]);
+                            listB.Add(subtractedFilterData.IdSums[i]);
                             //set Id to identity, this is not a decode error.
                             idXorResult = configuration.IdXor(idXorResult, idXorResult);
                         }
@@ -128,7 +123,7 @@ namespace TBag.BloomFilters
                     }
                     else if (!resultPure)
                     {
-                        listB.Add(otherFilterData.IdSums[i]);
+                        listB.Add(subtractedFilterData.IdSums[i]);
                     }
                 }
                 result.IdSums[i] = idXorResult;
@@ -137,16 +132,16 @@ namespace TBag.BloomFilters
         }
 
         /// <summary>
-        /// Decode the 
+        /// Decode the filter.
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <typeparam name="TId"></typeparam>
-        /// <typeparam name="TCount"></typeparam>
-        /// <param name="filter"></param>
-        /// <param name="configuration"></param>
-        /// <param name="listA">Items in <paramref name="filter"/>, but not in <paramref name="subtractedFiler"/></param>
-        /// <param name="listB">Items in <paramref name="subtractedFilter"/>, but not in <paramref name="filter"/></param>
-        /// <param name="modifiedEntities">items in both filters, but with a different value.</param>
+        /// <typeparam name="TEntity">The type of the entity</typeparam>
+        /// <typeparam name="TId">The type of the entity identifier</typeparam>
+        /// <typeparam name="TCount">The type of the occurence count for the invertible Bloom filter.</typeparam>
+        /// <param name="filter">The Bloom filter data to decode</param>
+        /// <param name="configuration">The Bloom filter configuration</param>
+        /// <param name="listA">Items in the original set, but not in the subtracted set.</param>
+        /// <param name="listB">Items not in the original set, but in the subtracted set.</param>
+        /// <param name="modifiedEntities">items in both sets, but with a different value.</param>
         /// <returns></returns>
         internal static bool Decode<TEntity, TId, TCount>(this IInvertibleBloomFilterData<TId, TCount> filter,
             IBloomFilterConfiguration<TEntity, int, TId, long, TCount> configuration,
@@ -157,22 +152,19 @@ namespace TBag.BloomFilters
         {
             var countEqualityComparer = EqualityComparer<TCount>.Default;
             var countComparer = Comparer<TCount>.Default;
-            var pureList = Range(0L, filter.Counts.LongLength)
+            var pureList = new Stack<long>(Range(0L, filter.Counts.LongLength)
                 .Where(i => configuration.IsPureCount(filter.Counts[i]))
-                .Select(i => i)
-                .ToList();
+                .Select(i => i));
             var countsIdentity = configuration.CountIdentity();
             while (pureList.Any())
             {
-                var pureIdx = pureList[0];
-                pureList.RemoveAt(0);
+                var pureIdx = pureList.Pop();
                 if (!configuration.IsPureCount(filter.Counts[pureIdx]))
                 {
                     continue;
                 }
-                var count = filter.Counts[pureIdx];
                 var id = filter.IdSums[pureIdx];
-                if (countComparer.Compare(count, countsIdentity) > 0)
+                if (countComparer.Compare(filter.Counts[pureIdx], countsIdentity) > 0)
                 {
                     listA.Add(id);
                 }
@@ -180,7 +172,7 @@ namespace TBag.BloomFilters
                 {
                     listB.Add(id);
                 }
-                //a slight bet, might be a hash from a difference.
+                //no guarantee the hash value is correct, but we can't verify it.
                 var hashedValue = filter.HashSums[pureIdx];
                 //the difference has been accounted for, zero out.
                 filter.Counts[pureIdx] = countsIdentity;
@@ -189,44 +181,51 @@ namespace TBag.BloomFilters
                 foreach (var position in configuration
                     .IdHashes(id, filter.HashFunctionCount)
                     .Select(p => p%filter.Counts.LongLength)
-                    .Where(p => p != pureIdx))
+                    .Where(p => !countEqualityComparer.Equals(filter.Counts[p], countsIdentity)))
                 {
                     if (configuration.IsPureCount(filter.Counts[position]))
                     {
-                        //just before zero-ing out the count.
+                        //we are just about to zero out the count.
                         var hashEquals = filter.HashSums[position] == hashedValue;
-                        var identityEquals = configuration
-                            .IsIdIdentity(configuration.IdXor(id, filter.IdSums[position]));
-                        if (!hashEquals || !identityEquals)
+                        //pure, hash/identity is different.
+                        if (!configuration
+                            .IsIdIdentity(configuration.IdXor(id, filter.IdSums[position])) &&
+                            hashEquals)
                         {
-                            //pure, hash/identity is different.
-                            if (!identityEquals && hashEquals)
+                            if (countComparer.Compare(filter.Counts[position], countsIdentity) > 0)
                             {
-                                if (countComparer.Compare(filter.Counts[position], countsIdentity) > 0)
-                                {
-                                    listA.Add(filter.IdSums[position]);
-                                }
-                                else
-                                {
-                                    listB.Add(filter.IdSums[position]);
-                                }
+                                listA.Add(filter.IdSums[position]);
                             }
-                            else if (!listA.Contains(filter.IdSums[position]) &&
-                                !listB.Contains(filter.IdSums[position]))
+                            else
                             {
-                                modifiedEntities.Add(filter.IdSums[position]);
+                                listB.Add(filter.IdSums[position]);
                             }
+                        }
+                        else if (!hashEquals &&
+                                 !listA.Contains(filter.IdSums[position]) &&
+                                 !listB.Contains(filter.IdSums[position]))
+                        {
+                            modifiedEntities.Add(filter.IdSums[position]);
                         }
                     }
                     filter.Remove(configuration, id, hashedValue, position);
-                    if (configuration.IsPureCount(filter.Counts[position]) &&
-                        pureList.All(p => p != position))
+                    if (configuration.IsPureCount(filter.Counts[position]))
                     {
                         //count became pure, add to the list.
-                        pureList.Add(position);
+                        pureList.Push(position);
                     }
                 }
             }
+            return filter.IsCompleteDecode(configuration, countEqualityComparer, countsIdentity);
+        }
+
+        private static bool IsCompleteDecode<TEntity, TId, TCount>(
+            this IInvertibleBloomFilterData<TId, TCount> filter,
+            IBloomFilterConfiguration<TEntity, int, TId, long, TCount> configuration, 
+            EqualityComparer<TCount> countEqualityComparer, 
+            TCount countsIdentity)
+            where TCount : struct
+        {
             for (var position = 0L; position < filter.Counts.LongLength; position++)
             {
                 if (!configuration.IsIdIdentity(filter.IdSums[position]) ||

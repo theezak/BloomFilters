@@ -8,6 +8,11 @@
     public interface IHybridEstimatorData<TId, TCount> where TCount : struct
     {
         /// <summary>
+        /// Estimated size of the set.
+        /// </summary>
+        long CountEstimate { get; set; }
+
+        /// <summary>
         /// The capacity
         /// </summary>
         long Capacity { get; set; }
