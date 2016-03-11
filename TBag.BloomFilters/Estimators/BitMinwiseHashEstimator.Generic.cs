@@ -112,8 +112,8 @@ namespace TBag.BloomFilters.Estimators
         /// <returns></returns>
         private static BitArray Convert(int[,] slots, byte bitSize)
         {
-            var hashValues = new BitArray(bitSize*slots.GetLength(0)*slots.GetLength(1));
             var valueCount = slots.GetLength(1);
+            var hashValues = new BitArray(bitSize*slots.GetLength(0)*valueCount);
             var idx = 0;
             for (var hashCount = 0; hashCount < slots.GetLength(0); hashCount++)
             {
