@@ -1,5 +1,5 @@
 # Invertible Bloom Filters
-Bloom filters focused on estimating set differences. Written in C#.
+On using invertible Bloom filters for estimating differences between sets of key/value pairs. Written in C#.
 
 This work is in very early stages, exploring options, performance and characteristics.The goal is to efficiently determine the differences between two sets of key/value pairs. 
 
