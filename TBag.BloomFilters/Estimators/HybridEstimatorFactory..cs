@@ -29,12 +29,11 @@ namespace TBag.BloomFilters.Estimators
             {
                 capacity = capacity * failedDecodeCount;
             }
-            if (setSize < 10000L && failedDecodeCount >2)
+            if (setSize < 10000L &&
+                failedDecodeCount >= 4 &&
+                failedDecodeCount <= 6)
             {
-                if (failedDecodeCount >= 4 && failedDecodeCount <= 6)
-                {
-                    strata = 3;
-                }
+                strata = 3;
             }
             if (setSize >= 10000L)
             {
