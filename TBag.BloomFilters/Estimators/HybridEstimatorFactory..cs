@@ -25,36 +25,37 @@ namespace TBag.BloomFilters.Estimators
         {
             byte strata = 7;
             var capacity = 80L;
-            if (setSize < 10000L && failedDecodeCount >0)
+            if (failedDecodeCount > 2)
             {
-                capacity = capacity * failedDecodeCount * 10;
+                capacity = capacity * failedDecodeCount;
+            }
+            if (setSize < 10000L && failedDecodeCount >2)
+            {
                 if (failedDecodeCount >= 4 && failedDecodeCount <= 6)
                 {
-                    //higher strata is typically not preferred with lower capacities, but try it at this point.
-                    strata = 13;
+                    strata = 3;
                 }
             }
             if (setSize >= 10000L)
             {
                 capacity *= 2L;
-            }
-            if (setSize > 500000L)
-            {
-                capacity = 1000;
-                if (failedDecodeCount > 0)
+                if (capacity > 250 &&
+                    failedDecodeCount > 2)
                 {
                     strata = 13;
                 }
-            }        
-            if (setSize >= 1000000L)
+            }
+            if (setSize > 500000L &&
+                failedDecodeCount > 1)
             {
                 strata = 13;
-                if (failedDecodeCount > 0)
-                {
-                    strata = 19;
-                }
             }
-            var result = new HybridEstimator<TEntity, TId, TCount>(capacity, 2, 10, setSize, strata,
+            var result = new HybridEstimator<TEntity, TId, TCount>(
+                capacity, 
+                2, 
+                10, 
+                setSize, 
+                strata,
                 configuration)
             {
                 DecodeCountFactor = Math.Pow(2, failedDecodeCount)
