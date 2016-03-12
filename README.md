@@ -8,8 +8,6 @@ The first approach is based upon invertible Bloom filters, as described in http:
 1. Any pure items that after substraction have count zero, but do not have zero for the value hash, will have their Id added to the set of differences. Intuitively this means any item stored by itself in the same location across both Bloom filters, has a different value when the hash of the values is different.
 2. During decoding, any of the locations finally ending up with count equal to zero, will be evaluated for non zero identifier hashes or non zero value hashes. Intuitively this means that during decoding we can identify difference not only from pure locations, but also from locations that transition from pure to zero.
 
-Additionaly, an option was added for splitting the hash values out in a bucket per hash function. Testing however showed that splitting the hash values per hash function caused a significant increase in the error rate.
-
 Included with the Bloom Filter is a strata estimator (as described in the above paper). Based upon the strata estimator, a hybrid strata estimator was implemented utilizing the b-bit minwise hash (described in http://research.microsoft.com/pubs/120078/wfc0398-liPS.pdf). 
 
 The estimator is important, because an estimate of the number of differences is needed to pick a proper sized Bloom filter that can be decoded. The size of the invertible Bloom filter needed for detecting the changes between two sets is not dependent upon the set sizes, but upon the size of the difference.  For example, 30 differences between two sets of 500000 elements each can be fully detected by 63 kilobyte invertible Bloom filter. On the other hand, 40000 differences between two sets of 45000 items each can take a Bloom filter of 17 megabytes. 
@@ -25,7 +23,7 @@ When utilizing an invertible Bloom filter within the capacity it was sized for, 
 ## Empirical data
 Testing showed that a capacity of 15 with a strata of 7 is ideal in most cases, except for extremely large sets with a high expected difference, in which case a capacity of 1000 and a strata of 13 performed well.
 
-Invertible Bloom filters of relatively low capacity (total size less than 300 kilobytes) performed very well on medium sized sets (1000) with a lower number of differences (50) for detecting differences between keys in both sets. Invertible Bloom filters of much higher capacity (2* size**2) were needed to detect differences in value for keys that were in both sets.
+Invertible Bloom filters of relatively low capacity (total size less than 300 kilobytes) performed very well on medium sized sets (1000) with a lower number of differences (50) for detecting differences between keys in both sets. Invertible Bloom filters of much higher capacity (2* size**2) were needed to detect differences in value for keys that were in both sets. The conclusion was that the invertible Bloom filter for key/value pairs as presented did not perform well on detecting different values for the same key across the sets. The invertible Bloom filter focuses on the keys and their counts, and detecting differences in the values only becomes possible at very sparse (high capacity) Bloom filters with many pure positions.
 
 ## Wishlist
 Although this is initially just a testbed, an obvious wishlist item is a buffer pool to counteract some of the horrible things the Bloom Filter does to memory management.
