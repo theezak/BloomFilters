@@ -18,7 +18,7 @@ When the estimate for the difference is too large, a Bloom filter will be used t
 Support has been added for serializing and deserializing Bloom filters and estimators.
 
 ## Overloading a Bloom filter
-When utilizing an invertible Bloom filter within the capacity it was sized for, the count will seldom exceed 2 or 3. However, when utilizing estimators, the idea is that the invertible Bloom filter will be utilized at a much higher capacity than it was sized for, thus accepting a higher error rate. To account for both scenario's, the actual count type is configurable. Two types will be supported out of the box: sbyte and int.
+When utilizing an invertible Bloom filter within the capacity it was sized for, the count will seldom exceed 2 or 3. However, when utilizing estimators, the idea is that the invertible Bloom filter will be utilized at a much higher capacity than it was sized for, thus accepting a higher error rate and much higher count values. To account for both scenario's, the actual count type is configurable. Two types will be supported out of the box: sbyte and int.
 
 ## Empirical data
 Testing showed that a capacity of 15 with a strata of 7 is ideal in most cases, except for extremely large sets with a high expected difference, in which case a capacity of 1000 and a strata of 13 performed well.
