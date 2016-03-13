@@ -86,11 +86,20 @@
             base.Add(item);
             var id = Configuration.ValueFilterConfiguration.GetId(item);
          var hashValue = Configuration.ValueFilterConfiguration.EntityHashes(item, 1).First();
-             foreach (var position in Configuration.ValueFilterConfiguration.IdHashes(id, Data.HashFunctionCount).Select(p =>Math.Abs(p % Data.Counts.LongLength)))
+             foreach (var position in Configuration
+                .ValueFilterConfiguration
+                .IdHashes(id, Data.ValueFilter.HashFunctionCount)
+                .Select(p =>Math.Abs(p % Data.ValueFilter.Counts.LongLength)))
             {
-                Data.ValueFilter.Counts[position] = Configuration.ValueFilterConfiguration.CountIncrease(Data.ValueFilter.Counts[position]);
-                Data.ValueFilter.IdSums[position] = Configuration.ValueFilterConfiguration.IdXor(Data.ValueFilter.IdSums[position], id);
-                Data.ValueFilter.HashSums[position] = Configuration.ValueFilterConfiguration.EntityHashXor(Data.ValueFilter.HashSums[position], hashValue);
+                Data.ValueFilter.Counts[position] = Configuration
+                    .ValueFilterConfiguration
+                    .CountIncrease(Data.ValueFilter.Counts[position]);
+                Data.ValueFilter.IdSums[position] = Configuration
+                    .ValueFilterConfiguration
+                    .IdXor(Data.ValueFilter.IdSums[position], id);
+                Data.ValueFilter.HashSums[position] = Configuration
+                    .ValueFilterConfiguration
+                    .EntityHashXor(Data.ValueFilter.HashSums[position], hashValue);
               }
         }
 
@@ -106,12 +115,16 @@
             if (!containsId) return true;
             var valueId = Configuration.ValueFilterConfiguration.GetId(item);
             var countIdentity = Configuration.ValueFilterConfiguration.CountIdentity();
-            foreach (var position in Configuration.ValueFilterConfiguration
-                .IdHashes(valueId, Data.ValueFilter.HashFunctionCount).Select(p => Math.Abs(p % Data.ValueFilter.Counts.LongLength)))
+            foreach (var position in Configuration
+                .ValueFilterConfiguration
+                .IdHashes(valueId, Data.ValueFilter.HashFunctionCount)
+                .Select(p => Math.Abs(p % Data.ValueFilter.Counts.LongLength)))
             {
                 if (IsPure(Configuration.ValueFilterConfiguration, Data.ValueFilter, position))
                 {
-                    if (!Configuration.ValueFilterConfiguration.IsIdIdentity(Configuration.ValueFilterConfiguration.IdXor(Data.ValueFilter.IdSums[position], valueId)))
+                    if (!Configuration
+                        .ValueFilterConfiguration
+                        .IsIdIdentity(Configuration.ValueFilterConfiguration.IdXor(Data.ValueFilter.IdSums[position], valueId)))
                     {
                         return false;
                     }
@@ -133,9 +146,14 @@
             base.Remove(item);
             var id = Configuration.ValueFilterConfiguration.GetId(item);
             var hashValue = Configuration.ValueFilterConfiguration.EntityHashes(item, 1).First();
-            foreach (var position in Configuration.ValueFilterConfiguration.IdHashes(id, Data.ValueFilter.HashFunctionCount).Select(p =>Math.Abs(p % Data.ValueFilter.Counts.LongLength)))
+            foreach (var position in Configuration
+                .ValueFilterConfiguration
+                .IdHashes(id, Data.ValueFilter.HashFunctionCount)
+                .Select(p =>Math.Abs(p % Data.ValueFilter.Counts.LongLength)))
             {
-                Data.ValueFilter.Remove(Configuration.ValueFilterConfiguration, id, hashValue, position);
+                Data
+                    .ValueFilter
+                    .Remove(Configuration.ValueFilterConfiguration, id, hashValue, position);
             }
         }               
 

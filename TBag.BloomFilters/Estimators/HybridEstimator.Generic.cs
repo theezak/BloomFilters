@@ -6,8 +6,8 @@
     /// A hybrid estimator with a limited strata that cuts over to a bit minwise estimator.
     /// </summary>
     /// <typeparam name="TEntity">The entity type</typeparam>
+    /// <typeparam name="TId">The identifier type</typeparam>
     /// <typeparam name="TCount">The type of occurence count.</typeparam>
-    /// <typeparam name="TId"></typeparam>
     public class HybridEstimator<TEntity, TId, TCount> : 
         StrataEstimator<TEntity, TCount>,
         IHybridEstimator<TEntity, int, TCount> 
@@ -127,8 +127,10 @@
         public ulong Decode(IHybridEstimatorData<int, TCount> estimator,
             bool destructive = false)
         {
-            if (estimator == null) return (ulong)_capacity;
-            return ((IHybridEstimator<TEntity, int, TCount>) this).Extract().Decode(estimator, Configuration);
+            if (estimator == null) return (ulong)_setSize;
+            return ((IHybridEstimator<TEntity, int, TCount>) this)
+                .Extract()
+                .Decode(estimator, Configuration);
         }
         #endregion
     }

@@ -15,7 +15,7 @@ namespace TBag.BloomFilters.Estimators
     {
         #region Fields
         private readonly long _capacity;       
-         protected const byte MaxTrailingZeros = sizeof(long)*8;
+         protected const byte MaxTrailingZeros = sizeof(int)*8;
         #endregion
 
         #region Properties
@@ -65,17 +65,12 @@ namespace TBag.BloomFilters.Estimators
         /// <returns></returns>
         public StrataEstimatorData<int, TCount> Extract()
         {
-            var result = new StrataEstimatorData<int, TCount> {
+            return new StrataEstimatorData<int, TCount>
+            {
                 Capacity = _capacity,
                 DecodeCountFactor = DecodeCountFactor,
-                BloomFilters = new InvertibleBloomFilterData<int,int,TCount>[MaxTrailingZeros]
+                BloomFilters = StrataFilters.Select(s => s?.Extract()).ToArray()
             };
-            for(var i=0; i < StrataFilters.Length; i++)
-            {
-                if (StrataFilters[i] == null) continue;
-               result.BloomFilters[i] = StrataFilters[i].Extract();
-            }
-            return result;
         }
 
         /// <summary>
@@ -105,7 +100,8 @@ namespace TBag.BloomFilters.Estimators
         public virtual ulong Decode(IStrataEstimatorData<int, TCount> estimator,
             bool destructive = false)
         {
-            return Extract().Decode(estimator, Configuration, destructive);
+            return Extract()
+                .Decode(estimator, Configuration, destructive);
         }
 
         /// <summary>
@@ -127,7 +123,7 @@ namespace TBag.BloomFilters.Estimators
         /// </summary>
         /// <param name="n">The number</param>
         /// <returns>number of trailing zeros.</returns>
-        protected static int NumTrailingBinaryZeros(long n)
+        protected static int NumTrailingBinaryZeros(int n)
         {
             var mask = 1;
             for (var i = 0; i < MaxTrailingZeros; i++, mask <<= 1)

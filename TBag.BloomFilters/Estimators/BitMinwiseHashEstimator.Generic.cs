@@ -49,8 +49,6 @@ namespace TBag.BloomFilters.Estimators
             _hashCount = hashCount;
             _configuration = configuration;
             _hashFunctions = GenerateHashes();
-            //note: recognize that key/value pair differences are best detected through the entity hash, since it includes id and value.
-            //The bit minwise hash estimator has no need to actually identify the differences, just needs to count them.
             _entityHash = e => Math.Abs(unchecked((int)((ulong)configuration.EntityHashes(e,1).First()%_capacity)));
             _slots = GetMinHashSlots(_hashCount, _capacity);
         }

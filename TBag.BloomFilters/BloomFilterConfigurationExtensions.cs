@@ -4,9 +4,20 @@
     using System.Linq;
     using System;
     using HashAlgorithms;
+
+    /// <summary>
+    /// Extension methods for Bloom filter configuration.
+    /// </summary>
     internal static class BloomFilterConfigurationExtensions
     {
         #region Types
+        /// <summary>
+        /// Bloom filter configuration for an estimator
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="TCount"></typeparam>
+        /// <remarks>Estimators utilize the entity hash as the identifier.</remarks>
         private class BloomFilterEntityHashConfigurationWrapper<TEntity, TId, TCount> : 
             BloomFilterConfigurationBase<TEntity,int,int,int,TCount>
              where TCount : struct
@@ -134,6 +145,13 @@
 
         }
 
+        /// <summary>
+        /// Bloom filter configuration for a value Bloom filter.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="TCount"></typeparam>
+        /// <remarks>The value Bloom filter is reversed, utilizing the value hash as the identifier, and the identifier as the value hash.</remarks>
         private class BloomFilterEntityHashConfigurationValueWrapper<TEntity, TId, TCount> :
            BloomFilterConfigurationBase<TEntity, int, TId, int, TCount>
            where TCount : struct
@@ -292,6 +310,14 @@
             return new BloomFilterEntityHashConfigurationWrapper<TEntity, TId, TCount>(configuration);
         }
 
+        /// <summary>
+        /// Convert the Bloom filter configuration to a configuration for the value Bloom filter.
+        /// </summary>
+        /// <typeparam name="TEntity">The type of the entity</typeparam>
+        /// <typeparam name="TId">The type of the entity identifier</typeparam>
+        /// <typeparam name="TCount">The type of the occurence count</typeparam>
+        /// <param name="configuration">The Bloom filter configuration</param>
+        /// <returns>The Bloom filter configuration for the value Bloom filter utilized inside the Bloom filter.</returns>
         internal static IBloomFilterConfiguration<TEntity, int, TId, int, TCount> ConvertToValueHash
            <TEntity, TId,  TCount>(
            this IBloomFilterConfiguration<TEntity, TId, int, int, TCount> configuration)
