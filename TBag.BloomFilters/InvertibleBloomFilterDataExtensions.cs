@@ -17,19 +17,19 @@
         /// <param name="filter"></param>
         /// <param name="otherFilter"></param>
         /// <returns></returns>
-        public static bool IsCompatibleWith<TId,TEntityHash, TCount>(this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter, 
-            IInvertibleBloomFilterData<TId,TEntityHash,TCount> otherFilter)
+        public static bool IsCompatibleWith<TId, TEntityHash, TCount>(this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter,
+            IInvertibleBloomFilterData<TId, TEntityHash, TCount> otherFilter)
             where TId : struct
             where TEntityHash : struct
             where TCount : struct
-        { 
+        {
             if (!filter.IsValid() || !otherFilter.IsValid()) return false;
-             return filter.BlockSize == otherFilter.BlockSize &&
-                filter.HashFunctionCount == otherFilter.HashFunctionCount &&
-                filter.Counts.LongLength == otherFilter.Counts.LongLength &&
-                filter.HashSums?.LongLength ==  otherFilter.HashSums?.LongLength &&
-                (filter.ValueFilter == otherFilter.ValueFilter ||
-                filter.ValueFilter.IsCompatibleWith(otherFilter.ValueFilter));
+            return filter.BlockSize == otherFilter.BlockSize &&
+               filter.HashFunctionCount == otherFilter.HashFunctionCount &&
+               filter.Counts.LongLength == otherFilter.Counts.LongLength &&
+               filter.HashSums?.LongLength == otherFilter.HashSums?.LongLength &&
+               (filter.ValueFilter == otherFilter.ValueFilter ||
+               filter.ValueFilter.IsCompatibleWith(otherFilter.ValueFilter));
         }
 
         /// <summary>
@@ -40,19 +40,19 @@
         /// <typeparam name="TCount">The type of the occurence counter for the invertible Bloom filter.</typeparam>
         /// <param name="filter"></param>
         /// <returns></returns>
-        public static bool IsValid<TId, TEntityHash, TCount>(this IInvertibleBloomFilterData<TId,  TEntityHash, TCount> filter)
+        public static bool IsValid<TId, TEntityHash, TCount>(this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter)
             where TCount : struct
             where TEntityHash : struct
             where TId : struct
         {
-            if (filter?.Counts == null ||               
-                filter.IdSums == null) return false;           
-            if (filter.Counts.LongLength != (filter.HashSums?.LongLength??filter.Counts.LongLength) ||
+            if (filter?.Counts == null ||
+                filter.IdSums == null) return false;
+            if (filter.Counts.LongLength != (filter.HashSums?.LongLength ?? filter.Counts.LongLength) ||
                 filter.Counts.LongLength != filter.IdSums.LongLength) return false;
             if (filter.BlockSize * filter.HashFunctionCount != filter.Counts.LongLength) return false;
             return true;
         }
-        
+
         private static IEnumerable<long> Range(long start, long end)
         {
             for (long i = start; i < end; i++)
@@ -75,7 +75,7 @@
         /// <param name="modifiedEntities">items in both filters, but with a different value.</param>
         /// <param name="destructive"></param>
         /// <returns></returns>
-        internal static IInvertibleBloomFilterData<TId, TEntityHash, TCount> Subtract<TEntity,  TId, TEntityHash, THash, TCount>(
+        internal static IInvertibleBloomFilterData<TId, TEntityHash, TCount> Subtract<TEntity, TId, TEntityHash, THash, TCount>(
             this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filterData,
             IInvertibleBloomFilterData<TId, TEntityHash, TCount> subtractedFilterData,
             IBloomFilterConfiguration<TEntity, TId, TEntityHash, THash, TCount> configuration,
@@ -94,7 +94,7 @@
                 BlockSize = filterData.BlockSize,
                 Counts = new TCount[filterData.Counts.LongLength],
                 HashFunctionCount = filterData.HashFunctionCount,
-                HashSums = filterData.HashSums==null?null:new TEntityHash[filterData.HashSums.LongLength],
+                HashSums = filterData.HashSums == null ? null : new TEntityHash[filterData.HashSums.LongLength],
                 IdSums = new TId[filterData.IdSums.LongLength]
             };
             var checkHash = result.HashSums != null && subtractedFilterData.HashSums != null;
@@ -177,7 +177,7 @@
             HashSet<TEntityHash> listA,
             HashSet<TEntityHash> listB,
             HashSet<TEntityHash> modifiedEntities,
-            bool destructive = false) 
+            bool destructive = false)
             where TCount : struct
             where TId : struct
             where TEntityHash : struct
@@ -215,27 +215,25 @@
                 }
                 if (configuration.IsPureCount(subtractedFilterData.Counts[i]))
                 {
-                    if (resultZero)
+                    if (resultZero &&
+                        !configuration.IsIdIdentity(idXorResult))
                     {
-                        //pure count went to zero: both filters were pure at the given position.
-                        if (!configuration.IsIdIdentity(idXorResult))
+                        modifiedEntities.Add(subtractedFilterData.HashSums[i]);
+                        modifiedEntities.Add(filterData.HashSums[i]);
+                        if (configuration.IsEntityHashIdentity(hashValue))
                         {
-                            modifiedEntities.Add(subtractedFilterData.HashSums[i]);
-                            modifiedEntities.Add(filterData.HashSums[i]);
-                            if (configuration.IsEntityHashIdentity(hashValue))
-                            {
-                                //any hash sum difference is no longer a decode error: same Id in the hash, different value. We accounted for this.
-                                idXorResult = configuration.IdXor(idXorResult, idXorResult);
-                            }
+                            //any hash sum difference is no longer a decode error: same Id in the hash, different value. We accounted for this.
+                            idXorResult = configuration.IdXor(idXorResult, idXorResult);
                         }
                     }
-                    else if (!resultPure &&
-                    !listA.Contains(filterData.HashSums[i]) &&
-                    !listB.Contains(filterData.HashSums[i]))
-                    {
-                        //TODO: causes false positives? 
-                        modifiedEntities.Add(subtractedFilterData.HashSums[i]);
-                    }
+                    //TODO: when result is not pure, you can't say much: there was a pure item at the position in the subtracted data,
+                    //but there were multiple in the other filter.
+                    //else if (!resultPure &&
+                    //!listA.Contains(filterData.HashSums[i]) &&
+                    //!listB.Contains(filterData.HashSums[i]))
+                    //{
+                    //    modifiedEntities.Add(subtractedFilterData.HashSums[i]);
+                    //}
                 }
                 result.HashSums[i] = hashValue;
                 result.IdSums[i] = idXorResult;
@@ -390,19 +388,15 @@
                     .Select(p => Math.Abs(p % filter.Counts.LongLength))
                     .Where(p => !countEqualityComparer.Equals(filter.Counts[p], countsIdentity)))
                 {
-                    if (configuration.IsPureCount(filter.Counts[position]))
-                    {
-                        //we are just about to zero out the count.
-                        //pure, hash/identity is different.
-                        if (!configuration
+                    if (configuration.IsPureCount(filter.Counts[position]) &&
+                        !configuration
                             .IsEntityHashIdentity(configuration.EntityHashXor(
                                 filter.HashSums[position],
                                 hashSum)) &&
                             !listA.Contains(filter.HashSums[position]) &&
                             !listB.Contains(filter.HashSums[position]))
-                        {
-                            modifiedEntities.Add(filter.HashSums[position]);
-                        }
+                    {
+                        modifiedEntities.Add(filter.HashSums[position]);
                     }
                     filter.Remove(configuration, id, hashSum, position);
                     if (configuration.IsPureCount(filter.Counts[position]))
