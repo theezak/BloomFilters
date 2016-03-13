@@ -28,10 +28,12 @@ Invertible Bloom filters of relatively low capacity (total size less than 300 ki
 A rather simple solution to this challenge would be to replace the key/value pairs, by a single hashed value. The crux to detecting the set differences is however the ability to recover the key values for the items in the difference. Since we can't recover the identifier from a combined hash value, we have to store the identifier individually in the Bloom filter. We could consider keeping a reverse mapping from hashed value to identifier in each location, but this can only be done when it is acceptable to not know the identifiers in the set difference in other locations.
 
 Combining the outcomes of these initial results, the following adjustments were made:
-- Estimators should store a single hash of the key and value combined. This reflects that estimators considers a key/value pair different when the key or the value is different. A significant reduction in the size of the estimator can be accomplished this way, since the strata estimators no longer require hashsum storage.
+- Estimators should store a single hash of the key and value combined. This reflects that estimators considers a key/value pair different when the key or the value is different. A significant reduction in the size of the estimator can be accomplished this way, since the strata estimators no longer require hashsum storage. 
 - The invertible Bloom filter can internally utilize a 'reverted' invertible Bloom filter for storing values. The values become identifiers, and the keys become the hashsums. This approach will require additional storage (about 2 times, but by dropping the hashsum value from the key Bloom filter, we can reduce this to about 5/3). The advantage should however be that differences between values can be identified at much lower capacities.
 
 Initial testing has shown that the proposed invertible Bloom filter is highly capable of detecting key/value pair differences with a Bloom filter capacity equal to the estimated number of differences. Estimators require consistently 26K. The Bloom filter size for 1000 differences is 216KB, with 11000 differences requiring a filter of 1.3MB. No differences were missed, but there is over identification of differences. Further analysis is needed.
+
+As an alternative, the 'reverse' invertible Bloom filter by itself performs well. The 'reverse' invertible Bloom filter can miss some keys that are unique to a set, but overall shows higher performance than the regular invertible Bloom filter at the same size.
 
 ## Wishlist
 Although this is initially just a testbed, an obvious wishlist item is a buffer pool to counteract some of the horrible things the Bloom Filter does to memory management.
