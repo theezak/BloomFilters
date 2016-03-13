@@ -27,6 +27,12 @@ Invertible Bloom filters of relatively low capacity (total size less than 300 ki
 
 A rather simple solution to this challenge would be to replace the key/value pairs, by a single hashed value that is stored as just a key. The crux to detecting the set differences is however the ability to recover the key values for the changed items.
 
+Combining the outcomes of these initial results, the following adjustments were made:
+- Estimators should store a single hash of the key and value combined. The estimator does not need to recover identifiers, and should consider value differences. A significant reduction in the size of the estimator can be accomplished this way, since the strata estimators no longer require hashsum storage.
+- The invertible Bloom filter can internally utilize a 'reverted' invertible Bloom filter for storing values. The values become identifiers, and the keys become the hashsums. This approach will require additional storage (about 2 times, but by dropping the hashsum value from the key Bloom filter, we can reduce this to about 5/3). The advantage should however be that differences between values can be identified at much lower capacities.
+
+Initial testing has shown that the proposed invertible Bloom filter is highly capable of key/value pair differences utilizing Bloom filters with a capacity equal to the number of differences. 
+
 ## Wishlist
 Although this is initially just a testbed, an obvious wishlist item is a buffer pool to counteract some of the horrible things the Bloom Filter does to memory management.
 
