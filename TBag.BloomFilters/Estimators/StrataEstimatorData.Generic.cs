@@ -13,6 +13,7 @@ namespace TBag.BloomFilters.Estimators
     [DataContract, Serializable]
     public class StrataEstimatorData<TId,TCount> : IStrataEstimatorData<TId, TCount>
         where TCount : struct
+        where TId : struct
     {
         /// <summary>
         /// The capacity
@@ -30,8 +31,8 @@ namespace TBag.BloomFilters.Estimators
         /// The Bloom filters that are part of the strata estimator.
         /// </summary>
         [DataMember(Order = 3)]
-        public InvertibleBloomFilterData<TId,TCount>[] BloomFilters { get; set; }
+        public InvertibleBloomFilterData<TId,int,TCount>[] BloomFilters { get; set; }
 
-        IInvertibleBloomFilterData<TId, TCount>[] IStrataEstimatorData<TId, TCount>.BloomFilters => BloomFilters;               
+        IInvertibleBloomFilterData<TId, int, TCount>[] IStrataEstimatorData<TId, TCount>.BloomFilters => BloomFilters;               
     }
 }

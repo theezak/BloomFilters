@@ -18,12 +18,12 @@ namespace TBag.BloomFilter.Test
             private readonly RuntimeTypeModel _protobufModel;
             private readonly IList<TestEntity> _dataSet;
             private readonly IHybridEstimatorFactory _hybridEstimatorFactory;
-            private readonly IBloomFilterConfiguration<TestEntity, int, long, long, int> _configuration;
+            private readonly IBloomFilterConfiguration<TestEntity, long, int, int, int> _configuration;
             private readonly IInvertibleBloomFilterFactory _bloomFilterFactory;
             public Actor(IList<TestEntity> dataSet,
                 IHybridEstimatorFactory hybridEstimatorFactory,
                 IInvertibleBloomFilterFactory bloomFilterFactory,
-                IBloomFilterConfiguration<TestEntity, int, long, long, int> configuration)
+                IBloomFilterConfiguration<TestEntity, long, int, int, int> configuration)
             {
                 _protobufModel = TypeModel.Create();
                 _protobufModel.UseImplicitZeroDefaults = true;
@@ -41,8 +41,8 @@ namespace TBag.BloomFilter.Test
             public MemoryStream RequestFilter(MemoryStream estimatorStream)
             {
                 var otherEstimator =
-                    (IHybridEstimatorData<long, int>)
-                        _protobufModel.Deserialize(estimatorStream, null, typeof (HybridEstimatorData<long, int>));
+                    (IHybridEstimatorData<int, int>)
+                        _protobufModel.Deserialize(estimatorStream, null, typeof (HybridEstimatorData<int, int>));
                 var estimator = _hybridEstimatorFactory.CreateMatchingEstimator(otherEstimator, _configuration,
                     _dataSet.LongCount());
                 foreach (var item in _dataSet)
@@ -75,8 +75,8 @@ namespace TBag.BloomFilter.Test
                     _protobufModel.Serialize(estimatorStream, estimator.Extract());
                     estimatorStream.Position = 0;
                     var otherFilterStream = actor.RequestFilter(estimatorStream);
-                    var otherFilter = (IInvertibleBloomFilterData<long, int>)
-                        _protobufModel.Deserialize(otherFilterStream, null, typeof(InvertibleBloomFilterData<long, int>));
+                    var otherFilter = (IInvertibleBloomFilterData<long, int, int>)
+                        _protobufModel.Deserialize(otherFilterStream, null, typeof(InvertibleBloomFilterData<long, int, int>));
                     otherFilterStream.Dispose();
                     var filter = _bloomFilterFactory.CreateMatchingHighUtilizationFilter(_configuration,
                         _dataSet.LongCount(), otherFilter);
@@ -103,14 +103,14 @@ namespace TBag.BloomFilter.Test
             var configuration = new LargeBloomFilterConfiguration();
             IHybridEstimatorFactory estimatorFactory = new HybridEstimatorFactory();
             IInvertibleBloomFilterFactory bloomFilterFactory = new InvertibleBloomFilterFactory();
-            var dataSet1 = DataGenerator.Generate().Take(50000).ToList();
+            var dataSet1 = DataGenerator.Generate().Take(1000).ToList();
             var actor1 = new Actor(
                 dataSet1,
                 estimatorFactory,
                 bloomFilterFactory,
                 configuration);
-            var dataSet2 = DataGenerator.Generate().Take(50000).ToList();
-            dataSet2.Modify(40);
+            var dataSet2 = DataGenerator.Generate().Take(1000).ToList();
+            dataSet2.Modify(500);
             var actor2 = new Actor(
                 dataSet2,
                 estimatorFactory,

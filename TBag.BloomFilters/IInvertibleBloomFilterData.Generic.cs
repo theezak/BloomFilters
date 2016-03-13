@@ -3,10 +3,13 @@
     /// <summary>
     /// interface for invertible Bloom filter data.
     /// </summary>
-    /// <typeparam name="TId"></typeparam>
+    /// <typeparam name="TId"></typeparam>  
+    /// <typeparam name="TEntityHash"></typeparam>
     /// <typeparam name="TCount">The type for the count</typeparam>
-    public interface IInvertibleBloomFilterData<TId,TCount>
+    public interface IInvertibleBloomFilterData<TId,TEntityHash,TCount>
         where TCount : struct
+        where TEntityHash : struct
+        where TId : struct
     {
         /// <summary>
         /// The block size 
@@ -27,11 +30,16 @@
         /// <summary>
         /// The hash sums (for entity values).
         /// </summary>
-        int[] HashSums { get; set; }
+        TEntityHash[] HashSums { get; set; }
 
         /// <summary>
         /// The identifier sums (for entity identifiers).
         /// </summary>
         TId[] IdSums { get; set; }
+
+        /// <summary>
+        /// The Bloom filter data for the value hash (optional).
+        /// </summary>
+        InvertibleBloomFilterData<TEntityHash, TId, TCount> ValueFilter { get; set; }
     }
 }

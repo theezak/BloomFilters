@@ -14,16 +14,16 @@
         /// <summary>
         /// Function to determine a sequence (of given length) for a given identifier.
         /// </summary>
-        public Func<TId, uint, IEnumerable<THash>> IdHashes { get; set; }
+        public virtual Func<TId, uint, IEnumerable<THash>> IdHashes { get; set; }
 
         /// <summary>
         /// Determine the XOR of two identifiers.
         /// </summary>
-        public Func<TId, TId, TId> IdXor { get; set; }
+        public virtual Func<TId, TId, TId> IdXor { get; set; }
 
         /// <summary>
         /// Determine if the identifier equals the identity value (for example: zero for numbers)
         /// </summary>
-        public Func<TId, bool> IsIdIdentity { get; set; }
+        public virtual Func<TId, bool> IsIdIdentity { get; set; }
     }
 }

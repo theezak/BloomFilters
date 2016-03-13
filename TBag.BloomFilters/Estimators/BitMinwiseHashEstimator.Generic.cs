@@ -14,14 +14,15 @@ namespace TBag.BloomFilters.Estimators
     /// <typeparam name="TCount">The type of occurence count.</typeparam>
     public class BitMinwiseHashEstimator<TEntity, TId, TCount> : IBitMinwiseHashEstimator<TEntity, TId, TCount>
         where TCount : struct
+        where TId : struct
     {
         #region Fields
 
         private readonly int _hashCount;
         private readonly Func<TEntity, IEnumerable<int>> _hashFunctions;
-        private readonly Func<TId, long> _idHash;
+        private readonly Func<TEntity, int> _entityHash;
         private readonly byte _bitSize;
-        private readonly IBloomFilterConfiguration<TEntity, int, TId, long, TCount> _configuration;
+        private readonly IBloomFilterConfiguration<TEntity, TId, int, int, TCount> _configuration;
         private readonly ulong _capacity;
         private readonly int[,] _slots;
 
@@ -37,7 +38,8 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="hashCount">The number of hash functions to use.</param>
         /// <param name="capacity">The capacity (should be a close approximation of the number of elements added)</param>
         /// <remarks>By using bitSize = 1 or bitSize = 2, the accuracy is decreased, thus the hashCount needs to be increased. However, when resemblance is not too small, for example > 0.5, bitSize = 1 can yield similar results as bitSize = 64 with only 3 times the hash count.</remarks>
-        public BitMinwiseHashEstimator(IBloomFilterConfiguration<TEntity, int, TId, long, TCount> configuration,
+        public BitMinwiseHashEstimator(
+            IBloomFilterConfiguration<TEntity, TId, int, int, TCount> configuration,
             byte bitSize,
             int hashCount,
             ulong capacity)
@@ -47,7 +49,9 @@ namespace TBag.BloomFilters.Estimators
             _hashCount = hashCount;
             _configuration = configuration;
             _hashFunctions = GenerateHashes();
-            _idHash = id => Math.Abs(configuration.IdHashes(id, 1).First())%(long) _capacity;
+            //note: recognize that key/value pair differences are best detected through the entity hash, since it includes id and value.
+            //The bit minwise hash estimator has no need to actually identify the differences, just needs to count them.
+            _entityHash = e => Math.Abs(unchecked((int)((ulong)configuration.EntityHashes(e,1).First()%_capacity)));
             _slots = GetMinHashSlots(_hashCount, _capacity);
         }
 
@@ -135,6 +139,10 @@ namespace TBag.BloomFilters.Estimators
             return hashValues;
         }
 
+        /// <summary>
+        /// Bit minwise estimator requires this specific hash function.
+        /// </summary>
+        /// <returns></returns>
         private Func<TEntity, IEnumerable<int>> GenerateHashes()
         {
             const int universeSize = int.MaxValue;
@@ -143,9 +151,9 @@ namespace TBag.BloomFilters.Estimators
             var hashFuncs = new Func<int, int>[_hashCount];
             for (var i = 0; i < _hashCount; i++)
             {
-                var a = (uint)r.Next(universeSize);
-                var b = (uint)r.Next(universeSize);
-                var c = (uint)r.Next(universeSize);
+                var a = unchecked((uint)r.Next(universeSize));
+                var b = unchecked((uint)r.Next(universeSize));
+                var c = unchecked((uint)r.Next(universeSize));
                 hashFuncs[i] = hash => QHash(
                     hash,
                    a,
@@ -155,7 +163,7 @@ namespace TBag.BloomFilters.Estimators
             }
             return entity =>
             {
-                var entityHash = _configuration.GetEntityHash(entity);
+                var entityHash = _configuration.EntityHashes(entity, 1).First();
                 return hashFuncs.Select(f => f(entityHash));
             };
         }
@@ -166,7 +174,7 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="element"></param>
         private void ComputeMinHash(TEntity element)
         {
-            var idhash = _idHash(_configuration.GetId(element));
+            var idhash = _entityHash(element);
             var entityHashes = _hashFunctions(element).ToArray();
             for (int i = 0; i < _hashCount; i++)
             {
@@ -208,7 +216,7 @@ namespace TBag.BloomFilters.Estimators
         private static int QHash(int id, uint a, uint b, uint c, uint bound)
         {
             //Modify the hash family as per the size of possible elements in a Set
-            return (int) (Math.Abs((int) ((a*(id >> 4) + b*id + c) & 131071))%bound);
+            return unchecked((int) (Math.Abs((int) ((a*(id >> 4) + b*id + c) & 131071))%bound));
         }
         #endregion
     }

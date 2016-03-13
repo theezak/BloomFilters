@@ -6,12 +6,13 @@
     /// <typeparam name="TId">The type of the entity identifier.</typeparam>
     /// <typeparam name="TCount">The type for the occurence count in the invertible Bloom filter</typeparam>
     public interface IStrataEstimatorData<TId,TCount>
+        where TId :struct
         where TCount : struct
     {
         /// <summary>
         /// The bloom filters.
         /// </summary>
-        IInvertibleBloomFilterData<TId,TCount>[] BloomFilters { get;  }
+        IInvertibleBloomFilterData<TId,int,TCount>[] BloomFilters { get;  }
 
         /// <summary>
         /// The capacity for the estimator.

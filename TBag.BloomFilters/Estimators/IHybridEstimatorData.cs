@@ -5,7 +5,9 @@
     /// </summary>
     /// <typeparam name="TId">The type of the entity identifier.</typeparam>
     /// <typeparam name="TCount">The type of the occurence count for the invertible Bloom filters.</typeparam>
-    public interface IHybridEstimatorData<TId, TCount> where TCount : struct
+    public interface IHybridEstimatorData<TId, TCount>
+        where TId : struct
+        where TCount : struct
     {
         /// <summary>
         /// Estimated size of the set.

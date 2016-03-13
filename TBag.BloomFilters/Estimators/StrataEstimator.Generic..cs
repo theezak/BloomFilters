@@ -8,10 +8,9 @@ namespace TBag.BloomFilters.Estimators
     /// The strata estimator helps estimate the number of differences between two (sub)sets.
     /// </summary>
     /// <typeparam name="TEntity">The entity type</typeparam>
-    /// <typeparam name="TId">The entity identifier type</typeparam>
-    /// <typeparam name="TCount">The type of occurence count.</typeparam>
-    /// <remarks>For higher strata's, MinWise gives a better accurace/size balance.</remarks>
-    public class StrataEstimator<TEntity, TId, TCount> : IStrataEstimator<TEntity, TId, TCount>
+     /// <typeparam name="TCount">The type of occurence count.</typeparam>
+    /// <remarks>For higher strata's, MinWise gives a better accuracy/size balance. Also recognizes that for key/value pairs, the estimator should utilize the full entity hash (which includes identifier and entity value), rather than just the identifier hash.</remarks>
+    public class StrataEstimator<TEntity, TCount> : IStrataEstimator<TEntity, int, TCount>
         where TCount : struct
     {
         #region Fields
@@ -21,20 +20,20 @@ namespace TBag.BloomFilters.Estimators
 
         #region Properties
         /// <summary>
-        /// Function to determine the hash value for a given identifier.
+        /// Function to determine the hash value for a given entity.
         /// </summary>
-        protected Func<TId, long> IdHash { get;  }
+        protected Func<TEntity, int> EntityHash { get;  }
 
         /// <summary>
         /// Strata filters.
         /// </summary>
-        protected InvertibleBloomFilter<TEntity, TId, TCount>[] StrataFilters { get; } =
-           new InvertibleBloomFilter<TEntity, TId, TCount>[MaxTrailingZeros];
+        protected InvertibleBloomFilter<TEntity, int, TCount>[] StrataFilters { get; } =
+           new InvertibleBloomFilter<TEntity, int, TCount>[MaxTrailingZeros];
 
         /// <summary>
         /// Configuration
         /// </summary>
-        protected IBloomFilterConfiguration<TEntity, int, TId, long, TCount> Configuration { get; }
+        protected IBloomFilterConfiguration<TEntity, int, int, int, TCount> Configuration { get; }
 
         /// <summary>
         /// Decode factor.
@@ -48,9 +47,11 @@ namespace TBag.BloomFilters.Estimators
         /// </summary>
         /// <param name="capacity"></param>
         /// <param name="configuration"></param>
-        public StrataEstimator(long capacity, IBloomFilterConfiguration<TEntity,int,TId,long,TCount> configuration)
+        public StrataEstimator(
+            long capacity, 
+            IBloomFilterConfiguration<TEntity,int,int,int,TCount> configuration)
         {
-            IdHash = id => configuration.IdHashes(id, 1).First();
+            EntityHash = e => configuration.EntityHashes(e, 1).First();
             _capacity = capacity;
             Configuration = configuration;
             DecodeCountFactor = _capacity >= 20 ? 1.39D : 1.0D;
@@ -62,12 +63,12 @@ namespace TBag.BloomFilters.Estimators
         /// Extract the data
         /// </summary>
         /// <returns></returns>
-        public StrataEstimatorData<TId, TCount> Extract()
+        public StrataEstimatorData<int, TCount> Extract()
         {
-            var result = new StrataEstimatorData<TId, TCount> {
+            var result = new StrataEstimatorData<int, TCount> {
                 Capacity = _capacity,
                 DecodeCountFactor = DecodeCountFactor,
-                BloomFilters = new InvertibleBloomFilterData<TId, TCount>[MaxTrailingZeros]
+                BloomFilters = new InvertibleBloomFilterData<int,int,TCount>[MaxTrailingZeros]
             };
             for(var i=0; i < StrataFilters.Length; i++)
             {
@@ -83,7 +84,7 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="item">Item to add</param>
         public virtual void Add(TEntity item)
         {
-            Add(item, NumTrailingBinaryZeros(IdHash(Configuration.GetId(item))));
+            Add(item, NumTrailingBinaryZeros(EntityHash(item)));
         }
 
         /// <summary>
@@ -92,7 +93,7 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="item">Item to remove</param>
         public virtual void Remove(TEntity item)
         {
-            Remove(item, NumTrailingBinaryZeros(IdHash(Configuration.GetId(item))));
+            Remove(item, NumTrailingBinaryZeros(EntityHash(item)));
         }
 
         /// <summary>
@@ -101,7 +102,7 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="estimator">Estimator data to subtract.</param>
         /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns></returns>
-        public virtual ulong Decode(IStrataEstimatorData<TId, TCount> estimator,
+        public virtual ulong Decode(IStrataEstimatorData<int, TCount> estimator,
             bool destructive = false)
         {
             return Extract().Decode(estimator, Configuration, destructive);
@@ -113,7 +114,7 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="estimator">Other estimator.</param>
         /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns></returns>
-        public virtual ulong Decode(IStrataEstimator<TEntity, TId, TCount> estimator,
+        public virtual ulong Decode(IStrataEstimator<TEntity, int, TCount> estimator,
             bool destructive = false)
         {
             return Decode(estimator.Extract(), destructive);
@@ -154,7 +155,7 @@ namespace TBag.BloomFilters.Estimators
         {
             if (StrataFilters[idx] == null)
             {
-                StrataFilters[idx] = new InvertibleBloomFilter<TEntity, TId, TCount>(_capacity, 0.001F, Configuration);
+                StrataFilters[idx] = new InvertibleBloomFilter<TEntity, int, TCount>(_capacity, 0.001F, Configuration);
             }
             StrataFilters[idx].Add(item);
         }

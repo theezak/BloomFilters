@@ -20,16 +20,18 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="configuration">The Bloom filter configuration</param>
         /// <param name="destructive">When <c>true</c> the <paramref name="data"/> will be altered and no longer usable, else <c>false</c></param>
         /// <returns></returns>
-        public static ulong Decode<TEntity,TId,TCount>(this IStrataEstimatorData<TId,TCount> data, 
-            IStrataEstimatorData<TId,TCount> otherEstimatorData,
-            IBloomFilterConfiguration<TEntity,int,TId,long,TCount> configuration,
+        public static ulong Decode<TEntity,TId,TCount>(this IStrataEstimatorData<int,TCount> data, 
+            IStrataEstimatorData<int,TCount> otherEstimatorData,
+            IBloomFilterConfiguration<TEntity,TId,int,int,TCount> configuration,
             bool destructive = false)
+            where TId :struct
             where TCount : struct
         {
             if (data == null && otherEstimatorData == null) return 0L;
+            var strataConfig = configuration.ConvertToEntityHashId();
             if (data == null) return (ulong)otherEstimatorData.Capacity;
             if (otherEstimatorData == null) return (ulong)data.Capacity;
-            var setA = new HashSet<TId>();
+            var setA = new HashSet<int>();
             for (int i = data.BloomFilters.Length - 1; i >= 0; i--)
             {
                 var ibf = data.BloomFilters[i];
@@ -39,7 +41,7 @@ namespace TBag.BloomFilters.Estimators
                 {
                     return (ulong)(Math.Pow(2, i + 1) * data.DecodeCountFactor * Math.Max(setA.Count, 1));
                 }
-                if (!ibf.SubtractAndDecode(estimatorIbf, configuration, setA, setA, setA, destructive))
+                if (!ibf.SubtractAndDecode(estimatorIbf, strataConfig, setA, setA, setA, destructive))
                 {
                     return (ulong)(Math.Pow(2, i + 1) * data.DecodeCountFactor * Math.Max(setA.Count, 1));
                 }

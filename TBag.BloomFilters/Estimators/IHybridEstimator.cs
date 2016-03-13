@@ -6,7 +6,8 @@
     /// <typeparam name="TEntity">Type of the entity stored in the estimator</typeparam>
     /// <typeparam name="TId">Type of the entity identifier.</typeparam>
     /// <typeparam name="TCount">Type of the occurence counter in the invertible Bloom filter.</typeparam>
-    public interface IHybridEstimator<TEntity, TId, TCount> 
+    public interface IHybridEstimator<TEntity, TId, TCount>
+        where TId : struct
         where TCount : struct
     {
         double DecodeCountFactor { get; set; }

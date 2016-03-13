@@ -4,12 +4,17 @@
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Implementation of <see cref="IInvertibleBloomFilterData{TId}"/>
+    /// Implementation of <see cref="IInvertibleBloomFilterData{TId, TEntityHash, TCount}"/>
     /// </summary>
     /// <typeparam name="TId"></typeparam>
+    /// <typeparam name="TEntityHash"></typeparam>
+    /// <typeparam name="TCount"></typeparam>
     [DataContract, Serializable]
-    public class InvertibleBloomFilterData<TId, TCount> : IInvertibleBloomFilterData<TId, TCount>
+    public class InvertibleBloomFilterData<TId, TEntityHash, TCount> : 
+        IInvertibleBloomFilterData<TId, TEntityHash, TCount>
         where TCount : struct
+        where TEntityHash : struct
+        where TId : struct
     {
         [DataMember(Order=1)]
         public long BlockSize { get; set; }
@@ -21,9 +26,12 @@
         public TId[] IdSums { get; set; }
 
         [DataMember(Order = 4)]
-        public int[] HashSums { get; set; }
+        public TCount[] Counts { get; set; }
 
         [DataMember(Order = 5)]
-        public TCount[] Counts { get; set; }
+        public TEntityHash[] HashSums { get; set; }   
+        
+        [DataMember(Order = 6)]
+        public InvertibleBloomFilterData<TEntityHash, TId, TCount>  ValueFilter { get; set; }
     }
 }

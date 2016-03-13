@@ -1,15 +1,17 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿namespace TBag.BloomFilters.Estimators
+{
+    using System;
+    using System.Runtime.Serialization;
 
-namespace TBag.BloomFilters.Estimators
-{ 
     /// <summary>
     /// Implementation of <see cref="IHybridEstimatorData{TId,TCount}"/>
     /// </summary>
     /// <typeparam name="TId"></typeparam>
     /// <typeparam name="TCount"></typeparam>
     [DataContract, Serializable]
-    public class HybridEstimatorData<TId,TCount> : IHybridEstimatorData<TId, TCount> where TCount : struct
+    public class HybridEstimatorData<TId,TCount> : IHybridEstimatorData<TId, TCount> 
+        where TCount : struct
+        where TId : struct
     {
         /// <summary>
         /// Estimated number of elements in the set.

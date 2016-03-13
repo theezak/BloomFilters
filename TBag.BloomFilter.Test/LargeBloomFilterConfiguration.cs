@@ -22,7 +22,7 @@
         /// </summary>
         protected override int GetEntityHashImpl(TestEntity entity)
         {
-            var value = $"{entity.Id}::{entity.Value}";
+            var value = $"{entity.Value}";
             return BitConverter.ToInt32(_murmurHash.Hash(Encoding.Unicode.GetBytes(value), (uint)value.GetHashCode()), 0);
         }
     }

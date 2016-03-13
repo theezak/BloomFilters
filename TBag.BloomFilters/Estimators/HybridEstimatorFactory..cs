@@ -11,17 +11,17 @@ namespace TBag.BloomFilters.Estimators
         /// Create a hybrid estimator
         /// </summary>
         /// <typeparam name="TEntity">The entity type</typeparam>
-        /// <typeparam name="TId">The entity identifier type</typeparam>
         /// <typeparam name="TCount">The type of occurence count.</typeparam>
         /// <param name="configuration">Bloom filter configuration</param>
         /// <param name="setSize">Number of elements in the set that is added.</param>
         /// <param name="failedDecodeCount">Number of times decoding has failed based upon the provided estimator.</param>
         /// <returns></returns>
-        public IHybridEstimator<TEntity, TId, TCount> Create<TEntity, TId, TCount>(
-            IBloomFilterConfiguration<TEntity, int, TId, long, TCount> configuration,
+        public IHybridEstimator<TEntity, int, TCount> Create<TEntity, TId, TCount>(
+            IBloomFilterConfiguration<TEntity,  TId, int, int, TCount> configuration,
             long setSize,
             byte failedDecodeCount = 0)
             where TCount : struct
+            where TId : struct
         {
             byte strata = 7;
             var capacity = 80L;
@@ -62,10 +62,13 @@ namespace TBag.BloomFilters.Estimators
             return result;
         }
 
-        public IHybridEstimator<TEntity, TId, TCount> CreateMatchingEstimator<TEntity, TId, TCount>(IHybridEstimatorData<TId, TCount> data,
-            IBloomFilterConfiguration<TEntity, int, TId, long, TCount> configuration,
-            long setSize) where TCount : struct
-        {
+        public IHybridEstimator<TEntity, int, TCount> CreateMatchingEstimator<TEntity, TId, TCount>(
+            IHybridEstimatorData<int, TCount> data,
+            IBloomFilterConfiguration<TEntity, TId, int, int, TCount> configuration,
+            long setSize) 
+            where TCount : struct
+            where TId : struct
+           {
            var estimator = new HybridEstimator<TEntity, TId, TCount>(
                data.Capacity, 
                data.BitMinwiseEstimator.BitSize, 

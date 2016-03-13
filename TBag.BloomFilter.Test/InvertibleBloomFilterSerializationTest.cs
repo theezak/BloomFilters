@@ -25,7 +25,7 @@ namespace TBag.BloomFilter.Test
                 bloomFilter.Add(itm);
             }
             var data = bloomFilter.Extract();
-            var deserializedData = default(IInvertibleBloomFilterData<long, sbyte>);
+            var deserializedData = default(IInvertibleBloomFilterData<long, int, sbyte>);
             var typeModel = TypeModel.Create();
             typeModel.UseImplicitZeroDefaults = true;
              using (var memStream = new MemoryStream())
@@ -45,8 +45,8 @@ namespace TBag.BloomFilter.Test
                 using (var stream = new GZipStream(memStream, CompressionMode.Decompress))
                 {
                     deserializedData =
-                        (IInvertibleBloomFilterData<long, sbyte>)
-                            typeModel.Deserialize(stream, null, typeof (InvertibleBloomFilterData<long, sbyte>));
+                        (IInvertibleBloomFilterData<long, int, sbyte>)
+                            typeModel.Deserialize(stream, null, typeof (InvertibleBloomFilterData<long, int, sbyte>));
                 }
             }            
 

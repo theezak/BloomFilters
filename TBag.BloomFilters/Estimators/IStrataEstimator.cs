@@ -6,7 +6,9 @@
     /// <typeparam name="TEntity">The entity type</typeparam>
     /// <typeparam name="TId">The type of the entity identifier.</typeparam>
     /// <typeparam name="TCount">The type of the occurence count for the Bloom filter.</typeparam>
-    public interface IStrataEstimator<TEntity, TId, TCount> where TCount : struct
+    public interface IStrataEstimator<TEntity, TId, TCount> 
+        where TCount : struct
+        where TId : struct
     {
         /// <summary>
         /// The decode count factor.

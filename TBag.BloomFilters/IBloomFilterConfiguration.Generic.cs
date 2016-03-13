@@ -6,26 +6,31 @@ namespace TBag.BloomFilters
     /// <summary>
     /// Interface for configuration of a Bloom filter.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <typeparam name="THash"></typeparam>
-    /// <typeparam name="TId"></typeparam>
-    /// <typeparam name="TIdHash"></typeparam>
-    /// <typeparam name="TCount"></typeparam>
-    public interface IBloomFilterConfiguration<T, THash, TId, TIdHash, TCount>
-       where THash : struct
-      where TIdHash : struct
+    /// <typeparam name="TEntity">The entity type</typeparam>
+    /// <typeparam name="TId">The identifier type</typeparam>
+    /// <typeparam name="TEntityHash"></typeparam>
+    /// <typeparam name="THash">The hash value type</typeparam>
+    /// <typeparam name="TCount">The occurence count type.</typeparam>
+    public interface IBloomFilterConfiguration<TEntity, TId, TEntityHash, THash, TCount>
+        where TEntityHash : struct
+        where THash : struct
         where TCount : struct
+        where TId : struct
     {
         /// <summary>
-        /// Function to get the value of an entity (hashed).
+        /// Configuration for the Bloom filter that hashes values.
         /// </summary>
-        /// <remarks>Any of the data that contributes to difference between two entities with the same Id should be included in the hash.</remarks>
-        Func<T, THash> GetEntityHash { get; set; }
+        IBloomFilterConfiguration<TEntity, TEntityHash, TId, THash, TCount> ValueFilterConfiguration { get;  }
 
         /// <summary>
         /// Function to create a sequence of given length of Id hashes.
         /// </summary>
-        Func<TId, uint, IEnumerable<TIdHash>> IdHashes { get; set; }
+        Func<TId, uint, IEnumerable<THash>> IdHashes { get; set; }
+
+        /// <summary>
+        /// Function to create a sequence of given length of entity hashes.
+        /// </summary>
+        Func<TEntity, uint, IEnumerable<TEntityHash>> EntityHashes { get; set; }
 
         /// <summary>
         /// Perform a XOR between identifiers.
@@ -40,17 +45,17 @@ namespace TBag.BloomFilters
         /// <summary>
         /// Function to get the identifier for a given entity.
         /// </summary>
-        Func<T, TId> GetId { get; set; }
+        Func<TEntity, TId> GetId { get; set; }
 
         /// <summary>
         /// <c>true</c> when the argument is the identity value for the entity hash, else <c>false</c>.
         /// </summary>
-        Func<THash, bool> IsEntityHashIdentity { get; set; }
+        Func<TEntityHash, bool> IsEntityHashIdentity { get; set; }
 
         /// <summary>
         /// Perform a XOR between two hashes for the entity.
         /// </summary>
-        Func<THash, THash, THash> EntityHashXor { get; set; }
+        Func<TEntityHash, TEntityHash, TEntityHash> EntityHashXor { get; set; }
 
         /// <summary>
         /// Function to provide the count unity
@@ -62,14 +67,34 @@ namespace TBag.BloomFilters
         /// </summary>
         Func<TCount,bool> IsPureCount { get; set; }
 
-        Func<TCount,TCount> CountIncrease { get; set; }
-
+        /// <summary>
+        /// Decrease the count by 1
+        /// </summary>
+        /// <remarks>Not the regular subtraction: this subtraction always needs to get you closer to zero, even when the value is negative.</remarks>
         Func<TCount,TCount> CountDecrease { get; set; }
 
+        /// <summary>
+        /// Get the count identity (zero for numbers)
+        /// </summary>
         Func<TCount> CountIdentity { get; set; }
 
-        Func<TCount,TCount,TCount> CountSubtract { get; set; }
+        /// <summary>
+        /// Subtract two counts
+        /// </summary>
+          Func<TCount,TCount,TCount> CountSubtract { get; set; }
 
+        /// <summary>
+        /// Increase the count by 1
+        /// </summary>
+        /// <remarks>Not the regular add: this add should get you further away from zero, even when the value is negative.</remarks>
+         Func<TCount, TCount> CountIncrease { get; set; }
+
+        /// <summary>
+        /// Determine if the configuration supports the given capacity and set size.
+        /// </summary>
+        /// <param name="capacity">Capacity for the Bloom filter</param>
+        /// <param name="size">The actual set size.</param>
+        /// <returns></returns>
         bool Supports(ulong capacity, ulong size);
     }
 

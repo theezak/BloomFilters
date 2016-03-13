@@ -9,6 +9,7 @@
     /// <typeparam name="TId">The entity identifier type.</typeparam>
     /// <typeparam name="TCount"></typeparam>
     public interface IInvertibleBloomFilter<T, TId, TCount>
+        where TId : struct
         where TCount : struct
     {
         /// <summary>
@@ -32,7 +33,7 @@
         /// <param name="listB">Items not in this filter, but in <paramref name="filter"/></param>
         /// <param name="modifiedEntities">Entities in both filters, but with a different value</param>
         /// <returns><c>true</c> when the decode was successful, otherwise <c>false</c></returns>
-        bool SubtractAndDecode(IInvertibleBloomFilterData<TId, TCount> data,
+        bool SubtractAndDecode(IInvertibleBloomFilterData<TId, int, TCount> filter,
             HashSet<TId> listA, 
             HashSet<TId> listB, 
             HashSet<TId> modifiedEntities);
@@ -41,13 +42,13 @@
         /// Extract the Bloom filter data in a serializable format.
         /// </summary>
         /// <returns></returns>
-        InvertibleBloomFilterData<TId, TCount> Extract();
+        InvertibleBloomFilterData<TId, int, TCount> Extract();
 
         /// <summary>
         /// Rehydrate the Bloom filter data.
         /// </summary>
         /// <param name="data"></param>
-        void Rehydrate(IInvertibleBloomFilterData<TId, TCount> data);
+        void Rehydrate(IInvertibleBloomFilterData<TId, int, TCount> data);
 
         /// <summary>
         /// Remove the entity from the Bloom filter.
