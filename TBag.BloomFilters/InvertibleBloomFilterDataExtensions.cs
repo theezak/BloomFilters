@@ -100,7 +100,6 @@
                 HashSums = filterData.HashSums == null ? null : new TEntityHash[filterData.HashSums.LongLength],
                 IdSums = new TId[filterData.IdSums.LongLength]
             };
-            var checkHash = result.HashSums != null && subtractedFilterData.HashSums != null;
             if (!filterData.IsCompatibleWith(subtractedFilterData))
                 throw new ArgumentException("Subtracted invertible Bloom filters are not compatible.", nameof(subtractedFilterData));
             var countEqualityComparer = EqualityComparer<TCount>.Default;
@@ -109,11 +108,8 @@
             {
                 var filterPure = configuration.IsPureCount(filterData.Counts[i]);
                 result.Counts[i] = configuration.CountSubtract(filterData.Counts[i], subtractedFilterData.Counts[i]);
-                if (checkHash)
-                {
-                    result.HashSums[i] = configuration.EntityHashXor(filterData.HashSums[i],
+                result.HashSums[i] = configuration.EntityHashXor(filterData.HashSums[i],
                         subtractedFilterData.HashSums[i]);
-                }
                 var idXorResult = configuration.IdXor(filterData.IdSums[i], subtractedFilterData.IdSums[i]);
                 var resultPure = configuration.IsPureCount(result.Counts[i]);
                 var resultZero = countEqualityComparer.Equals(result.Counts[i], countsIdentity);
@@ -134,8 +130,7 @@
                         //set Id to identity, this is no longer a decode error.
                         idXorResult = configuration.IdXor(idXorResult, idXorResult);
                     }
-                    else if (checkHash &&
-                        !configuration.IsEntityHashIdentity(result.HashSums[i]))
+                    else if (!configuration.IsEntityHashIdentity(result.HashSums[i]))
                     {
                         modifiedEntities.Add(subtractedFilterData.IdSums[i]);
                     }
