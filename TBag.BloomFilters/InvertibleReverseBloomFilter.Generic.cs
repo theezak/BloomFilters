@@ -95,6 +95,14 @@
 
         public override void Rehydrate(IInvertibleBloomFilterData<TId, int, TCount> data)
         {
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
+            if (!data.IsReverse)
+                throw new ArgumentException("An invertible reverse Bloom filter does not accept data for a regular invertible Bloom filter. Please use an invertible Bloom filter.", nameof(data));
+            if (!data.IsValid())
+                throw new ArgumentException(
+                    "Invertible reverse Bloom filter data is invalid.",
+                    nameof(data));
             _data = data.Reverse();
         }
 

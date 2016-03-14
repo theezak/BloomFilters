@@ -48,8 +48,9 @@
             where TId : struct
         {
             if (filter?.Counts == null ||
-                filter.IdSums == null) return false;
-            if (filter.Counts.LongLength != (filter.HashSums?.LongLength ?? filter.Counts.LongLength) ||
+                filter.IdSums == null ||
+                filter.HashSums == null) return false;
+            if (filter.Counts.LongLength != filter.HashSums.LongLength ||
                 filter.Counts.LongLength != filter.IdSums.LongLength) return false;
             if (filter.BlockSize * filter.HashFunctionCount != filter.Counts.LongLength) return false;
             return true;

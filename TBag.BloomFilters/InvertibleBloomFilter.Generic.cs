@@ -131,6 +131,8 @@
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
+            if (data.IsReverse)
+                throw new ArgumentException("Invertible Bloom filter does not accept reverse data. Please use an invertible reverse Bloom filter.", nameof(data));
             if (!data.IsValid())
                 throw new ArgumentException(
                     "Invertible Bloom filter data is invalid.",

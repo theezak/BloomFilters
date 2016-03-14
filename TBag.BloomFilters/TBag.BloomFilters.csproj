@@ -70,7 +70,7 @@
     <Compile Include="IInvertibleBloomFilter.Generic.cs" />
     <Compile Include="IInvertibleBloomFilterData.Generic.cs" />
     <Compile Include="IInvertibleBloomFilterFactory.cs" />
-    <Compile Include="HybridInvertibleBloomFilter.Generic.cs" />
+    <Compile Include="InvertibleHybridBloomFilter.Generic.cs" />
     <Compile Include="InvertibleReverseBloomFilter.Generic.cs" />
     <Compile Include="InvertibleBloomFilterData.Generic.cs" />
     <Compile Include="InvertibleBloomFilter.Generic.cs" />
