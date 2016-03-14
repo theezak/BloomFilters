@@ -58,6 +58,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="DecodePerformanceTest.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="LargeBloomFilterConfiguration.cs" />
     <Compile Include="HybridEstimatorTest.cs" />
