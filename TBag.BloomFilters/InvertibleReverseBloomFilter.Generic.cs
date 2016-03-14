@@ -10,15 +10,13 @@
     /// <typeparam name="TEntity"></typeparam>
     /// <typeparam name="TId"></typeparam>
     /// <typeparam name="TCount"></typeparam>
-    /// <remarks>TODO: recognize that more is needed to handle differences in values!!!!!!!!!!!!!!!
-    /// Proposal: remove current value hashes as they currently function.
-    /// THEN: add reversal of how it currently works. Value hash => ID , and ID => value. This will decode value changes as well, and provide you the ID to go with it!
-    /// </remarks>
-    public class InvertibleKeyValueBloomFilter<TEntity, TId,TCount> : InvertibleBloomFilter<TEntity, TId,TCount>
+    public class InvertibleReverseBloomFilter<TEntity, TId,TCount> : 
+        InvertibleBloomFilter<TEntity, TId,TCount>
         where TCount : struct
         where TId : struct
     {
         #region Fields
+        private InvertibleBloomFilterData<int, TId, TCount> _data;
         #endregion
 
         #region Constructors
@@ -27,11 +25,11 @@
         /// </summary>
         /// <param name="capacity">The anticipated number of items to be added to the filter. More than this number of items can be added, but the error rate will exceed what is expected.</param>
         /// <param name="bloomFilterConfiguration">The Bloom filter configuration</param>
-        public InvertibleKeyValueBloomFilter(
+        public InvertibleReverseBloomFilter(
             long capacity, 
             IBloomFilterConfiguration<TEntity,TId,int, int, TCount> bloomFilterConfiguration) : this(
-                capacity, 
-                BestErrorRate(capacity), 
+                capacity,
+                bloomFilterConfiguration.BestErrorRate(capacity), 
                 bloomFilterConfiguration) { }
 
         /// <summary>
@@ -40,13 +38,13 @@
         /// <param name="capacity">The anticipated number of items to be added to the filter. More than this number of items can be added, but the error rate will exceed what is expected.</param>
         /// <param name="errorRate">The accepable false-positive rate (e.g., 0.01F = 1%)</param>
         /// <param name="bloomFilterConfiguration">The Bloom filter configuration</param>
-        public InvertibleKeyValueBloomFilter(
+        public InvertibleReverseBloomFilter(
             long capacity, 
             float errorRate, 
             IBloomFilterConfiguration<TEntity,TId,int, int, TCount> bloomFilterConfiguration) : this(
-                capacity, 
-                BestCompressedM(capacity, errorRate), 
-                BestK(capacity, errorRate),
+                capacity,
+                bloomFilterConfiguration.BestCompressedSize(capacity, errorRate),
+                bloomFilterConfiguration.BestHashFunctionCount(capacity, errorRate),
                   bloomFilterConfiguration)
         { }
 
@@ -57,50 +55,47 @@
         /// <param name="m">The size of the Bloom filter</param>
         /// <param name="k">The number of hash functions to use.</param>
         /// <param name="bloomFilterConfiguration">The Bloom filter configuration.</param>
-        public InvertibleKeyValueBloomFilter(
-            long capacity,          
+        public InvertibleReverseBloomFilter(
+            long capacity,
             long m,
             uint k,
-            IBloomFilterConfiguration<TEntity,TId, int, int, TCount> bloomFilterConfiguration) : base(capacity, m, k, bloomFilterConfiguration)
+            IBloomFilterConfiguration<TEntity, TId, int, int, TCount> bloomFilterConfiguration) : 
+            base(capacity, m, k, bloomFilterConfiguration)
         {
-            var data = Extract();
-            data.ValueFilter = new InvertibleBloomFilterData<int, TId, TCount>
-            {
-                BlockSize = data.BlockSize,
-                Counts = new TCount[data.Counts.LongLength],
-                HashFunctionCount = data.HashFunctionCount,
-                IdSums = new int[data.Counts.LongLength],
-                HashSums = new TId[data.Counts.LongLength]
-            };                       
+            _data = Extract().Reverse();
         }
         #endregion
 
         #region Implementation of Bloom Filter public contract
 
-     /// <summary>
-     /// Add an item to the Bloom filter.
-     /// </summary>
-     /// <param name="item"></param>
+        /// <summary>
+        /// Add an item to the Bloom filter.
+        /// </summary>
+        /// <param name="item"></param>
         public override void Add(TEntity item)
         {
-            base.Add(item);
-            var id = Configuration.ValueFilterConfiguration.GetId(item);
-         var hashValue = Configuration.ValueFilterConfiguration.EntityHashes(item, 1).First();
-             foreach (var position in Configuration
-                .ValueFilterConfiguration
-                .IdHashes(id, Data.ValueFilter.HashFunctionCount)
-                .Select(p =>Math.Abs(p % Data.ValueFilter.Counts.LongLength)))
+           var id = Configuration.ValueFilterConfiguration.GetId(item);
+            var hashValue = Configuration.ValueFilterConfiguration.EntityHashes(item, 1).First();
+            foreach (var position in Configuration
+               .ValueFilterConfiguration
+               .IdHashes(id, _data.HashFunctionCount)
+               .Select(p => Math.Abs(p % _data.Counts.LongLength)))
             {
-                Data.ValueFilter.Counts[position] = Configuration
+                _data.Counts[position] = Configuration
                     .ValueFilterConfiguration
-                    .CountIncrease(Data.ValueFilter.Counts[position]);
-                Data.ValueFilter.IdSums[position] = Configuration
+                    .CountIncrease(_data.Counts[position]);
+                _data.IdSums[position] = Configuration
                     .ValueFilterConfiguration
-                    .IdXor(Data.ValueFilter.IdSums[position], id);
-                Data.ValueFilter.HashSums[position] = Configuration
+                    .IdXor(_data.IdSums[position], id);
+                _data.HashSums[position] = Configuration
                     .ValueFilterConfiguration
-                    .EntityHashXor(Data.ValueFilter.HashSums[position], hashValue);
-              }
+                    .EntityHashXor(_data.HashSums[position], hashValue);
+            }
+        }
+
+        public override void Rehydrate(IInvertibleBloomFilterData<TId, int, TCount> data)
+        {
+            _data = data.Reverse();
         }
 
         /// <summary>
@@ -109,53 +104,56 @@
         /// <param name="item"></param>
         /// <returns><c>false</c> when both the identifier and the hash value can be found in the Bloom filter, else <c>true</c></returns>
         /// <remarks></remarks>
-        public bool ContainsUmodified(TEntity item)
+        public override bool Contains(TEntity item)
         {
-            var containsId = Contains(item);
-            if (!containsId) return true;
             var valueId = Configuration.ValueFilterConfiguration.GetId(item);
+            var hashValue = Configuration.ValueFilterConfiguration.EntityHashes(item, 1).First();
             var countIdentity = Configuration.ValueFilterConfiguration.CountIdentity();
             foreach (var position in Configuration
                 .ValueFilterConfiguration
-                .IdHashes(valueId, Data.ValueFilter.HashFunctionCount)
-                .Select(p => Math.Abs(p % Data.ValueFilter.Counts.LongLength)))
+                .IdHashes(valueId, _data.HashFunctionCount)
+                .Select(p => Math.Abs(p % _data.Counts.LongLength)))
             {
-                if (IsPure(Configuration.ValueFilterConfiguration, Data.ValueFilter, position))
-                {
-                    if (!Configuration
+                if (IsPure(Configuration.ValueFilterConfiguration, _data, position) &&
+                    (!Configuration
                         .ValueFilterConfiguration
-                        .IsIdIdentity(Configuration.ValueFilterConfiguration.IdXor(Data.ValueFilter.IdSums[position], valueId)))
+                        .IsIdIdentity(Configuration.ValueFilterConfiguration.IdXor(_data.IdSums[position], valueId)) ||
+                        !Configuration
+                        .ValueFilterConfiguration
+                        .IsEntityHashIdentity(Configuration.ValueFilterConfiguration.EntityHashXor(_data.HashSums[position], hashValue))))
                     {
-                        return false;
-                    }
+                    return false;
                 }
-                else if (CountEqualityComparer.Equals(Data.ValueFilter.Counts[position], countIdentity))
+                else if (CountEqualityComparer.Equals(_data.Counts[position], countIdentity))
                 {
                     return false;
                 }
             }
             return true;
-
         }
+
         /// <summary>
         /// Remove the given item from the Bloom filter.
         /// </summary>
         /// <param name="item"></param>
         public override void Remove(TEntity item)
         {
-            base.Remove(item);
             var id = Configuration.ValueFilterConfiguration.GetId(item);
             var hashValue = Configuration.ValueFilterConfiguration.EntityHashes(item, 1).First();
             foreach (var position in Configuration
                 .ValueFilterConfiguration
-                .IdHashes(id, Data.ValueFilter.HashFunctionCount)
-                .Select(p =>Math.Abs(p % Data.ValueFilter.Counts.LongLength)))
+                .IdHashes(id, _data.HashFunctionCount)
+                .Select(p => Math.Abs(p % _data.Counts.LongLength)))
             {
-                Data
-                    .ValueFilter
+                _data
                     .Remove(Configuration.ValueFilterConfiguration, id, hashValue, position);
             }
-        }               
+        }
+
+        public override bool ContainsKey(TId key)
+        {
+            throw new NotImplementedException("ContainsKey is not supported on invertible reverse Bloom filters.");
+        }
 
         /// <summary>
         /// Subtract and then decode.
@@ -170,18 +168,12 @@
             HashSet<TId> listB,
             HashSet<TId> modifiedEntities)
         {
-            var idDecode = base.SubtractAndDecode(
-                filter, 
-                listA, 
-                listB, 
+            return _data.HashSubtractAndDecode(
+                filter.Reverse(),
+                Configuration.ValueFilterConfiguration,
+                listA,
+                listB,
                 modifiedEntities);
-            var valueDecode = Data.ValueFilter.HashSubtractAndDecode(
-                filter.ValueFilter, 
-                Configuration.ValueFilterConfiguration, 
-                listA, 
-                listB, 
-                modifiedEntities);
-            return idDecode && valueDecode;
         }
 
         #endregion

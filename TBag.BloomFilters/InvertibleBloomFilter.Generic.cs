@@ -11,7 +11,8 @@
     /// <typeparam name="TId"></typeparam>
     /// <typeparam name="TCount"></typeparam>
     /// <remarks>Only determines set differences. It does not handle key/value pairs.</remarks>
-    public class InvertibleBloomFilter<TEntity, TId,TCount> : IInvertibleBloomFilter<TEntity, TId,TCount>
+    public class InvertibleBloomFilter<TEntity, TId,TCount> : 
+        IInvertibleBloomFilter<TEntity, TId,TCount>
         where TCount : struct
         where TId : struct
     {
@@ -26,7 +27,7 @@
         /// <summary>
         /// The Bloom filter data.
         /// </summary>
-        protected InvertibleBloomFilterData<TId, int, TCount> Data { get; private set; } = new InvertibleBloomFilterData<TId, int, TCount>();
+        private InvertibleBloomFilterData<TId, int, TCount> _data = new InvertibleBloomFilterData<TId, int, TCount>();
         #endregion
 
         #region Constructors
@@ -38,8 +39,8 @@
         public InvertibleBloomFilter(
             long capacity, 
             IBloomFilterConfiguration<TEntity,TId,int, int, TCount> bloomFilterConfiguration) : this(
-                capacity, 
-                BestErrorRate(capacity), 
+                capacity,
+                bloomFilterConfiguration.BestErrorRate(capacity), 
                 bloomFilterConfiguration) { }
 
         /// <summary>
@@ -52,9 +53,9 @@
             long capacity, 
             float errorRate, 
             IBloomFilterConfiguration<TEntity,TId,int, int, TCount> bloomFilterConfiguration) : this(
-                capacity, 
-                BestCompressedM(capacity, errorRate), 
-                BestK(capacity, errorRate),
+                capacity,
+                bloomFilterConfiguration.BestCompressedSize(capacity, errorRate),
+                bloomFilterConfiguration.BestHashFunctionCount(capacity, errorRate),
                   bloomFilterConfiguration)
         { }
 
@@ -77,37 +78,40 @@
                     nameof(m),
                     "The provided capacity and errorRate values would result in an array of length > long.MaxValue. Please reduce either the capacity or the error rate.");
             Configuration = bloomFilterConfiguration;
-            Data.HashFunctionCount = k;
-            Data.BlockSize = m;
-            var size = Data.BlockSize*Data.HashFunctionCount;
+            _data.HashFunctionCount = k;
+            _data.BlockSize = m;
+            var size = _data.BlockSize*_data.HashFunctionCount;
             if (!bloomFilterConfiguration.Supports((ulong) capacity, (ulong) size))
             {
                 throw new ArgumentOutOfRangeException(
                     $"The size {size} of the Bloom filter is not large enough to hold {capacity} items.");
             }
-            Data.Counts = new TCount[size];
-            Data.IdSums = new TId[size];
+            _data.Counts = new TCount[size];
+            _data.IdSums = new TId[size];
+            _data.HashSums = new int[size];
         }
 
         #endregion
 
         #region Implementation of Bloom Filter public contract
 
-     /// <summary>
-     /// Add an item to the Bloom filter.
-     /// </summary>
-     /// <param name="item"></param>
+        /// <summary>
+        /// Add an item to the Bloom filter.
+        /// </summary>
+        /// <param name="item"></param>
         public virtual void Add(TEntity item)
         {
             var id = Configuration.GetId(item);
             var hashValue = Configuration.EntityHashes(item, 1).First();
-         foreach (
-             var position in Configuration.IdHashes(id, Data.HashFunctionCount).Select(p =>Math.Abs(p%Data.Counts.LongLength))
-             )
-         {
-             Data.Counts[position] = Configuration.CountIncrease(Data.Counts[position]);
-             Data.IdSums[position] = Configuration.IdXor(Data.IdSums[position], id);
-         }
+            foreach (var position in Configuration
+                .IdHashes(id, _data.HashFunctionCount)
+                .Select(p => Math.Abs(p % _data.Counts.LongLength))
+                )
+            {
+                _data.Counts[position] = Configuration.CountIncrease(_data.Counts[position]);
+                _data.IdSums[position] = Configuration.IdXor(_data.IdSums[position], id);
+                _data.HashSums[position] = Configuration.EntityHashXor(_data.HashSums[position], hashValue);
+            }
         }
 
         /// <summary>
@@ -116,14 +120,14 @@
         /// <returns></returns>
         public InvertibleBloomFilterData<TId,int, TCount> Extract()
         {
-            return Data;
+            return _data;
         }
 
         /// <summary>
         /// Set the data for this Bloom filter.
         /// </summary>
         /// <param name="data"></param>
-        public void Rehydrate(IInvertibleBloomFilterData<TId, int, TCount> data)
+        public virtual void Rehydrate(IInvertibleBloomFilterData<TId, int, TCount> data)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
@@ -131,7 +135,7 @@
                 throw new ArgumentException(
                     "Invertible Bloom filter data is invalid.",
                     nameof(data));
-            Data = data.ConvertToBloomFilterData();
+            _data = data.ConvertToBloomFilterData();
         }
 
         /// <summary>
@@ -142,9 +146,11 @@
         {
             var id = Configuration.GetId(item);
             var hashValue = Configuration.EntityHashes(item, 1).First();
-            foreach (var position in Configuration.IdHashes(id, Data.HashFunctionCount).Select(p => Math.Abs(p % Data.Counts.LongLength)))
+            foreach (var position in Configuration
+                .IdHashes(id, _data.HashFunctionCount)
+                .Select(p => Math.Abs(p % _data.Counts.LongLength)))
             {
-                Data.Remove(Configuration, id, hashValue, position);
+                _data.Remove(Configuration, id, hashValue, position);
             }
         }
 
@@ -154,20 +160,22 @@
         /// <param name="item"></param>
         /// <returns></returns>
         /// <remarks>Contains is purely based upon the identifier. An idea is however to utilize the empty hash array for an id hash to double check deletions.</remarks>
-        public bool Contains(TEntity item)
+        public virtual bool Contains(TEntity item)
         {
             var id = Configuration.GetId(item);
-              var countIdentity = Configuration.CountIdentity();
-            foreach (var position in Configuration.IdHashes(id, Data.HashFunctionCount).Select(p =>Math.Abs(p % Data.Counts.LongLength)))
+            var hashValue = Configuration.EntityHashes(item, 1).First();
+            var countIdentity = Configuration.CountIdentity();
+            foreach (var position in Configuration
+                .IdHashes(id, _data.HashFunctionCount)
+                .Select(p => Math.Abs(p % _data.Counts.LongLength)))
             {
-                if (IsPure(Configuration, Data, position))
+                if (IsPure(Configuration, _data, position) &&
+                    (!Configuration.IsIdIdentity(Configuration.IdXor(_data.IdSums[position], id)) ||
+                        !Configuration.IsEntityHashIdentity(Configuration.EntityHashXor(_data.HashSums[position], hashValue))))
                 {
-                    if (!Configuration.IsIdIdentity(Configuration.IdXor(Data.IdSums[position], id)))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
-                else if (CountEqualityComparer.Equals(Data.Counts[position], countIdentity))
+                else if (CountEqualityComparer.Equals(_data.Counts[position], countIdentity))
                 {
                     return false;
                 }
@@ -175,6 +183,30 @@
             return true;
         }
 
+        /// <summary>
+        /// Determine if the Bloom filter contains the given key.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public virtual bool ContainsKey(TId key)
+        {
+            var countIdentity = Configuration.CountIdentity();
+            foreach (var position in Configuration
+                .IdHashes(key, _data.HashFunctionCount)
+                .Select(p => Math.Abs(p % _data.Counts.LongLength)))
+            {
+                if (IsPure(Configuration, _data, position) &&
+                    !Configuration.IsIdIdentity(Configuration.IdXor(_data.IdSums[position], key)))
+                {
+                    return false;
+                }
+                else if (CountEqualityComparer.Equals(_data.Counts[position], countIdentity))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
 
         /// <summary>
         /// Subtract and then decode.
@@ -184,7 +216,7 @@
         /// <param name="listB">Items not in this filter, but in <paramref name="filter"/></param>
         /// <param name="modifiedEntities">Entities in both filters, but with a different value</param>
         /// <returns><c>true</c> when the decode was successful, otherwise <c>false</c></returns>
-        public virtual bool SubtractAndDecode(IInvertibleBloomFilter<TEntity, TId, TCount> filter,
+        public bool SubtractAndDecode(IInvertibleBloomFilter<TEntity, TId, TCount> filter,
             HashSet<TId> listA, 
             HashSet<TId> listB, 
             HashSet<TId> modifiedEntities)
@@ -205,7 +237,7 @@
             HashSet<TId> listB,
             HashSet<TId> modifiedEntities)
         {
-            return Data.SubtractAndDecode(filter, Configuration, listA, listB, modifiedEntities);
+            return _data.SubtractAndDecode(filter, Configuration, listA, listB, modifiedEntities);
         }
 
         #endregion
@@ -221,40 +253,7 @@
             return configuration.IsPureCount(data.Counts[position]);
         }
 
-        protected static uint BestK(long capacity, float errorRate)
-        {
-             //at least 3 hash functions.
-            return Math.Max(
-                3, 
-                (uint)Math.Ceiling(Math.Abs(Math.Log(2.0D) * (1.0D * BestM(capacity, errorRate) / capacity))));
-        }
-
-        protected static long BestCompressedM(long capacity, float errorRate)
-        {
-            //compress the size of the Bloom filter, by ln2.
-            return (long)(BestM(capacity, errorRate) * Math.Log(2.0D));
-        }
-
-        protected static long BestM(long capacity, float errorRate)
-        {
-            return (long)Math.Abs((capacity * Math.Log(errorRate)) / Math.Pow(2, Math.Log(2.0D)));
-        }
-
-        /// <summary>
-        /// This determines an error rate assuming that at higher capacity a higher error rate is acceptable as a trade off for space. Provide your own error rate if this does not work for you.
-        /// </summary>
-        /// <param name="capacity"></param>
-        /// <returns></returns>
-        /// <remarks>Error rates above 50% are filtered out.</remarks>
-        protected static float BestErrorRate(long capacity)
-        {
-            //heuristic for determing an error rate: as capacity becomes larger, the accepted error rate increases.
-            var errRate = Math.Min(0.5F, (float)(0.000001F * Math.Pow(2.0D, Math.Log(capacity))));
-            //determine the best size based upon capacity and the error rate determined above, then calculate the error rate.
-            return Math.Min(0.5F, (float)Math.Pow(0.5D, 1.0D * BestM(capacity, errRate) / capacity));
-            // return Math.Min(0.5F, (float)Math.Pow(0.6185D, BestM(capacity, errRate) / capacity));
-            // http://www.cs.princeton.edu/courses/archive/spring02/cs493/lec7.pdf
-        }
+     
         #endregion
     }
 }

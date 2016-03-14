@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+
     /// <summary>
     /// Extension methods for invertible Bloom filter data.
     /// </summary>
@@ -25,6 +26,7 @@
         {
             if (!filter.IsValid() || !otherFilter.IsValid()) return false;
             return filter.BlockSize == otherFilter.BlockSize &&
+                filter.IsReverse == otherFilter.IsReverse &&
                filter.HashFunctionCount == otherFilter.HashFunctionCount &&
                filter.Counts.LongLength == otherFilter.Counts.LongLength &&
                filter.HashSums?.LongLength == otherFilter.HashSums?.LongLength &&
@@ -120,33 +122,26 @@
                 {
                     listA.Add(filterData.IdSums[i]);
                 }
-                if (configuration.IsPureCount(subtractedFilterData.Counts[i]))
+                if (configuration.IsPureCount(subtractedFilterData.Counts[i]) &&
+                    resultZero)
                 {
-                    if (resultZero)
+                    //pure count went to zero: both filters were pure at the given position.
+                    if (!configuration.IsIdIdentity(idXorResult))
                     {
-                        //pure count went to zero: both filters were pure at the given position.
-                        if (!configuration.IsIdIdentity(idXorResult))
-                        {
-                            listA.Add(filterData.IdSums[i]);
-                            listB.Add(subtractedFilterData.IdSums[i]);
-                            //set Id to identity, this is no longer a decode error.
-                            idXorResult = configuration.IdXor(idXorResult, idXorResult);
-                        }
-                        else if (checkHash &&
-                            !configuration.IsEntityHashIdentity(result.HashSums[i]))
-                        {
-                            modifiedEntities.Add(subtractedFilterData.IdSums[i]);
-                        }
-                        if (checkHash)
-                        {
-                            //any hash sum difference is no longer a decode error
-                            result.HashSums[i] = configuration.EntityHashXor(result.HashSums[i], result.HashSums[i]);
-                        }
-                    }
-                    else if (!resultPure)
-                    {
-                        //TODO: causes false positives?
+                        listA.Add(filterData.IdSums[i]);
                         listB.Add(subtractedFilterData.IdSums[i]);
+                        //set Id to identity, this is no longer a decode error.
+                        idXorResult = configuration.IdXor(idXorResult, idXorResult);
+                    }
+                    else if (checkHash &&
+                        !configuration.IsEntityHashIdentity(result.HashSums[i]))
+                    {
+                        modifiedEntities.Add(subtractedFilterData.IdSums[i]);
+                    }
+                    if (checkHash)
+                    {
+                        //any hash sum difference is no longer a decode error
+                        result.HashSums[i] = configuration.EntityHashXor(result.HashSums[i], result.HashSums[i]);
                     }
                 }
                 result.IdSums[i] = idXorResult;
@@ -174,9 +169,9 @@
             this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filterData,
             IInvertibleBloomFilterData<TId, TEntityHash, TCount> subtractedFilterData,
             IBloomFilterConfiguration<TEntity, TId, TEntityHash, THash, TCount> configuration,
-            HashSet<TEntityHash> listA,
+               HashSet<TEntityHash> listA,
             HashSet<TEntityHash> listB,
-            HashSet<TEntityHash> modifiedEntities,
+           HashSet<TEntityHash> modifiedEntities,
             bool destructive = false)
             where TCount : struct
             where TId : struct
@@ -207,19 +202,21 @@
                 var resultZero = countEqualityComparer.Equals(result.Counts[i], countsIdentity);
                 if (filterPure &&
                     !resultPure &&
-                    !resultZero &&
-                    !listA.Contains(filterData.HashSums[i]) &&
-                    !listB.Contains(filterData.HashSums[i]))
+                    !resultZero)
                 {
                     modifiedEntities.Add(filterData.HashSums[i]);
                 }
-                if (configuration.IsPureCount(subtractedFilterData.Counts[i]))
+                if (configuration.IsPureCount(subtractedFilterData.Counts[i]) &&
+                    resultZero)
                 {
-                    if (resultZero &&
-                        !configuration.IsIdIdentity(idXorResult))
+                    if (!configuration.IsEntityHashIdentity(hashValue))
+                    {
+                        listA.Add(subtractedFilterData.HashSums[i]);
+                        listB.Add(filterData.HashSums[i]);
+                    }
+                    else if (!configuration.IsIdIdentity(idXorResult))
                     {
                         modifiedEntities.Add(subtractedFilterData.HashSums[i]);
-                        modifiedEntities.Add(filterData.HashSums[i]);
                         if (configuration.IsEntityHashIdentity(hashValue))
                         {
                             //any hash sum difference is no longer a decode error: same Id in the hash, different value. We accounted for this.
@@ -269,7 +266,7 @@
                 .Where(i => configuration.IsPureCount(filter.Counts[i]))
                 .Select(i => i));
             var countsIdentity = configuration.CountIdentity();
-             while (pureList.Any())
+            while (pureList.Any())
             {
                 var pureIdx = pureList.Pop();
                 if (!configuration.IsPureCount(filter.Counts[pureIdx]))
@@ -286,25 +283,20 @@
                     listB.Add(id);
                 }
                 //no guarantee the hash value is correct, but we can't verify it.
-                var hashedValue = filter.HashSums?[pureIdx];
+                var hashedValue = filter.HashSums[pureIdx];
                 //the difference has been accounted for, zero out.
                 filter.Counts[pureIdx] = countsIdentity;
-                if (hashedValue.HasValue)
-                {
-                    filter.HashSums[pureIdx] = configuration.EntityHashXor(filter.HashSums[pureIdx], filter.HashSums[pureIdx]);
-                }
+                filter.HashSums[pureIdx] = configuration.EntityHashXor(filter.HashSums[pureIdx], filter.HashSums[pureIdx]);
                 filter.IdSums[pureIdx] = configuration.IdXor(id, id);
                 foreach (var position in configuration
                     .IdHashes(id, filter.HashFunctionCount)
-                    .Select(p =>Math.Abs(p%filter.Counts.LongLength))
+                    .Select(p => Math.Abs(p % filter.Counts.LongLength))
                     .Where(p => !countEqualityComparer.Equals(filter.Counts[p], countsIdentity)))
                 {
                     if (configuration.IsPureCount(filter.Counts[position]))
                     {
                         //we are just about to zero out the count.
-                        var hashEquals = hashedValue.HasValue ?
-                            configuration.IsEntityHashIdentity(configuration.EntityHashXor(filter.HashSums[position], hashedValue.Value)) :
-                            true;
+                        var hashEquals = configuration.IsEntityHashIdentity(configuration.EntityHashXor(filter.HashSums[position], hashedValue));
                         //pure, hash/identity is different.
                         if (!configuration
                             .IsIdIdentity(configuration.IdXor(id, filter.IdSums[position])) &&
@@ -353,7 +345,7 @@
         internal static bool HashDecode<TEntity, TId, TEntityHash, TCount>(
             this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter,
             IBloomFilterConfiguration<TEntity, TId, TEntityHash, int, TCount> configuration,
-            HashSet<TEntityHash> listA,
+             HashSet<TEntityHash> listA,
             HashSet<TEntityHash> listB,
             HashSet<TEntityHash> modifiedEntities)
             where TEntityHash : struct
@@ -375,9 +367,14 @@
                 }
                 var id = filter.IdSums[pureIdx];
                 var hashSum = filter.HashSums[pureIdx];
-                if (!listA.Contains(hashSum) &&
-                    !listB.Contains(hashSum))
-                    modifiedEntities.Add(hashSum);
+                if (countComparer.Compare(filter.Counts[pureIdx], countsIdentity) > 0)
+                {
+                    listA.Add(hashSum);
+                }
+                else
+                {
+                    listB.Add(hashSum);
+                }
                 //the difference has been accounted for, zero out.
                 filter.Counts[pureIdx] = countsIdentity;
                 filter.HashSums[pureIdx] = configuration.EntityHashXor(filter.HashSums[pureIdx],
@@ -388,15 +385,24 @@
                     .Select(p => Math.Abs(p % filter.Counts.LongLength))
                     .Where(p => !countEqualityComparer.Equals(filter.Counts[p], countsIdentity)))
                 {
-                    if (configuration.IsPureCount(filter.Counts[position]) &&
-                        !configuration
+                    if (configuration.IsPureCount(filter.Counts[position]))
+                    {
+                        //we are just about to zero out the count.
+                        var hashEquals = configuration
                             .IsEntityHashIdentity(configuration.EntityHashXor(
                                 filter.HashSums[position],
-                                hashSum)) &&
-                            !listA.Contains(filter.HashSums[position]) &&
-                            !listB.Contains(filter.HashSums[position]))
-                    {
-                        modifiedEntities.Add(filter.HashSums[position]);
+                                hashSum));
+                        //pure, hash/identity is different.
+                        if (!configuration
+                            .IsIdIdentity(configuration.IdXor(id, filter.IdSums[position])) &&
+                            hashEquals)
+                        {
+                            modifiedEntities.Add(filter.HashSums[position]);
+                        }
+                        else if (!hashEquals)
+                        {
+                            listB.Add(filter.HashSums[position]);
+                        }
                     }
                     filter.Remove(configuration, id, hashSum, position);
                     if (configuration.IsPureCount(filter.Counts[position]))
@@ -411,8 +417,8 @@
 
         private static bool IsCompleteDecode<TEntity, TId, TEntityHash, THash, TCount>(
             this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter,
-            IBloomFilterConfiguration<TEntity, TId, TEntityHash, THash, TCount> configuration, 
-            EqualityComparer<TCount> countEqualityComparer, 
+            IBloomFilterConfiguration<TEntity, TId, TEntityHash, THash, TCount> configuration,
+            EqualityComparer<TCount> countEqualityComparer,
             TCount countsIdentity)
             where TCount : struct
             where TId : struct
@@ -422,7 +428,7 @@
             for (var position = 0L; position < filter.Counts.LongLength; position++)
             {
                 if (!configuration.IsIdIdentity(filter.IdSums[position]) ||
-                    (filter.HashSums==null || !configuration.IsEntityHashIdentity(filter.HashSums[position])) ||
+                    (filter.HashSums == null || !configuration.IsEntityHashIdentity(filter.HashSums[position])) ||
                     !countEqualityComparer.Equals(filter.Counts[position], countsIdentity))
                     return false;
             }
@@ -442,11 +448,11 @@
         /// <param name="idValue"></param>
         /// <param name="hashValue"></param>
         /// <param name="position"></param>
-        internal static void Remove<TEntity,TId, TEntityHash, THash, TCount>(
+        internal static void Remove<TEntity, TId, TEntityHash, THash, TCount>(
             this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter,
             IBloomFilterConfiguration<TEntity, TId, TEntityHash, THash, TCount> configuration,
             TId idValue,
-            TEntityHash? hashValue, 
+            TEntityHash hashValue,
             long position)
             where TCount : struct
             where TId : struct
@@ -455,14 +461,10 @@
 
         {
             if (filter == null) return;
-            filter.Counts[position] = configuration.CountDecrease(filter.Counts[position]);        
-           filter.IdSums[position] = configuration.IdXor(filter.IdSums[position], idValue);
-            if (hashValue.HasValue)
-            {
-                filter.HashSums[position] = configuration.EntityHashXor(filter.HashSums[position], hashValue.Value);
-                filter.ValueFilter?.Remove(configuration.ValueFilterConfiguration, hashValue.Value, idValue, position);
-            }          
-      }
+            filter.Counts[position] = configuration.CountDecrease(filter.Counts[position]);
+            filter.IdSums[position] = configuration.IdXor(filter.IdSums[position], idValue);
+            filter.HashSums[position] = configuration.EntityHashXor(filter.HashSums[position], hashValue);
+        }
 
         /// <summary>
         /// Subtract the given filter and decode for any changes
@@ -491,9 +493,65 @@
             where TCount : struct
             where TEntityHash : struct
         {
-            return filter
-                .Subtract(subtractedFilter, configuration, listA, listB, modifiedEntities, destructive)
-                .Decode(configuration, listA, listB, modifiedEntities);
+            if (!filter.IsCompatibleWith(subtractedFilter)) throw new ArgumentException("The subtracted Bloom filter data is not compatible with the Bloom filter.", nameof(subtractedFilter));
+            var valueRes = true;
+            var idRes = true;
+            if (!filter.IsReverse)
+            {
+                idRes = filter
+                    .Subtract(subtractedFilter, configuration, listA, listB, modifiedEntities, destructive)
+                    .Decode(configuration, listA, listB, modifiedEntities);
+            }
+            var reverseFilter = filter.IsReverse ? filter.Reverse() : filter.ValueFilter;
+            var reverseSubtractedFilter = subtractedFilter.IsReverse ? subtractedFilter.Reverse() : subtractedFilter.ValueFilter;
+            if (reverseFilter != null &&
+                reverseSubtractedFilter != null)
+            {
+                 valueRes = reverseFilter
+                    .HashSubtractAndDecode(
+                    reverseSubtractedFilter,
+                    configuration.ValueFilterConfiguration,
+                   filter.IsReverse ? modifiedEntities : listA,
+                    filter.IsReverse ? modifiedEntities : listB,
+                    modifiedEntities,
+                    destructive);
+                foreach (var itm in listA)
+                {
+                    modifiedEntities.Remove(itm);
+                }
+                foreach (var itm in listB)
+                {
+                    modifiedEntities.Remove(itm);
+                }
+            }
+          
+            return idRes && valueRes;
+        }
+
+        /// <summary>
+        /// Reverse the filter data.
+        /// </summary>
+        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="TEntityHash"></typeparam>
+        /// <typeparam name="TCount"></typeparam>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        internal static InvertibleBloomFilterData<TEntityHash, TId, TCount> Reverse<TId, TEntityHash, TCount>(
+            this IInvertibleBloomFilterData<TId, TEntityHash, TCount> data)
+            where TId : struct
+            where TCount : struct
+            where TEntityHash : struct
+        {
+            if (data == null) return null;
+            return new InvertibleBloomFilterData<TEntityHash, TId, TCount>
+            {
+                IsReverse = true,
+                BlockSize = data.BlockSize,
+                Counts = data.Counts,
+                HashFunctionCount = data.HashFunctionCount,
+                IdSums = data.HashSums,
+                HashSums = data.IdSums
+            };
         }
 
         /// <summary>
@@ -518,12 +576,13 @@
             IBloomFilterConfiguration<TEntity, TId, TEntityHash, int, TCount> configuration,
             HashSet<TEntityHash> listA,
             HashSet<TEntityHash> listB,
-            HashSet<TEntityHash> modifiedEntities,
+           HashSet<TEntityHash> modifiedEntities,
             bool destructive = false)
             where TId : struct
             where TCount : struct
             where TEntityHash : struct
         {
+            if (filter == null || subtractedFilter == null) return true;
             return filter
                .HashSubtract(subtractedFilter, configuration, listA, listB, modifiedEntities, destructive)
                 .HashDecode(configuration, listA, listB, modifiedEntities);

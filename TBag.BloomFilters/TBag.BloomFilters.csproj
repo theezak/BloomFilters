@@ -45,6 +45,7 @@
     <Compile Include="BloomFilterConfigurationExtensions.cs" />
     <Compile Include="BloomFilterIdConfigurationBase.Generic.cs" />
     <Compile Include="Collections\BitArrayExtensions.cs" />
+    <Compile Include="DefaultKeyValueHashPairBloomFilterConfiguration.cs" />
     <Compile Include="HighUtilizationBloomFilterConfigurationBase.Generic.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimator.Generic.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimatorData.Generic.cs" />
@@ -64,10 +65,12 @@
     <Compile Include="Estimators\StrataEstimatorData.Generic.cs" />
     <Compile Include="Estimators\StrataEstimatorDataExtensions.cs" />
     <Compile Include="IBloomFilterConfiguration.Generic.cs" />
+    <Compile Include="IBloomFilterSizeConfiguration.cs" />
     <Compile Include="IInvertibleBloomFilter.Generic.cs" />
     <Compile Include="IInvertibleBloomFilterData.Generic.cs" />
     <Compile Include="IInvertibleBloomFilterFactory.cs" />
-    <Compile Include="InvertibleKeyValueBloomFilter.Generic.cs" />
+    <Compile Include="HybridInvertibleBloomFilter.Generic.cs" />
+    <Compile Include="InvertibleReverseBloomFilter.Generic.cs" />
     <Compile Include="InvertibleBloomFilterData.Generic.cs" />
     <Compile Include="InvertibleBloomFilter.Generic.cs" />
     <Compile Include="BloomFilter.cs" />

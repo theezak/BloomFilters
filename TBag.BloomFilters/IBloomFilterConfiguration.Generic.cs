@@ -11,7 +11,8 @@ namespace TBag.BloomFilters
     /// <typeparam name="TEntityHash"></typeparam>
     /// <typeparam name="THash">The hash value type</typeparam>
     /// <typeparam name="TCount">The occurence count type.</typeparam>
-    public interface IBloomFilterConfiguration<TEntity, TId, TEntityHash, THash, TCount>
+    public interface IBloomFilterConfiguration<TEntity, TId, TEntityHash, THash, TCount> :
+        IBloomFilterSizeConfiguration
         where TEntityHash : struct
         where THash : struct
         where TCount : struct

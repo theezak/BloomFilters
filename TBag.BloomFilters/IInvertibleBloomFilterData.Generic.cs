@@ -12,6 +12,11 @@
         where TId : struct
     {
         /// <summary>
+        /// <c>true</c> when the identifier and hash have been reversed, else <c>false</c>.
+        /// </summary>
+        bool IsReverse { get; set; }
+
+        /// <summary>
         /// The block size 
         /// </summary>
         /// <remarks>Is the length of the arrays with hashes and counts, unless the Bloom filter was split by hash function, in which case the block size times the number of hash functions equals the size of the arrays.</remarks>

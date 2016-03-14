@@ -34,7 +34,7 @@ namespace TBag.BloomFilter.Test
                     var index = rand.Next(0, entities.Count - 1);
                     entities.RemoveAt(eIndex);
                 }
-                else if (operation==1 && eIndex < entities.Count)
+                else if (operation == 1 && eIndex < entities.Count)
                 {
                     entities[eIndex++].Value = (random.NextInt32()).ToString();
                 }

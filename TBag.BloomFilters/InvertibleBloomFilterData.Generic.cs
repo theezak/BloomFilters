@@ -33,5 +33,8 @@
         
         [DataMember(Order = 6)]
         public InvertibleBloomFilterData<TEntityHash, TId, TCount>  ValueFilter { get; set; }
+
+        [DataMember(Order = 7)]
+        public bool IsReverse { get; set; }
     }
 }
