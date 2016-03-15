@@ -1,31 +1,34 @@
-﻿namespace TBag.BloomFilters
+﻿using System.Linq;
+
+namespace TBag.BloomFilters
 {
     using System;
     using System.Collections.Generic;
     using HashAlgorithms;
-    using System.Linq;
-
+    
     /// <summary>
-    /// A Bloom filter configuration for Bloom filter that will be highly utilized (more entities are added than it was sized for)
+    /// A default Bloom filter configuration, well suited for  key/value inveritble Bloom filters that are utilized according to their capacity.
     /// </summary>
-    public abstract class HighUtilizationBloomFilterConfigurationBase<TEntity> : 
-        BloomFilterConfigurationBase<TEntity, long, int, int, int>
+    public abstract class KeyValueIbfConfigurationBase<TEntity> : 
+        BloomFilterConfigurationBase<TEntity, long, int, int, sbyte>
     {
-        private readonly IMurmurHash _murmurHash;
-        private readonly IXxHash _xxHash;
+        private readonly IMurmurHash _murmurHash = new Murmur3();
+        private readonly IXxHash _xxHash = new XxHash();
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        protected HighUtilizationBloomFilterConfigurationBase(bool createValueFilter = true)
+        protected KeyValueIbfConfigurationBase(bool createValueFilter = true)
         {
-            _murmurHash = new Murmur3();
-            _xxHash = new XxHash();       
             if (createValueFilter)
             {
                 ValueFilterConfiguration = this.ConvertToValueHash();
             }
-        GetId = GetIdImpl;
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        protected KeyValueIbfConfigurationBase()
+        {
+             GetId = GetIdImpl;
             GetEntityHash = GetEntityHashImpl;
             IdHashes = (id, hashCount) =>
             {
@@ -33,19 +36,19 @@
                 var murmurHash = BitConverter
                 .ToInt32(
                     _murmurHash.Hash(
-                        BitConverter.GetBytes(id), 
-                        unchecked((uint)Math.Abs(id <<4))),
+                        BitConverter.GetBytes(id),
+                        unchecked((uint)Math.Abs(id << 4))),
                     0);
-                if (hashCount == 1) return new []{  murmurHash };
+                if (hashCount == 1) return new[] { murmurHash };
                 var hash2 = BitConverter
                 .ToInt32(
                     _xxHash.Hash(
-                        BitConverter.GetBytes(id), 
+                        BitConverter.GetBytes(id),
                         unchecked((uint)(murmurHash % (uint.MaxValue - 1)))),
                     0);
                 return ComputeHash(
-                    murmurHash, 
-                    hash2, 
+                    murmurHash,
+                    hash2,
                     hashCount);
             };
             EntityHashes = (e, hashCount) =>
@@ -55,37 +58,38 @@
                 var idHash = IdHashes(GetId(e), 1).First();
                 var murmurHash = BitConverter.ToInt32(
                     _murmurHash.Hash(
-                        BitConverter.GetBytes(entityHash), 
+                        BitConverter.GetBytes(entityHash),
                         unchecked((uint)idHash)),
                     0);
                 return ComputeHash(murmurHash, idHash, hashCount);
             };
+            //TODO: provide a 'standard' version that also includes the hash of the Id stored 
+            IsPure = (d, p) => IsPureCount(d.Counts[p]);
             IdXor = (id1, id2) => id1 ^ id2;
             IsIdIdentity = id1 => id1 == 0;
             IsEntityHashIdentity = id1 => id1 == 0;
             EntityHashXor = (h1, h2) => h1 ^ h2;
             CountUnity = () => 1;
             IsPureCount = c => Math.Abs(c) == 1;
-            IsPure = (d, p) => IsPureCount(d.Counts[p]);
             CountIdentity = () => 0;
-            CountDecrease = c => c-1;
-            CountIncrease = c => c+1;
-            CountSubtract = (c1, c2) => (c1 - c2);
-            CountEqualityComparer = EqualityComparer<int>.Default;
+            CountDecrease = c => (sbyte)(c-1);
+            CountIncrease = c => (sbyte)(c+1);
+            CountSubtract = (c1, c2) => (sbyte)(c1 - c2);
+            CountEqualityComparer = EqualityComparer<sbyte>.Default;
             IdEqualityComparer = EqualityComparer<long>.Default;
             IdHashEqualityComparer = EqualityComparer<int>.Default;
             EntityHashEqualityComparer = EqualityComparer<int>.Default;
         }
 
         /// <summary>
-        /// Implementation for getting the identifier of the given entity.
+        /// Get the identifier for the given entity.
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
         protected abstract long GetIdImpl(TEntity entity);
 
         /// <summary>
-        /// Implementation for getting the value hash for the given entity.
+        /// Get the hash of the entity value.
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -101,26 +105,20 @@
         /// <param name="seed"></param>
         /// <returns></returns>
         private static IEnumerable<int> ComputeHash(
-            int primaryHash, 
-            int secondaryHash, 
-            uint hashFunctionCount, 
+            int primaryHash,
+            int secondaryHash,
+            uint hashFunctionCount,
             int seed = 0)
         {
-            for(long j = seed; j < hashFunctionCount; j++)
+            for (long j = seed; j < hashFunctionCount; j++)
             {
-                yield return unchecked((int)Math.Abs(primaryHash + j * secondaryHash));
+                yield return unchecked((int)(primaryHash + j * secondaryHash));
             }
         }
-
-        /// <summary>
-        /// Determine if the capacity of the Bloom filter supports the set size.
-        /// </summary>
-        /// <param name="capacity">Bloom filter capacity.</param>
-        /// <param name="size">Set size</param>
-        /// <returns><c>false</c> when the set size is likely to cause overflows in the count, else <c>trye</c></returns>
+      
         public override bool Supports(ulong capacity, ulong size)
-        {
-            return (int.MaxValue - 30) * size > capacity;
+        {    
+            return ((sbyte.MaxValue - 15) * size) > capacity;
         }
     }
 }

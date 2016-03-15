@@ -1,7 +1,6 @@
 ﻿namespace TBag.BloomFilters
 {
-    using System;
-     using Estimators;
+    using Estimators;
 
     /// <summary>
     /// Place holder for a factory to create Bloom filters based upon strata estimators.
@@ -54,13 +53,6 @@
                bloomFilterConfiguration,
                (long)estimate,
                errorRate ?? 0.001F);
-            //slight cheat, but knowing the size of both sets gives a real nice upperbound for the maximum number of differences.
-            var capacity = Math.Max(15L,
-                Math.Min(1.2D*(estimator.CountEstimate + otherEstimator.CountEstimate), (long)(Math.Pow(1.4D, Math.Log(estimator.CountEstimate + otherEstimator.CountEstimate) -1)*estimate*estimate)));
-            return CreateHighUtilizationFilter(
-                bloomFilterConfiguration,
-                (long) capacity,
-                errorRate ?? 0.001F);
         }
 
         /// <summary>

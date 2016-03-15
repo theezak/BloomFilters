@@ -164,6 +164,8 @@
             where TEntityHash : struct
             where THash : struct
         {
+            if (!filterData.IsCompatibleWith(subtractedFilterData))
+                throw new ArgumentException("Subtracted invertible Bloom filters are not compatible.", nameof(subtractedFilterData));
             var result = destructive
                 ? filterData
                 : new InvertibleBloomFilterData<TId, TEntityHash, TCount>
@@ -174,10 +176,8 @@
                     HashSums = filterData.HashSums == null ? null : new TEntityHash[filterData.HashSums.LongLength],
                     IdSums = new TId[filterData.IdSums.LongLength]
                 };
-            if (!filterData.IsCompatibleWith(subtractedFilterData))
-                throw new ArgumentException("Subtracted invertible Bloom filters are not compatible.", nameof(subtractedFilterData));
             var countsIdentity = configuration.CountIdentity();
-            for (long i = 0L; i < filterData.Counts.LongLength; i++)
+            for (var i = 0L; i < filterData.Counts.LongLength; i++)
             {
                 result.Counts[i] = configuration.CountSubtract(filterData.Counts[i], subtractedFilterData.Counts[i]);
                 var hashSum = configuration.EntityHashXor(filterData.HashSums[i], subtractedFilterData.HashSums[i]);
@@ -619,9 +619,12 @@
             if (listA == modifiedEntities || listB == modifiedEntities) return;
             foreach (var modItem in listA.Where(itm => listB.Contains(itm)).ToArray())
             {
+                modifiedEntities.Add(modItem);
+            }
+            foreach(var modItem in modifiedEntities)
+            {
                 listA.Remove(modItem);
                 listB.Remove(modItem);
-                modifiedEntities.Add(modItem);
             }
         }
     }

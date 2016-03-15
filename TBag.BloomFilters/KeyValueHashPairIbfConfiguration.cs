@@ -5,15 +5,15 @@
     /// <summary>
     /// A default Bloom filter configuration for identifiers with a precomputed value hash. Well suited for Bloom filters that are utilized according to their capacity.
     /// </summary>
-    public abstract class HighUtilizationValuePairBloomFilterConfiguration :
-        HighUtilizationBloomFilterConfigurationBase<KeyValuePair<long,int>>
+    public abstract class KeyValueHashPairIbfConfiguration :
+        KeyValueIbfConfigurationBase<KeyValuePair<long,int>>
     {
       
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="createValueFilter"></param>
-        protected HighUtilizationValuePairBloomFilterConfiguration(bool createValueFilter = true) : 
+        protected KeyValueHashPairIbfConfiguration(bool createValueFilter = true) : 
             base(createValueFilter)
         {
         }

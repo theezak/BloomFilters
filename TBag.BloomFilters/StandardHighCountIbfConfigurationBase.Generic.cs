@@ -9,8 +9,8 @@ namespace TBag.BloomFilters
     /// <summary>
     /// A standard Bloom filter configuration, well suited for Bloom filters that are utilized according to their capacity and store keys rather than key/value pairs.
     /// </summary>
-    public abstract class StandardBloomFilterConfigurationBase<TEntity> : 
-        BloomFilterConfigurationBase<TEntity, long, int, int, sbyte>
+    public abstract class StandardHighCountIbfConfigurationBase<TEntity> : 
+        BloomFilterConfigurationBase<TEntity, long, int, int, int>
     {
         private readonly IMurmurHash _murmurHash = new Murmur3();
         private readonly IXxHash _xxHash = new XxHash();
@@ -19,7 +19,7 @@ namespace TBag.BloomFilters
         /// Constructor
         /// </summary>
         /// <param name="createValueFilter"></param>
-        protected StandardBloomFilterConfigurationBase(bool createValueFilter = true)
+        protected StandardHighCountIbfConfigurationBase(bool createValueFilter = true)
         {
             if (createValueFilter)
             {
@@ -30,7 +30,7 @@ namespace TBag.BloomFilters
         /// <summary>
         /// Constructor
         /// </summary>
-        protected StandardBloomFilterConfigurationBase()
+        protected StandardHighCountIbfConfigurationBase()
         {
              GetId = GetIdImpl;
             IdHashes = (id, hashCount) =>
@@ -77,15 +77,20 @@ namespace TBag.BloomFilters
             CountUnity = () => 1;
             IsPureCount = c => Math.Abs(c) == 1;
             CountIdentity = () => 0;
-            CountDecrease = c => (sbyte)(c>0?c-1:c+1);
-            CountIncrease = c => (sbyte)(c < 0 ? c - 1 : c + 1);
-            CountSubtract = (c1, c2) => (sbyte)(c1 - c2);
-            CountEqualityComparer = EqualityComparer<sbyte>.Default;
+            CountDecrease = c => c-1;
+            CountIncrease = c => c+1;
+            CountSubtract = (c1, c2) => c1 - c2;
+            CountEqualityComparer = EqualityComparer<int>.Default;
             IdEqualityComparer = EqualityComparer<long>.Default;
             IdHashEqualityComparer = EqualityComparer<int>.Default;
             EntityHashEqualityComparer = EqualityComparer<int>.Default;
         }
 
+        /// <summary>
+        /// Get the identifier (key) for a given entity.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         protected abstract long GetIdImpl(TEntity entity);
 
      
