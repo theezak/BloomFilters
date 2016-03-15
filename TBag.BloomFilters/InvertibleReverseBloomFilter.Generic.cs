@@ -122,17 +122,17 @@
                 .IdHashes(valueId, _data.HashFunctionCount)
                 .Select(p => Math.Abs(p % _data.Counts.LongLength)))
             {
-                if (IsPure(Configuration.ValueFilterConfiguration, _data, position) &&
+                if (Configuration.ValueFilterConfiguration.IsPure(_data, position) &&
                     (!Configuration
                         .ValueFilterConfiguration
-                        .IsIdIdentity(Configuration.ValueFilterConfiguration.IdXor(_data.IdSums[position], valueId)) ||
+                        .IdEqualityComparer.Equals(_data.IdSums[position], valueId) ||
                         !Configuration
                         .ValueFilterConfiguration
-                        .IsEntityHashIdentity(Configuration.ValueFilterConfiguration.EntityHashXor(_data.HashSums[position], hashValue))))
+                        .EntityHashEqualityComparer.Equals(_data.HashSums[position], hashValue)))
                     {
                     return false;
                 }
-                else if (CountEqualityComparer.Equals(_data.Counts[position], countIdentity))
+                else if (Configuration.CountEqualityComparer.Equals(_data.Counts[position], countIdentity))
                 {
                     return false;
                 }

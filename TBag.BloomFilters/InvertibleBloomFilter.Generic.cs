@@ -17,8 +17,7 @@
         where TId : struct
     {
         #region Properties
-        protected IEqualityComparer<TCount> CountEqualityComparer = EqualityComparer<TCount>.Default;
-
+     
         /// <summary>
         /// The configuration for theBloom filter.
         /// </summary>
@@ -171,13 +170,13 @@
                 .IdHashes(id, _data.HashFunctionCount)
                 .Select(p => Math.Abs(p % _data.Counts.LongLength)))
             {
-                if (IsPure(Configuration, _data, position) &&
-                    (!Configuration.IsIdIdentity(Configuration.IdXor(_data.IdSums[position], id)) ||
-                        !Configuration.IsEntityHashIdentity(Configuration.EntityHashXor(_data.HashSums[position], hashValue))))
+                if (Configuration.IsPure(_data, position) &&
+                    (!Configuration.IdEqualityComparer.Equals(_data.IdSums[position], id) ||
+                        !Configuration.EntityHashEqualityComparer.Equals(_data.HashSums[position], hashValue)))
                 {
                     return false;
                 }
-                else if (CountEqualityComparer.Equals(_data.Counts[position], countIdentity))
+                else if (Configuration.CountEqualityComparer.Equals(_data.Counts[position], countIdentity))
                 {
                     return false;
                 }
@@ -197,12 +196,12 @@
                 .IdHashes(key, _data.HashFunctionCount)
                 .Select(p => Math.Abs(p % _data.Counts.LongLength)))
             {
-                if (IsPure(Configuration, _data, position) &&
-                    !Configuration.IsIdIdentity(Configuration.IdXor(_data.IdSums[position], key)))
+                if (Configuration.IsPure(_data, position) &&
+                    !Configuration.IdEqualityComparer.Equals(_data.IdSums[position], key))
                 {
                     return false;
                 }
-                else if (CountEqualityComparer.Equals(_data.Counts[position], countIdentity))
+                else if (Configuration.CountEqualityComparer.Equals(_data.Counts[position], countIdentity))
                 {
                     return false;
                 }
@@ -242,20 +241,6 @@
             return _data.SubtractAndDecode(filter, Configuration, listA, listB, modifiedEntities);
         }
 
-        #endregion
-
-        #region Methods
-    
-        protected static bool IsPure<TPId, TPEntityHash>(
-            IBloomFilterConfiguration<TEntity,TPId,TPEntityHash,int,TCount> configuration,
-            IInvertibleBloomFilterData<TPId, TPEntityHash, TCount> data, long position)
-            where TPId : struct
-            where TPEntityHash : struct
-        {
-            return configuration.IsPureCount(data.Counts[position]);
-        }
-
-     
         #endregion
     }
 }

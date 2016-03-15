@@ -19,7 +19,7 @@ namespace TBag.BloomFilter.Test
             var configuration = new LargeBloomFilterConfiguration();
 
             var size = new int[] { 1000, 10000, 100000 };
-            var modPercentage = new double[] { 0.0D, 0.01D, 0.1D, 0.2D, 0.5D, 1.0D };
+            var modPercentage = new double[] { 0.01D, 0.1D, 0.2D, 0.5D, 1.0D };
             foreach (var s in size)
             {
                 using (
@@ -46,12 +46,12 @@ namespace TBag.BloomFilter.Test
                                 var onlyInSet2 = dataSet2.Where(d => dataSet1.All(d1 => d1.Id != d.Id)).Select(d => d.Id).OrderBy(id => id).ToArray();
                                 var modified = dataSet1.Where(d => dataSet2.Any(d2 => d2.Id == d.Id && d2.Value != d.Value)).Select(d => d.Id).OrderBy(id => id).ToArray();
                                 var idealCapacity = Math.Max(15, onlyInSet1.Count() + onlyInSet2.Count() + modified.Count());
-                                var bloomFilter1 = new InvertibleBloomFilter<TestEntity, long, int>(idealCapacity * capacityPercentage, 0.001F, configuration);
+                                var bloomFilter1 = new InvertibleReverseBloomFilter<TestEntity, long, int>(idealCapacity * capacityPercentage, 0.001F, configuration);
                                 foreach (var item in dataSet1)
                                 {
                                     bloomFilter1.Add(item);
                                 }
-                                var bloomFilter2 = new InvertibleBloomFilter<TestEntity, long, int>(idealCapacity * capacityPercentage, 0.001F, configuration);
+                                var bloomFilter2 = new InvertibleReverseBloomFilter<TestEntity, long, int>(idealCapacity * capacityPercentage, 0.001F, configuration);
                                 foreach (var item in dataSet2)
                                 {
                                     bloomFilter2.Add(item);

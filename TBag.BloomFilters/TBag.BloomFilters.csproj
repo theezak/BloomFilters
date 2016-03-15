@@ -45,6 +45,7 @@
     <Compile Include="BloomFilterConfigurationExtensions.cs" />
     <Compile Include="BloomFilterIdConfigurationBase.Generic.cs" />
     <Compile Include="Collections\BitArrayExtensions.cs" />
+    <Compile Include="StandardBloomFilterConfigurationBase.Generic.cs" />
     <Compile Include="HighUtilizationKeyValuePairBloomFilterConfiguration.cs" />
     <Compile Include="DefaultKeyValueHashPairBloomFilterConfiguration.cs" />
     <Compile Include="HighUtilizationBloomFilterConfigurationBase.Generic.cs" />

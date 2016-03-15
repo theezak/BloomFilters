@@ -18,6 +18,8 @@ namespace TBag.BloomFilters
         where TCount : struct
         where TId : struct
     {
+        EqualityComparer<TEntityHash> EntityHashEqualityComparer { get; set; }
+        EqualityComparer<THash> IdHashEqualityComparer { get; set; }
         /// <summary>
         /// Configuration for the Bloom filter that hashes values.
         /// </summary>
@@ -27,6 +29,11 @@ namespace TBag.BloomFilters
         /// Function to create a sequence of given length of Id hashes.
         /// </summary>
         Func<TId, uint, IEnumerable<THash>> IdHashes { get; set; }
+
+        /// <summary>
+        /// Determine if the location in the given data is pure.
+        /// </summary>
+        Func<IInvertibleBloomFilterData<TId, TEntityHash, TCount>, long,  bool> IsPure { get; set; }
 
         /// <summary>
         /// Function to create a sequence of given length of entity hashes.
@@ -47,6 +54,8 @@ namespace TBag.BloomFilters
         /// Function to get the identifier for a given entity.
         /// </summary>
         Func<TEntity, TId> GetId { get; set; }
+
+        EqualityComparer<TId> IdEqualityComparer { get; set; }
 
         /// <summary>
         /// <c>true</c> when the argument is the identity value for the entity hash, else <c>false</c>.
@@ -83,6 +92,8 @@ namespace TBag.BloomFilters
         /// Subtract two counts
         /// </summary>
           Func<TCount,TCount,TCount> CountSubtract { get; set; }
+
+        EqualityComparer<TCount> CountEqualityComparer { get; set; }
 
         /// <summary>
         /// Increase the count by 1

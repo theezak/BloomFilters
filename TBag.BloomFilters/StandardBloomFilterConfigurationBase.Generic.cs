@@ -7,15 +7,19 @@ namespace TBag.BloomFilters
     using HashAlgorithms;
     
     /// <summary>
-    /// A default Bloom filter configuration, well suited for Bloom filters that are utilized according to their capacity.
+    /// A standard Bloom filter configuration, well suited for Bloom filters that are utilized according to their capacity and store keys rather than key/value pairs.
     /// </summary>
-    public abstract class DefaultBloomFilterConfigurationBase<TEntity> : 
+    public abstract class StandardBloomFilterConfigurationBase<TEntity> : 
         BloomFilterConfigurationBase<TEntity, long, int, int, sbyte>
     {
         private readonly IMurmurHash _murmurHash = new Murmur3();
         private readonly IXxHash _xxHash = new XxHash();
 
-        protected DefaultBloomFilterConfigurationBase(bool createValueFilter = true)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="createValueFilter"></param>
+        protected StandardBloomFilterConfigurationBase(bool createValueFilter = true)
         {
             if (createValueFilter)
             {
@@ -26,10 +30,9 @@ namespace TBag.BloomFilters
         /// <summary>
         /// Constructor
         /// </summary>
-        protected DefaultBloomFilterConfigurationBase()
+        protected StandardBloomFilterConfigurationBase()
         {
              GetId = GetIdImpl;
-            GetEntityHash = GetEntityHashImpl;
             IdHashes = (id, hashCount) =>
             {
                 //generate the given number of hashes.
@@ -51,10 +54,12 @@ namespace TBag.BloomFilters
                     hash2,
                     hashCount);
             };
+            //the hashSum value is an identity hash.
+            GetEntityHash = e => IdHashes(GetId(e), 1).First();
             EntityHashes = (e, hashCount) =>
             {
                 //generate the given number of hashes.
-                var entityHash = GetEntityHashImpl(e);
+                var entityHash = GetEntityHash(e);
                 var idHash = IdHashes(GetId(e), 1).First();
                 var murmurHash = BitConverter.ToInt32(
                     _murmurHash.Hash(
@@ -64,7 +69,7 @@ namespace TBag.BloomFilters
                 return ComputeHash(murmurHash, idHash, hashCount);
             };
             //TODO: provide a 'standard' version that also includes the hash of the Id stored 
-            IsPure = (d, p) => IsPureCount(d.Counts[p]);
+            IsPure = (d, p) => IsPureCount(d.Counts[p]) && EntityHashEqualityComparer.Equals(d.HashSums[p], IdHashes(d.IdSums[p], 1).First());
             IdXor = (id1, id2) => id1 ^ id2;
             IsIdIdentity = id1 => id1 == 0;
             IsEntityHashIdentity = id1 => id1 == 0;
@@ -83,8 +88,7 @@ namespace TBag.BloomFilters
 
         protected abstract long GetIdImpl(TEntity entity);
 
-        protected abstract int GetEntityHashImpl(TEntity entity);
-
+     
 
         /// <summary>
         /// Performs Dillinger and Manolios double hashing. 

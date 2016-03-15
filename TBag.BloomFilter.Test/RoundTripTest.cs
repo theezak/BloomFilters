@@ -103,13 +103,13 @@ namespace TBag.BloomFilter.Test
             var configuration = new LargeBloomFilterConfiguration();
             IHybridEstimatorFactory estimatorFactory = new HybridEstimatorFactory();
             IInvertibleBloomFilterFactory bloomFilterFactory = new InvertibleBloomFilterFactory();
-            var dataSet1 = DataGenerator.Generate().Take(10000).ToList();
+            var dataSet1 = DataGenerator.Generate().Take(50000).ToList();
             var actor1 = new Actor(
                 dataSet1,
                 estimatorFactory,
                 bloomFilterFactory,
                 configuration);
-            var dataSet2 = DataGenerator.Generate().Take(10000).ToList();
+            var dataSet2 = DataGenerator.Generate().Take(50000).ToList();
             dataSet2.Modify(10000);
             var actor2 = new Actor(
                 dataSet2,

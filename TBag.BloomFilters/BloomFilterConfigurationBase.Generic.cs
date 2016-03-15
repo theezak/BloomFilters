@@ -77,6 +77,20 @@
 
         public IBloomFilterConfiguration<TEntity, TEntityHash, TId, THash, TCount> ValueFilterConfiguration { get; protected set; }
 
+        public virtual Func<IInvertibleBloomFilterData<TId, TEntityHash, TCount>, long, bool> IsPure { get; set; }
+
+        public virtual EqualityComparer<TEntityHash> EntityHashEqualityComparer
+        { get; set; }
+
+        public virtual EqualityComparer<THash> IdHashEqualityComparer
+        { get; set; }
+
+        public virtual EqualityComparer<TId> IdEqualityComparer
+        { get; set; }
+
+        public virtual EqualityComparer<TCount> CountEqualityComparer
+        { get; set; }
+
         /// <summary>
         /// Determine if the configuration supports the given capacity and set size.
         /// </summary>

@@ -39,6 +39,7 @@
                 _getId = e => _wrappedConfiguration.EntityHashes(e, 1).First();
                 IdXor = (id1, id2) => id1 ^ id2;
                 IsIdIdentity = id1 => id1 == 0;
+                IsPure = (d, p) => IsPureCount(d.Counts[p]);
                 IdHashes = (id, hashCount) =>
                 {
                     //generate the given number of hashes.
@@ -143,6 +144,30 @@
                 }
             }
 
+            public override EqualityComparer<TCount> CountEqualityComparer
+            {
+                get { return _wrappedConfiguration.CountEqualityComparer; }
+                set { _wrappedConfiguration.CountEqualityComparer = value; }
+            }
+
+            public override EqualityComparer<int> IdHashEqualityComparer
+            {
+                get { return _wrappedConfiguration.IdHashEqualityComparer; }
+                set { _wrappedConfiguration.IdHashEqualityComparer = value; }
+            }
+
+            public override EqualityComparer<int> IdEqualityComparer
+            {
+                get { return _wrappedConfiguration.EntityHashEqualityComparer; }
+                set { _wrappedConfiguration.EntityHashEqualityComparer = value; }
+            }
+
+            public override EqualityComparer<int> EntityHashEqualityComparer
+            {
+                get { return _wrappedConfiguration.EntityHashEqualityComparer; }
+                set { _wrappedConfiguration.EntityHashEqualityComparer = value; }
+            }
+
         }
 
         /// <summary>
@@ -212,6 +237,19 @@
                 }
             }
 
+            public override Func<IInvertibleBloomFilterData<int, TId, TCount>, long, bool> IsPure
+            {
+                get
+                {
+                    return (d,p) =>_wrappedConfiguration.IsPure(d.Reverse(), p);
+                }
+
+                set
+                {
+                    throw new NotImplementedException("Setting the IsPure method on a derived configuration for value hashing is not supported.");
+                }
+            }
+
             public override Func<TCount> CountIdentity
             {
                 get { return _wrappedConfiguration.CountIdentity; }
@@ -261,6 +299,30 @@
             {
                 get { return _wrappedConfiguration.IsIdIdentity; }
                 set { _wrappedConfiguration.IsIdIdentity = value; }
+            }
+
+            public override EqualityComparer<TCount> CountEqualityComparer
+            {
+                get { return _wrappedConfiguration.CountEqualityComparer; }
+                set { _wrappedConfiguration.CountEqualityComparer = value; }
+            }
+
+            public override EqualityComparer<TId> EntityHashEqualityComparer
+            {
+                get { return _wrappedConfiguration.IdEqualityComparer; }
+                set { _wrappedConfiguration.IdEqualityComparer = value; }
+            }
+
+            public override EqualityComparer<int> IdHashEqualityComparer
+            {
+                get { return _wrappedConfiguration.IdHashEqualityComparer; }
+                set { _wrappedConfiguration.IdHashEqualityComparer = value; }
+            }
+
+            public override EqualityComparer<int> IdEqualityComparer
+            {
+                get { return _wrappedConfiguration.EntityHashEqualityComparer; }
+                set { _wrappedConfiguration.EntityHashEqualityComparer = value; }
             }
 
             public override bool Supports(ulong capacity, ulong size)
