@@ -102,32 +102,44 @@
             };
             if (!filterData.IsCompatibleWith(subtractedFilterData))
                 throw new ArgumentException("Subtracted invertible Bloom filters are not compatible.", nameof(subtractedFilterData));
+            var countEqualityComparer = EqualityComparer<TCount>.Default;
             var countsIdentity = configuration.CountIdentity();
             for (long i = 0L; i < filterData.Counts.LongLength; i++)
             {
+                var filterPure = configuration.IsPureCount(filterData.Counts[i]);
                 result.Counts[i] = configuration.CountSubtract(filterData.Counts[i], subtractedFilterData.Counts[i]);
-                var hashSum = configuration.EntityHashXor(
-                    filterData.HashSums[i],
-                    subtractedFilterData.HashSums[i]);
-                var idXorResult = configuration.IdXor(filterData.IdSums[i], subtractedFilterData.IdSums[i]);                
+                result.HashSums[i] = configuration.EntityHashXor(filterData.HashSums[i],
+                        subtractedFilterData.HashSums[i]);
+                var idXorResult = configuration.IdXor(filterData.IdSums[i], subtractedFilterData.IdSums[i]);
+                var resultPure = configuration.IsPureCount(result.Counts[i]);
+                var resultZero = countEqualityComparer.Equals(result.Counts[i], countsIdentity);
+                if (filterPure &&
+                    !resultPure &&
+                    !resultZero)
+                {
+                    listA.Add(filterData.IdSums[i]);
+                }
                 if (configuration.IsPureCount(subtractedFilterData.Counts[i]) &&
-                    configuration.CountEqualityComparer.Equals(result.Counts[i], countsIdentity))
+                    resultZero)
                 {
                     //pure count went to zero: both filters were pure at the given position.
                     if (!configuration.IsIdIdentity(idXorResult))
                     {
                         listA.Add(filterData.IdSums[i]);
                         listB.Add(subtractedFilterData.IdSums[i]);
+                        //set Id to identity, this is no longer a decode error.
                         idXorResult = configuration.IdXor(idXorResult, idXorResult);
-                        hashSum = configuration.EntityHashXor(hashSum, hashSum);
                     }
-                    else if (!configuration.IsEntityHashIdentity(hashSum))
+                    else if (!configuration.IsEntityHashIdentity(result.HashSums[i]))
                     {
                         modifiedEntities.Add(subtractedFilterData.IdSums[i]);
-                        hashSum = configuration.EntityHashXor(hashSum, hashSum);
-                    }                                        
+                    }
+                    if (checkHash)
+                    {
+                        //any hash sum difference is no longer a decode error
+                        result.HashSums[i] = configuration.EntityHashXor(result.HashSums[i], result.HashSums[i]);
+                    }
                 }
-                result.HashSums[i] = hashSum;
                 result.IdSums[i] = idXorResult;
             }
             return result;
@@ -174,31 +186,50 @@
                 };
             if (!filterData.IsCompatibleWith(subtractedFilterData))
                 throw new ArgumentException("Subtracted invertible Bloom filters are not compatible.", nameof(subtractedFilterData));
+            var countEqualityComparer = EqualityComparer<TCount>.Default;
             var countsIdentity = configuration.CountIdentity();
             for (long i = 0L; i < filterData.Counts.LongLength; i++)
             {
+                var filterPure = configuration.IsPureCount(filterData.Counts[i]);
                 result.Counts[i] = configuration.CountSubtract(filterData.Counts[i], subtractedFilterData.Counts[i]);
-                var hashSum = configuration.EntityHashXor(filterData.HashSums[i], subtractedFilterData.HashSums[i]);
+                var hashValue = configuration.EntityHashXor(filterData.HashSums[i], subtractedFilterData.HashSums[i]);
                 var idXorResult = configuration.IdXor(filterData.IdSums[i], subtractedFilterData.IdSums[i]);
-                if (configuration.IsPureCount(subtractedFilterData.Counts[i]) &&
-                    configuration.CountEqualityComparer.Equals(result.Counts[i], countsIdentity))
+                var resultPure = configuration.IsPureCount(result.Counts[i]);
+                var resultZero = countEqualityComparer.Equals(result.Counts[i], countsIdentity);
+                if (filterPure &&
+                    !resultPure &&
+                    !resultZero)
                 {
-                    if (!configuration.IsEntityHashIdentity(hashSum))
+                    modifiedEntities.Add(filterData.HashSums[i]);
+                }
+                if (configuration.IsPureCount(subtractedFilterData.Counts[i]) &&
+                    resultZero)
+                {
+                    if (!configuration.IsEntityHashIdentity(hashValue))
                     {
-                        listA.Add(filterData.HashSums[i]);
-                        listB.Add(subtractedFilterData.HashSums[i]);
-                        hashSum = configuration.EntityHashXor(hashSum, hashSum);
-                        idXorResult = configuration.IdXor(idXorResult, idXorResult);
+                        listA.Add(subtractedFilterData.HashSums[i]);
+                        listB.Add(filterData.HashSums[i]);
                     }
                     else if (!configuration.IsIdIdentity(idXorResult))
                     {
                         modifiedEntities.Add(subtractedFilterData.HashSums[i]);
-                        idXorResult = configuration.IdXor(idXorResult, idXorResult);
+                        if (configuration.IsEntityHashIdentity(hashValue))
+                        {
+                            //any hash sum difference is no longer a decode error: same Id in the hash, different value. We accounted for this.
+                            idXorResult = configuration.IdXor(idXorResult, idXorResult);
+                        }
                     }
-                    
+                    //TODO: when result is not pure, you can't say much: there was a pure item at the position in the subtracted data,
+                    //but there were multiple in the other filter.
+                    //else if (!resultPure &&
+                    //!listA.Contains(filterData.HashSums[i]) &&
+                    //!listB.Contains(filterData.HashSums[i]))
+                    //{
+                    //    modifiedEntities.Add(subtractedFilterData.HashSums[i]);
+                    //}
                 }
-                result.HashSums[i] = hashSum;
-               result.IdSums[i] = idXorResult;
+                result.HashSums[i] = hashValue;
+                result.IdSums[i] = idXorResult;
             }
             return result;
         }
@@ -225,61 +256,73 @@
             where TId : struct
             where TCount : struct
         {
+            var countEqualityComparer = EqualityComparer<TCount>.Default;
             var countComparer = Comparer<TCount>.Default;
             var pureList = new Stack<long>(Range(0L, filter.Counts.LongLength)
-                .Where(i => configuration.IsPure(filter, i))
+                .Where(i => configuration.IsPureCount(filter.Counts[i]))
                 .Select(i => i));
             var countsIdentity = configuration.CountIdentity();
             while (pureList.Any())
             {
                 var pureIdx = pureList.Pop();
-                if (!configuration.IsPure(filter, pureIdx))
+                if (!configuration.IsPureCount(filter.Counts[pureIdx]))
                 {
                     continue;
                 }
                 var id = filter.IdSums[pureIdx];
-                var hashSum = filter.HashSums[pureIdx];
-                var count = filter.Counts[pureIdx];
-                var isModified = false;
+                if (countComparer.Compare(filter.Counts[pureIdx], countsIdentity) > 0)
+                {
+                    listA.Add(id);
+                }
+                else
+                {
+                    listB.Add(id);
+                }
+                //no guarantee the hash value is correct, but we can't verify it.
+                var hashedValue = filter.HashSums[pureIdx];
+                //the difference has been accounted for, zero out.
                 filter.Counts[pureIdx] = countsIdentity;
-                filter.HashSums[pureIdx] = configuration.EntityHashXor(hashSum, hashSum);
+                filter.HashSums[pureIdx] = configuration.EntityHashXor(filter.HashSums[pureIdx], filter.HashSums[pureIdx]);
                 filter.IdSums[pureIdx] = configuration.IdXor(id, id);
                 foreach (var position in configuration
                     .IdHashes(id, filter.HashFunctionCount)
                     .Select(p => Math.Abs(p % filter.Counts.LongLength))
-                    .Where(p => !configuration.CountEqualityComparer.Equals(filter.Counts[p], countsIdentity)))
+                    .Where(p => !countEqualityComparer.Equals(filter.Counts[p], countsIdentity)))
                 {
-                    if (configuration.IsPure(filter, position) &&
-                        !configuration.EntityHashEqualityComparer.Equals(filter.HashSums[position], hashSum) &&
-                        configuration.IdEqualityComparer.Equals(id, filter.IdSums[position]))
+                    if (configuration.IsPureCount(filter.Counts[position]))
                     {
-                        modifiedEntities.Add(id);
-                        isModified = true;
-                        filter.Remove(configuration, id, filter.HashSums[position], position);
+                        //we are just about to zero out the count.
+                        var hashEquals = configuration.IsEntityHashIdentity(configuration.EntityHashXor(filter.HashSums[position], hashedValue));
+                        //pure, hash/identity is different.
+                        if (!configuration
+                            .IsIdIdentity(configuration.IdXor(id, filter.IdSums[position])) &&
+                            hashEquals)
+                        {
+                            if (countComparer.Compare(filter.Counts[position], countsIdentity) > 0)
+                            {
+                                listA.Add(filter.IdSums[position]);
+                            }
+                            else
+                            {
+                                listB.Add(filter.IdSums[position]);
+                            }
+                        }
+                        else if (!hashEquals &&
+                                 !listA.Contains(filter.IdSums[position]) &&
+                                 !listB.Contains(filter.IdSums[position]))
+                        {
+                            modifiedEntities.Add(filter.IdSums[position]);
+                        }
                     }
-                    else
-                    {
-                        filter.Remove(configuration, id, hashSum, position);
-                    }
-                    if (configuration.IsPure(filter, position))
+                    filter.Remove(configuration, id, hashedValue, position);
+                    if (configuration.IsPureCount(filter.Counts[position]))
                     {
                         //count became pure, add to the list.
                         pureList.Push(position);
                     }
                 }
-                if (!isModified)
-                {
-                    if (countComparer.Compare(count, countsIdentity) > 0)
-                    {
-                        listA.Add(id);
-                    }
-                    else
-                    {
-                        listB.Add(id);
-                    }
-                }
             }
-            return filter.IsCompleteDecode(configuration, countsIdentity);
+            return filter.IsCompleteDecode(configuration, countEqualityComparer, countsIdentity);
         }
 
         /// <summary>
@@ -305,69 +348,74 @@
             where TId : struct
             where TCount : struct
         {
-           var countComparer = Comparer<TCount>.Default;
+            var countEqualityComparer = EqualityComparer<TCount>.Default;
+            var countComparer = Comparer<TCount>.Default;
             var pureList = new Stack<long>(Range(0L, filter.Counts.LongLength)
-                .Where(i => configuration.IsPure(filter, i))
+                .Where(i => configuration.IsPureCount(filter.Counts[i]))
                 .Select(i => i));
             var countsIdentity = configuration.CountIdentity();
             while (pureList.Any())
             {
                 var pureIdx = pureList.Pop();
-                if (!configuration.IsPure(filter, pureIdx))
+                if (!configuration.IsPureCount(filter.Counts[pureIdx]))
                 {
                     continue;
                 }
                 var id = filter.IdSums[pureIdx];
                 var hashSum = filter.HashSums[pureIdx];
-                var count = filter.Counts[pureIdx];
-                var isModified = false;
+                if (countComparer.Compare(filter.Counts[pureIdx], countsIdentity) > 0)
+                {
+                    listA.Add(hashSum);
+                }
+                else
+                {
+                    listB.Add(hashSum);
+                }
                 //the difference has been accounted for, zero out.
                 filter.Counts[pureIdx] = countsIdentity;
-                filter.HashSums[pureIdx] = configuration.EntityHashXor(hashSum, hashSum);
+                filter.HashSums[pureIdx] = configuration.EntityHashXor(filter.HashSums[pureIdx],
+                    filter.HashSums[pureIdx]);
                 filter.IdSums[pureIdx] = configuration.IdXor(id, id);
                 foreach (var position in configuration
                     .IdHashes(id, filter.HashFunctionCount)
                     .Select(p => Math.Abs(p % filter.Counts.LongLength))
-                    .Where(p => !configuration.CountEqualityComparer.Equals(filter.Counts[p], countsIdentity)))
+                    .Where(p => !countEqualityComparer.Equals(filter.Counts[p], countsIdentity)))
                 {
-                    if (configuration.IsPure(filter, position) &&
-                        configuration
-                            .EntityHashEqualityComparer.Equals(filter.HashSums[position], hashSum) &&
-                        !configuration.IdEqualityComparer.Equals(filter.IdSums[position], id))
+                    if (configuration.IsPureCount(filter.Counts[position]))
                     {
-                        modifiedEntities.Add(hashSum);
-                        isModified = true;
-                        filter.Remove(configuration, filter.IdSums[position], hashSum, position);
+                        //we are just about to zero out the count.
+                        var hashEquals = configuration
+                            .IsEntityHashIdentity(configuration.EntityHashXor(
+                                filter.HashSums[position],
+                                hashSum));
+                        //pure, hash/identity is different.
+                        if (!configuration
+                            .IsIdIdentity(configuration.IdXor(id, filter.IdSums[position])) &&
+                            hashEquals)
+                        {
+                            modifiedEntities.Add(filter.HashSums[position]);
+                        }
+                        else if (!hashEquals)
+                        {
+                            listB.Add(filter.HashSums[position]);
+                        }
                     }
-                    else
-                    {
-                        filter.Remove(configuration, id, hashSum, position);
-                    }
-                    if (configuration.IsPure(filter, position))
+                    filter.Remove(configuration, id, hashSum, position);
+                    if (configuration.IsPureCount(filter.Counts[position]))
                     {
                         //count became pure, add to the list.
                         pureList.Push(position);
                     }
                 }
-                if (!isModified)
-                {
-                    if (countComparer.Compare(count, countsIdentity) > 0)
-                    {
-                        listA.Add(hashSum);
-                    }
-                    else
-                    {
-                        listB.Add(hashSum);
-                    }
-                }
             }
-            return filter.IsCompleteDecode(configuration, countsIdentity);
+            return filter.IsCompleteDecode(configuration, countEqualityComparer, countsIdentity);
         }
 
         private static bool IsCompleteDecode<TEntity, TId, TEntityHash, THash, TCount>(
             this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter,
             IBloomFilterConfiguration<TEntity, TId, TEntityHash, THash, TCount> configuration,
-           TCount countsIdentity)
+            EqualityComparer<TCount> countEqualityComparer,
+            TCount countsIdentity)
             where TCount : struct
             where TId : struct
             where THash : struct
@@ -377,7 +425,7 @@
             {
                 if (!configuration.IsIdIdentity(filter.IdSums[position]) ||
                     (filter.HashSums == null || !configuration.IsEntityHashIdentity(filter.HashSums[position])) ||
-                    !configuration.CountEqualityComparer.Equals(filter.Counts[position], countsIdentity))
+                    !countEqualityComparer.Equals(filter.Counts[position], countsIdentity))
                     return false;
             }
             return true;
@@ -463,7 +511,16 @@
                     filter.IsReverse ? modifiedEntities : listB,
                     modifiedEntities,
                     destructive);
+                foreach (var itm in listA)
+                {
+                    modifiedEntities.Remove(itm);
+                }
+                foreach (var itm in listB)
+                {
+                    modifiedEntities.Remove(itm);
+                }
             }
+          
             return idRes && valueRes;
         }
 
@@ -500,6 +557,7 @@
         /// <typeparam name="TId">The type of the entity identifier</typeparam>
         /// <typeparam name="TCount">The type of the Bloom filter occurence count</typeparam>
         /// <typeparam name="TEntityHash"></typeparam>
+        /// <typeparam name="THash"></typeparam>
         /// <param name="filter">Filter</param>
         /// <param name="subtractedFilter">The Bloom filter to subtract</param>
         /// <param name="configuration">The Bloom filter configuration</param>
