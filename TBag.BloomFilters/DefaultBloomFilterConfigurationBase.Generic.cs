@@ -72,8 +72,8 @@ namespace TBag.BloomFilters
             CountUnity = () => 1;
             IsPureCount = c => Math.Abs(c) == 1;
             CountIdentity = () => 0;
-            CountDecrease = c => (sbyte)(c>0?c-1:c+1);
-            CountIncrease = c => (sbyte)(c < 0 ? c - 1 : c + 1);
+            CountDecrease = c => (sbyte)(c-1);
+            CountIncrease = c => (sbyte)(c+1);
             CountSubtract = (c1, c2) => (sbyte)(c1 - c2);
             CountEqualityComparer = EqualityComparer<sbyte>.Default;
             IdEqualityComparer = EqualityComparer<long>.Default;

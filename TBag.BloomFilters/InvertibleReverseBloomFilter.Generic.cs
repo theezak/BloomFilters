@@ -177,13 +177,12 @@
             HashSet<TId> modifiedEntities)
         {
             return _data.HashSubtractAndDecode(
-                filter.Reverse(),
-                Configuration.ValueFilterConfiguration,
-                listA,
-                listB,
-                modifiedEntities);
+                 filter.Reverse(),
+                 Configuration.ValueFilterConfiguration,
+                 listA,
+                 listB,
+                 modifiedEntities);
         }
-
         #endregion
     }
 }

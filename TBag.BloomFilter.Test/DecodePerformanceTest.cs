@@ -75,5 +75,33 @@ namespace TBag.BloomFilter.Test
                 }
             }
         }
+
+        [TestMethod]
+        public void DecodeTest()
+        {
+            var configuration = new LargeBloomFilterConfiguration();
+
+
+            var dataSet1 = DataGenerator.Generate().Take(10).ToList();
+            var dataSet2 = DataGenerator.Generate().Take(10).ToList();
+            dataSet2[0].Value += "Test";
+            var onlyInSet1 = dataSet1.Where(d => dataSet2.All(d2 => d2.Id != d.Id)).Select(d => d.Id).OrderBy(id => id).ToArray();
+            var onlyInSet2 = dataSet2.Where(d => dataSet1.All(d1 => d1.Id != d.Id)).Select(d => d.Id).OrderBy(id => id).ToArray();
+            var modified = dataSet1.Where(d => dataSet2.Any(d2 => d2.Id == d.Id && d2.Value != d.Value)).Select(d => d.Id).OrderBy(id => id).ToArray();
+            var bloomFilter1 = new InvertibleReverseBloomFilter<TestEntity, long, int>(30, 0.001F, configuration);
+            foreach (var item in dataSet1)
+            {
+                bloomFilter1.Add(item);
+            }
+            var bloomFilter2 = new InvertibleReverseBloomFilter<TestEntity, long, int>(30, 0.001F, configuration);
+            foreach (var item in dataSet2)
+            {
+                bloomFilter2.Add(item);
+            }
+            var s1 = new HashSet<long>();
+            var s2 = new HashSet<long>();
+            var s3 = new HashSet<long>();
+            var decodeResult = bloomFilter1.SubtractAndDecode(bloomFilter2, s1, s2, s3);
+        }
     }
 }

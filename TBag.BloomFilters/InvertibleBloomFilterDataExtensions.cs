@@ -242,10 +242,8 @@
                 var id = filter.IdSums[pureIdx];
                 var hashSum = filter.HashSums[pureIdx];
                 var count = filter.Counts[pureIdx];
+                var negCount = countComparer.Compare(count, countsIdentity) < 0;
                 var isModified = false;
-                filter.Counts[pureIdx] = countsIdentity;
-                filter.HashSums[pureIdx] = configuration.EntityHashXor(hashSum, hashSum);
-                filter.IdSums[pureIdx] = configuration.IdXor(id, id);
                 foreach (var position in configuration
                     .IdHashes(id, filter.HashFunctionCount)
                     .Select(p => Math.Abs(p % filter.Counts.LongLength))
@@ -257,11 +255,25 @@
                     {
                         modifiedEntities.Add(id);
                         isModified = true;
-                        filter.Remove(configuration, id, filter.HashSums[position], position);
+                        if (negCount)
+                        {
+                            filter.Add(configuration, id, filter.HashSums[position], position);
+                        }
+                        else
+                        {
+                            filter.Remove(configuration, id, filter.HashSums[position], position);
+                        }
                     }
                     else
                     {
-                        filter.Remove(configuration, id, hashSum, position);
+                        if (negCount)
+                        {
+                            filter.Add(configuration, id, hashSum, position);
+                        }
+                        else
+                        {
+                            filter.Remove(configuration, id, hashSum, position);
+                        }
                     }
                     if (configuration.IsPure(filter, position))
                     {
@@ -271,16 +283,17 @@
                 }
                 if (!isModified)
                 {
-                    if (countComparer.Compare(count, countsIdentity) > 0)
-                    {
-                        listA.Add(id);
-                    }
-                    else
+                    if (negCount)
                     {
                         listB.Add(id);
                     }
+                    else
+                    {
+                        listA.Add(id);
+                    }
                 }
             }
+            ModIntersection(listA, listB, modifiedEntities);
             return filter.IsCompleteDecode(configuration, countsIdentity);
         }
 
@@ -322,11 +335,8 @@
                 var id = filter.IdSums[pureIdx];
                 var hashSum = filter.HashSums[pureIdx];
                 var count = filter.Counts[pureIdx];
+                var negCount = countComparer.Compare(count, countsIdentity) < 0;
                 var isModified = false;
-                //the difference has been accounted for, zero out.
-                filter.Counts[pureIdx] = countsIdentity;
-                filter.HashSums[pureIdx] = configuration.EntityHashXor(hashSum, hashSum);
-                filter.IdSums[pureIdx] = configuration.IdXor(id, id);
                 foreach (var position in configuration
                     .IdHashes(id, filter.HashFunctionCount)
                     .Select(p => Math.Abs(p % filter.Counts.LongLength))
@@ -339,11 +349,27 @@
                     {
                         modifiedEntities.Add(hashSum);
                         isModified = true;
-                        filter.Remove(configuration, filter.IdSums[position], hashSum, position);
+                        //so... yeah. Technically, when negative, it was already subtracted and you should not subtract it again.
+                        //this is assymetric. B2 has already been subtracted, B1 hasn't.
+                        if (negCount)
+                        {
+                            filter.Add(configuration, filter.IdSums[position], hashSum, position);
+                        }
+                        else
+                        {
+                            filter.Remove(configuration, filter.IdSums[position], hashSum, position);
+                        }
                     }
                     else
                     {
-                        filter.Remove(configuration, id, hashSum, position);
+                        if (negCount)
+                        {
+                            filter.Add(configuration, id, hashSum, position);
+                        }
+                        else
+                        {
+                            filter.Remove(configuration, id, hashSum, position);
+                        }
                     }
                     if (configuration.IsPure(filter, position))
                     {
@@ -353,16 +379,17 @@
                 }
                 if (!isModified)
                 {
-                    if (countComparer.Compare(count, countsIdentity) > 0)
-                    {
-                        listA.Add(hashSum);
-                    }
-                    else
+                    if (negCount)
                     {
                         listB.Add(hashSum);
                     }
+                    else
+                    {
+                        listA.Add(hashSum);
+                    }
                 }
             }
+            ModIntersection(listA, listB, modifiedEntities);
             return filter.IsCompleteDecode(configuration, countsIdentity);
         }
 
@@ -417,6 +444,37 @@
         }
 
         /// <summary>
+        /// Add an item from the given position.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="THash"></typeparam>
+        /// <typeparam name="TCount"></typeparam>
+        /// <typeparam name="TEntityHash"></typeparam>
+        /// <param name="filter"></param>
+        /// <param name="configuration"></param>
+        /// <param name="idValue"></param>
+        /// <param name="hashValue"></param>
+        /// <param name="position"></param>
+        internal static void Add<TEntity, TId, TEntityHash, THash, TCount>(
+            this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter,
+            IBloomFilterConfiguration<TEntity, TId, TEntityHash, THash, TCount> configuration,
+            TId idValue,
+            TEntityHash hashValue,
+            long position)
+            where TCount : struct
+            where TId : struct
+            where THash : struct
+            where TEntityHash : struct
+
+        {
+            if (filter == null) return;
+            filter.Counts[position] = configuration.CountIncrease(filter.Counts[position]);
+            filter.IdSums[position] = configuration.IdXor(filter.IdSums[position], idValue);
+            filter.HashSums[position] = configuration.EntityHashXor(filter.HashSums[position], hashValue);
+        }
+
+        /// <summary>
         /// Subtract the given filter and decode for any changes
         /// </summary>
         /// <typeparam name="TEntity">The entity type</typeparam>
@@ -461,8 +519,8 @@
                     .HashSubtractAndDecode(
                     reverseSubtractedFilter,
                     configuration.ValueFilterConfiguration,
-                   filter.IsReverse ? modifiedEntities : listA,
-                    filter.IsReverse ? modifiedEntities : listB,
+                   listA,
+                  listB,
                     modifiedEntities,
                     destructive);
             }
@@ -554,6 +612,17 @@
                 IdSums = filterData.IdSums,
                 ValueFilter = filterData.ValueFilter?.ConvertToBloomFilterData()
             };
+        }
+
+        private static void ModIntersection<T>(HashSet<T> listA, HashSet<T> listB, HashSet<T> modifiedEntities)
+        {
+            if (listA == modifiedEntities || listB == modifiedEntities) return;
+            foreach (var modItem in listA.Where(itm => listB.Contains(itm)).ToArray())
+            {
+                listA.Remove(modItem);
+                listB.Remove(modItem);
+                modifiedEntities.Add(modItem);
+            }
         }
     }
 }

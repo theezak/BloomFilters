@@ -25,9 +25,9 @@
         {
             if (errorRate.HasValue)
             {
-                return new InvertibleHybridBloomFilter<TEntity, TId, int>(capacity, errorRate.Value, bloomFilterConfiguration);
+                return new InvertibleReverseBloomFilter<TEntity, TId, int>(capacity, errorRate.Value, bloomFilterConfiguration);
             }
-            return new InvertibleHybridBloomFilter<TEntity, TId, int>(capacity, bloomFilterConfiguration);
+            return new InvertibleReverseBloomFilter<TEntity, TId, int>(capacity, bloomFilterConfiguration);
         }
 
         /// <summary>
@@ -80,7 +80,7 @@
             where TId : struct
         {
             var blockSize = invertibleBloomFilterData.BlockSize;          
-            return new InvertibleHybridBloomFilter<TEntity, TId, int>(
+            return new InvertibleReverseBloomFilter<TEntity, TId, int>(
                 capacity, 
                 blockSize, 
                 invertibleBloomFilterData.HashFunctionCount, 
@@ -104,8 +104,8 @@
             where TId : struct
         {
             return errorRate.HasValue ? 
-                new InvertibleHybridBloomFilter<TEntity, TId, sbyte>(capacity, errorRate.Value, bloomFilterConfiguration) : 
-                new InvertibleHybridBloomFilter<TEntity, TId, sbyte>(capacity, bloomFilterConfiguration);
+                new InvertibleReverseBloomFilter<TEntity, TId, sbyte>(capacity, errorRate.Value, bloomFilterConfiguration) : 
+                new InvertibleReverseBloomFilter<TEntity, TId, sbyte>(capacity, bloomFilterConfiguration);
         }
     }
 }

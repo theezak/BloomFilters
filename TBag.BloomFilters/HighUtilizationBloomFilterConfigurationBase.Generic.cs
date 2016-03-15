@@ -68,8 +68,8 @@
             IsPureCount = c => Math.Abs(c) == 1;
             IsPure = (d, p) => IsPureCount(d.Counts[p]);
             CountIdentity = () => 0;
-            CountDecrease = c => (c<0?c+1:c-1);
-            CountIncrease = c => (c < 0 ? c - 1 : c + 1);
+            CountDecrease = c => c-1;
+            CountIncrease = c => c+1;
             CountSubtract = (c1, c2) => (c1 - c2);
             CountEqualityComparer = EqualityComparer<int>.Default;
             IdEqualityComparer = EqualityComparer<long>.Default;
