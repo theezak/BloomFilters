@@ -56,12 +56,6 @@
             return true;
         }
 
-        private static IEnumerable<long> Range(long start, long end)
-        {
-            for (long i = start; i < end; i++)
-                yield return i;
-        }
-
         /// <summary>
         /// Subtract the Bloom filter data.
         /// </summary>
@@ -116,17 +110,17 @@
                     configuration.CountEqualityComparer.Equals(result.Counts[i], countsIdentity))
                 {
                     //pure count went to zero: both filters were pure at the given position.
-                    if (!configuration.IsIdIdentity(idXorResult))
+                    if (!configuration.IdEqualityComparer.Equals(configuration.IdIdentity(), idXorResult))
                     {
                         listA.Add(filterData.IdSums[i]);
                         listB.Add(subtractedFilterData.IdSums[i]);
-                        idXorResult = configuration.IdXor(idXorResult, idXorResult);
-                        hashSum = configuration.EntityHashXor(hashSum, hashSum);
+                        idXorResult = configuration.IdIdentity();
+                        hashSum = configuration.EntityHashIdentity();
                     }
-                    else if (!configuration.IsEntityHashIdentity(hashSum))
+                    else if (!configuration.EntityHashEqualityComparer.Equals(configuration.EntityHashIdentity(), hashSum))
                     {
                         modifiedEntities.Add(subtractedFilterData.IdSums[i]);
-                        hashSum = configuration.EntityHashXor(hashSum, hashSum);
+                        hashSum = configuration.EntityHashIdentity();
                     }                                        
                 }
                 result.HashSums[i] = hashSum;
@@ -185,17 +179,17 @@
                 if (configuration.IsPureCount(subtractedFilterData.Counts[i]) &&
                     configuration.CountEqualityComparer.Equals(result.Counts[i], countsIdentity))
                 {
-                    if (!configuration.IsEntityHashIdentity(hashSum))
+                    if (!configuration.EntityHashEqualityComparer.Equals(configuration.EntityHashIdentity(), hashSum))
                     {
                         listA.Add(filterData.HashSums[i]);
                         listB.Add(subtractedFilterData.HashSums[i]);
-                        hashSum = configuration.EntityHashXor(hashSum, hashSum);
-                        idXorResult = configuration.IdXor(idXorResult, idXorResult);
+                        hashSum = configuration.EntityHashIdentity();
+                        idXorResult = configuration.IdIdentity();
                     }
-                    else if (!configuration.IsIdIdentity(idXorResult))
+                    else if (!configuration.IdEqualityComparer.Equals(configuration.IdIdentity(), idXorResult))
                     {
                         modifiedEntities.Add(subtractedFilterData.HashSums[i]);
-                        idXorResult = configuration.IdXor(idXorResult, idXorResult);
+                        idXorResult = configuration.IdIdentity();
                     }
                     
                 }
@@ -294,7 +288,7 @@
                 }
             }
             ModIntersection(listA, listB, modifiedEntities);
-            return filter.IsCompleteDecode(configuration, countsIdentity);
+            return filter.IsCompleteDecode(configuration);
         }
 
         /// <summary>
@@ -349,8 +343,6 @@
                     {
                         modifiedEntities.Add(hashSum);
                         isModified = true;
-                        //so... yeah. Technically, when negative, it was already subtracted and you should not subtract it again.
-                        //this is assymetric. B2 has already been subtracted, B1 hasn't.
                         if (negCount)
                         {
                             filter.Add(configuration, filter.IdSums[position], hashSum, position);
@@ -390,23 +382,25 @@
                 }
             }
             ModIntersection(listA, listB, modifiedEntities);
-            return filter.IsCompleteDecode(configuration, countsIdentity);
+            return filter.IsCompleteDecode(configuration);
         }
 
         private static bool IsCompleteDecode<TEntity, TId, TEntityHash, THash, TCount>(
             this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter,
-            IBloomFilterConfiguration<TEntity, TId, TEntityHash, THash, TCount> configuration,
-           TCount countsIdentity)
+            IBloomFilterConfiguration<TEntity, TId, TEntityHash, THash, TCount> configuration)
             where TCount : struct
             where TId : struct
             where THash : struct
             where TEntityHash : struct
         {
+            var idIdentity = configuration.IdIdentity();
+            var entityHashIdentity = configuration.EntityHashIdentity();
+            var countIdentity = configuration.CountIdentity();
             for (var position = 0L; position < filter.Counts.LongLength; position++)
             {
-                if (!configuration.IsIdIdentity(filter.IdSums[position]) ||
-                    (filter.HashSums == null || !configuration.IsEntityHashIdentity(filter.HashSums[position])) ||
-                    !configuration.CountEqualityComparer.Equals(filter.Counts[position], countsIdentity))
+                if (!configuration.IdEqualityComparer.Equals(idIdentity, filter.IdSums[position]) ||
+                    (filter.HashSums == null || !configuration.EntityHashEqualityComparer.Equals(entityHashIdentity, filter.HashSums[position])) ||
+                    !configuration.CountEqualityComparer.Equals(filter.Counts[position], countIdentity))
                     return false;
             }
             return true;
@@ -627,5 +621,12 @@
                 listB.Remove(modItem);
             }
         }
+
+        private static IEnumerable<long> Range(long start, long end)
+        {
+            for (long i = start; i < end; i++)
+                yield return i;
+        }
+
     }
 }

@@ -21,11 +21,6 @@
         /// </summary>
         public virtual Func<TId, TId, TId> IdXor { get; set; }
 
-        /// <summary>
-        /// Determine if the identifier equals the identity value (for example: zero for numbers)
-        /// </summary>
-        public virtual Func<TId, bool> IsIdIdentity { get; set; }
-
         public uint BestHashFunctionCount(long capacity, float errorRate)
         {
             //at least 3 hash functions.

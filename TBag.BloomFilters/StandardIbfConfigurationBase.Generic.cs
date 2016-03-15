@@ -71,8 +71,8 @@ namespace TBag.BloomFilters
             //TODO: provide a 'standard' version that also includes the hash of the Id stored 
             IsPure = (d, p) => IsPureCount(d.Counts[p]) && EntityHashEqualityComparer.Equals(d.HashSums[p], IdHashes(d.IdSums[p], 1).First());
             IdXor = (id1, id2) => id1 ^ id2;
-            IsIdIdentity = id1 => id1 == 0;
-            IsEntityHashIdentity = id1 => id1 == 0;
+            EntityHashIdentity = () => 0;
+            IdIdentity = () => 0L;
             EntityHashXor = (h1, h2) => h1 ^ h2;
             CountUnity = () => 1;
             IsPureCount = c => Math.Abs(c) == 1;

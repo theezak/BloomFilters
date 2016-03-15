@@ -31,9 +31,14 @@
         public virtual Func<TEntity, TId> GetId { get; set; }
 
         /// <summary>
-        /// Function to determine if an entity hash equals the identity value (for example: zero for numbers).
+        /// The identity value for <typeparamref name="TId"/> (for example 0 when the identifier is a number).
         /// </summary>
-        public virtual Func<TEntityHash, bool> IsEntityHashIdentity { get; set; }
+        public virtual Func<TId> IdIdentity { get; set; }
+
+        /// <summary>
+        /// The identity value for <typeparamref name="TEntityHash"/> (for example 0 when the identifier is a number).
+        /// </summary>
+        public virtual Func<TEntityHash> EntityHashIdentity { get; set; }
 
         /// <summary>
         /// Calculate the XOR of two entity hasehs.
@@ -75,22 +80,41 @@
         /// </summary>
         public virtual Func<TCount,  TCount> CountIncrease { get; set; }
 
+        /// <summary>
+        /// The configuration of the reverse IBF 
+        /// </summary>
+        /// <remarks>Only utilized by the hybrid IBF</remarks>
         public IBloomFilterConfiguration<TEntity, TEntityHash, TId, THash, TCount> ValueFilterConfiguration { get; protected set; }
 
+        /// <summary>
+        /// Defines the pure operator for an IBF
+        /// </summary>
         public virtual Func<IInvertibleBloomFilterData<TId, TEntityHash, TCount>, long, bool> IsPure { get; set; }
 
+        /// <summary>
+        /// Equality comparer for <typeparamref name="TEntityHash"/>.
+        /// </summary>
         public virtual EqualityComparer<TEntityHash> EntityHashEqualityComparer
         { get; set; }
 
+        /// <summary>
+        /// Equality comparer for <typeparamref name="THash"/>
+        /// </summary>
         public virtual EqualityComparer<THash> IdHashEqualityComparer
         { get; set; }
 
+        /// <summary>
+        /// Equality comparer for <typeparamref name="TId"/>
+        /// </summary>
         public virtual EqualityComparer<TId> IdEqualityComparer
         { get; set; }
 
+        /// <summary>
+        /// Equality comparer for <typeparamref name="TCount"/>
+        /// </summary>
         public virtual EqualityComparer<TCount> CountEqualityComparer
         { get; set; }
-
+      
         /// <summary>
         /// Determine if the configuration supports the given capacity and set size.
         /// </summary>

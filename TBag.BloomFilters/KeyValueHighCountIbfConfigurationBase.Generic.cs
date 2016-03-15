@@ -61,8 +61,8 @@
                 return ComputeHash(murmurHash, idHash, hashCount);
             };
             IdXor = (id1, id2) => id1 ^ id2;
-            IsIdIdentity = id1 => id1 == 0;
-            IsEntityHashIdentity = id1 => id1 == 0;
+            EntityHashIdentity = ()=> 0;
+            IdIdentity = () => 0L;
             EntityHashXor = (h1, h2) => h1 ^ h2;
             CountUnity = () => 1;
             IsPureCount = c => Math.Abs(c) == 1;

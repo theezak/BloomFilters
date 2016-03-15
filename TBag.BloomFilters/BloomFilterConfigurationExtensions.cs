@@ -38,7 +38,6 @@
                   _wrappedConfiguration = configuration;
                 _getId = e => _wrappedConfiguration.EntityHashes(e, 1).First();
                 IdXor = (id1, id2) => id1 ^ id2;
-                IsIdIdentity = id1 => id1 == 0;
                 IsPure = (d, p) => IsPureCount(d.Counts[p]);
                 IdHashes = (id, hashCount) =>
                 {
@@ -113,10 +112,16 @@
                 set { _wrappedConfiguration.IsPureCount = value; }
             }
 
-            public override Func<int, bool> IsEntityHashIdentity
+            public override Func<int> EntityHashIdentity
             {
-                get { return _wrappedConfiguration.IsEntityHashIdentity; }
-                set { _wrappedConfiguration.IsEntityHashIdentity = value; }
+                get { return _wrappedConfiguration.EntityHashIdentity; }
+                set { _wrappedConfiguration.EntityHashIdentity = value; }
+            }
+
+            public override Func<int> IdIdentity
+            {
+                get { return _wrappedConfiguration.EntityHashIdentity; }
+                set { _wrappedConfiguration.EntityHashIdentity = value; }
             }
 
             public override bool Supports(ulong capacity, ulong size)
@@ -195,7 +200,6 @@
             {
                 _wrappedConfiguration = configuration;
                 IdXor = (id1, id2) => id1 ^ id2;
-                IsIdIdentity = id1 => id1 == 0;
                 IdHashes = (id, hashCount) =>
                 {
                     //generate the given number of hashes.
@@ -295,12 +299,17 @@
                 set { _wrappedConfiguration.IsPureCount = value; }
             }
 
-            public override Func<TId, bool> IsEntityHashIdentity
+            public override Func<TId> EntityHashIdentity
             {
-                get { return _wrappedConfiguration.IsIdIdentity; }
-                set { _wrappedConfiguration.IsIdIdentity = value; }
+                get { return _wrappedConfiguration.IdIdentity; }
+                set { _wrappedConfiguration.IdIdentity = value; }
             }
 
+            public override Func<int> IdIdentity
+            {
+                get { return _wrappedConfiguration.EntityHashIdentity; }
+                set { _wrappedConfiguration.EntityHashIdentity = value; }
+            }
             public override EqualityComparer<TCount> CountEqualityComparer
             {
                 get { return _wrappedConfiguration.CountEqualityComparer; }

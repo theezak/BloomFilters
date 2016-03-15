@@ -1,7 +1,7 @@
-﻿using System;
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters
 {
     using System.Collections.Generic;
+    using System;
 
     /// <summary>
     /// Interface for configuration of a Bloom filter.
@@ -18,11 +18,20 @@ namespace TBag.BloomFilters
         where TCount : struct
         where TId : struct
     {
+        /// <summary>
+        /// The equality comparer for <typeparamref name="TEntityHash"/>.
+        /// </summary>
         EqualityComparer<TEntityHash> EntityHashEqualityComparer { get; set; }
+
+        /// <summary>
+        /// The equality comparer for <typeparamref name="THash"/>.
+        /// </summary>
         EqualityComparer<THash> IdHashEqualityComparer { get; set; }
+        
         /// <summary>
         /// Configuration for the Bloom filter that hashes values.
         /// </summary>
+        /// <remarks>Only used by a hybrid IBF that utilizes both an IBF and a reverse IBF (this being the data for the reverse IBF)</remarks>
         IBloomFilterConfiguration<TEntity, TEntityHash, TId, THash, TCount> ValueFilterConfiguration { get;  }
 
         /// <summary>
@@ -46,21 +55,24 @@ namespace TBag.BloomFilters
         Func<TId, TId, TId> IdXor { get; set; }
 
         /// <summary>
-        /// <c>true</c> when the value is the identity for the identifiers (for example 0 when the identifier is a number).
+        /// The identity value for <typeparamref name="TId"/> (for example 0 when the identifier is a number).
         /// </summary>
-        Func<TId, bool> IsIdIdentity { get; set; }
+        Func<TId> IdIdentity { get; set; }
+
+        /// <summary>
+        /// The identity value for <typeparamref name="TEntityHash"/> (for example 0 when the identifier is a number).
+        /// </summary>
+        Func<TEntityHash> EntityHashIdentity { get; set; }
 
         /// <summary>
         /// Function to get the identifier for a given entity.
         /// </summary>
         Func<TEntity, TId> GetId { get; set; }
 
-        EqualityComparer<TId> IdEqualityComparer { get; set; }
-
         /// <summary>
-        /// <c>true</c> when the argument is the identity value for the entity hash, else <c>false</c>.
+        /// Equality comparer for <typeparamref name="TId"/>.
         /// </summary>
-        Func<TEntityHash, bool> IsEntityHashIdentity { get; set; }
+        EqualityComparer<TId> IdEqualityComparer { get; set; }
 
         /// <summary>
         /// Perform a XOR between two hashes for the entity.
@@ -93,6 +105,9 @@ namespace TBag.BloomFilters
         /// </summary>
           Func<TCount,TCount,TCount> CountSubtract { get; set; }
 
+        /// <summary>
+        /// Count equality comparer
+        /// </summary>
         EqualityComparer<TCount> CountEqualityComparer { get; set; }
 
         /// <summary>
