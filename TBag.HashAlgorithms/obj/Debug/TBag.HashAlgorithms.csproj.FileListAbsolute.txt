@@ -1,8 +1,0 @@
-C:\Users\rentierm\Downloads\BloomFilters-master-today\BloomFilters-master\TBag.HashAlgorithms\bin\Debug\TBag.HashAlgorithms.dll
-C:\Users\rentierm\Downloads\BloomFilters-master-today\BloomFilters-master\TBag.HashAlgorithms\bin\Debug\TBag.HashAlgorithms.pdb
-C:\Users\rentierm\Downloads\BloomFilters-master-today\BloomFilters-master\TBag.HashAlgorithms\obj\Debug\TBag.HashAlgorithms.dll
-C:\Users\rentierm\Downloads\BloomFilters-master-today\BloomFilters-master\TBag.HashAlgorithms\obj\Debug\TBag.HashAlgorithms.pdb
-C:\Users\marco\Documents\GitHub\BloomFilters\TBag.HashAlgorithms\bin\Debug\TBag.HashAlgorithms.dll
-C:\Users\marco\Documents\GitHub\BloomFilters\TBag.HashAlgorithms\bin\Debug\TBag.HashAlgorithms.pdb
-C:\Users\marco\Documents\GitHub\BloomFilters\TBag.HashAlgorithms\obj\Debug\TBag.HashAlgorithms.dll
-C:\Users\marco\Documents\GitHub\BloomFilters\TBag.HashAlgorithms\obj\Debug\TBag.HashAlgorithms.pdb
