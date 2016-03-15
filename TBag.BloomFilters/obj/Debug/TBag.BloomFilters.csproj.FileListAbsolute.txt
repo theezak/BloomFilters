@@ -1,0 +1,14 @@
+C:\Users\rentierm\Downloads\BloomFilters-master-today\BloomFilters-master\TBag.BloomFilters\obj\Debug\TBag.BloomFilters.csprojResolveAssemblyReference.cache
+C:\Users\rentierm\Downloads\BloomFilters-master-today\BloomFilters-master\TBag.BloomFilters\bin\Debug\TBag.BloomFilters.dll
+C:\Users\rentierm\Downloads\BloomFilters-master-today\BloomFilters-master\TBag.BloomFilters\bin\Debug\TBag.BloomFilters.pdb
+C:\Users\rentierm\Downloads\BloomFilters-master-today\BloomFilters-master\TBag.BloomFilters\bin\Debug\TBag.HashAlgorithms.dll
+C:\Users\rentierm\Downloads\BloomFilters-master-today\BloomFilters-master\TBag.BloomFilters\bin\Debug\TBag.HashAlgorithms.pdb
+C:\Users\rentierm\Downloads\BloomFilters-master-today\BloomFilters-master\TBag.BloomFilters\obj\Debug\TBag.BloomFilters.dll
+C:\Users\rentierm\Downloads\BloomFilters-master-today\BloomFilters-master\TBag.BloomFilters\obj\Debug\TBag.BloomFilters.pdb
+C:\Users\marco\Documents\GitHub\BloomFilters\TBag.BloomFilters\bin\Debug\TBag.BloomFilters.dll
+C:\Users\marco\Documents\GitHub\BloomFilters\TBag.BloomFilters\bin\Debug\TBag.BloomFilters.pdb
+C:\Users\marco\Documents\GitHub\BloomFilters\TBag.BloomFilters\bin\Debug\TBag.HashAlgorithms.dll
+C:\Users\marco\Documents\GitHub\BloomFilters\TBag.BloomFilters\bin\Debug\TBag.HashAlgorithms.pdb
+C:\Users\marco\Documents\GitHub\BloomFilters\TBag.BloomFilters\obj\Debug\TBag.BloomFilters.csprojResolveAssemblyReference.cache
+C:\Users\marco\Documents\GitHub\BloomFilters\TBag.BloomFilters\obj\Debug\TBag.BloomFilters.dll
+C:\Users\marco\Documents\GitHub\BloomFilters\TBag.BloomFilters\obj\Debug\TBag.BloomFilters.pdb
