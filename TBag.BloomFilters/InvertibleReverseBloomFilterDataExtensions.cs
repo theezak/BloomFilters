@@ -7,7 +7,7 @@
     /// <summary>
     /// Extensions specific to the RIBF.
     /// </summary>
-    public static class ReverseInvertibleBloomFilterDataExtensions
+    public static class InvertibleReverseBloomFilterDataExtensions
     {
         /// <summary>
         /// Subtract, but return hash values.
@@ -23,6 +23,7 @@
         /// <param name="listA">List of identifiers only in <paramref name="filterData"/></param>
         /// <param name="listB">List of identifiers only in <paramref name="subtractedFilterData"/></param>
         /// <param name="modifiedEntities">List of identifiers in both filters, but with a different value</param>
+        /// <param name="pureList">Optional pure list</param>
         /// <param name="destructive">When <c>true</c> the <paramref name="filterData"/> will be used to store the subtraction results. This reduces processing overhead, but is destructive to the filter. When <c>false</c> the result will be stored in a new IBF.</param>
         /// <returns></returns>
         internal static IInvertibleBloomFilterData<TId, TEntityHash, TCount> HashSubtract<TEntity, TId, TEntityHash, THash, TCount>(
@@ -32,6 +33,7 @@
                HashSet<TEntityHash> listA,
             HashSet<TEntityHash> listB,
            HashSet<TEntityHash> modifiedEntities,
+           Stack<long> pureList = null,
             bool destructive = false)
             where TCount : struct
             where TId : struct
@@ -75,6 +77,10 @@
                 }
                 result.HashSums[i] = hashSum;
                 result.IdSums[i] = idXorResult;
+                if (configuration.IsPure(result, i))
+                {
+                    pureList?.Push(i);
+                }
             }
             return result;
         }
@@ -91,21 +97,26 @@
         /// <param name="listA">Items in the original set, but not in the subtracted set.</param>
         /// <param name="listB">Items not in the original set, but in the subtracted set.</param>
         /// <param name="modifiedEntities">items in both sets, but with a different value.</param>
+        /// <param name="pureList">Optional list of pure items.</param>
         /// <returns></returns>
         internal static bool HashDecode<TEntity, TId, TEntityHash, TCount>(
             this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter,
             IBloomFilterConfiguration<TEntity, TId, TEntityHash, int, TCount> configuration,
              HashSet<TEntityHash> listA,
             HashSet<TEntityHash> listB,
-            HashSet<TEntityHash> modifiedEntities)
+            HashSet<TEntityHash> modifiedEntities,
+            Stack<long> pureList = null)
             where TEntityHash : struct
             where TId : struct
             where TCount : struct
         {
             var countComparer = Comparer<TCount>.Default;
-            var pureList = new Stack<long>(Range(0L, filter.Counts.LongLength)
-                .Where(i => configuration.IsPure(filter, i))
-                .Select(i => i));
+            if (pureList == null)
+            {
+                pureList = new Stack<long>(Range(0L, filter.Counts.LongLength)
+                 .Where(i => configuration.IsPure(filter, i))
+                 .Select(i => i));
+            }
             var countsIdentity = configuration.CountIdentity();
             while (pureList.Any())
             {
@@ -201,9 +212,10 @@
             where TEntityHash : struct
         {
             if (filter == null || subtractedFilter == null) return true;
+            var pureList = new Stack<long>();
             return filter
-               .HashSubtract(subtractedFilter, configuration, listA, listB, modifiedEntities, destructive)
-                .HashDecode(configuration, listA, listB, modifiedEntities);
+               .HashSubtract(subtractedFilter, configuration, listA, listB, modifiedEntities, pureList, destructive)
+                .HashDecode(configuration, listA, listB, modifiedEntities, pureList);
         }
 
         private static IEnumerable<long> Range(long start, long end)

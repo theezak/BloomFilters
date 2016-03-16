@@ -48,7 +48,7 @@
     <Compile Include="HashSetExtensions.cs" />
     <Compile Include="IbfConfigurationEntityHashWrapper.cs" />
     <Compile Include="IbfConfigurationReverseWrapper.cs" />
-    <Compile Include="ReverseInvertibleBloomFilterDataExtensions.cs" />
+    <Compile Include="InvertibleReverseBloomFilterDataExtensions.cs" />
     <Compile Include="StandardHighCountIbfConfigurationBase.Generic.cs" />
     <Compile Include="StandardIbfConfigurationBase.Generic.cs" />
     <Compile Include="KeyValueHashPairHighCountIbfConfiguration.cs" />

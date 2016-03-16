@@ -71,6 +71,7 @@
         /// <param name="listA">Items in <paramref name="filterData"/>, but not in <paramref name="subtractedFilterData"/></param>
         /// <param name="listB">Items in <paramref name="subtractedFilterData"/>, but not in <paramref name="filterData"/></param>
         /// <param name="modifiedEntities">items in both filters, but with a different value.</param>
+        /// <param name="pureList">Optional list of pure items.</param>
         /// <param name="destructive"></param>
         /// <returns></returns>
         internal static IInvertibleBloomFilterData<TId, TEntityHash, TCount> Subtract<TEntity, TId, TEntityHash, THash, TCount>(
@@ -80,6 +81,7 @@
             HashSet<TId> listA,
             HashSet<TId> listB,
             HashSet<TId> modifiedEntities,
+            Stack<long> pureList = null,
             bool destructive = false
             )
             where TCount : struct
@@ -126,6 +128,10 @@
                 }
                 result.HashSums[i] = hashSum;
                 result.IdSums[i] = idXorResult;
+                if (configuration.IsPure(result, i))
+                {
+                    pureList?.Push(i);
+                }
             }
             return result;
         }
@@ -142,21 +148,26 @@
         /// <param name="listA">Items in the original set, but not in the subtracted set.</param>
         /// <param name="listB">Items not in the original set, but in the subtracted set.</param>
         /// <param name="modifiedEntities">items in both sets, but with a different value.</param>
+        /// <param name="pureList">Optional list of pure items</param>
         /// <returns></returns>
         internal static bool Decode<TEntity, TId, TEntityHash, TCount>(
             this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter,
             IBloomFilterConfiguration<TEntity, TId, TEntityHash, int, TCount> configuration,
             HashSet<TId> listA,
             HashSet<TId> listB,
-            HashSet<TId> modifiedEntities)
+            HashSet<TId> modifiedEntities,
+            Stack<long> pureList = null)
             where TEntityHash : struct
             where TId : struct
             where TCount : struct
         {
             var countComparer = Comparer<TCount>.Default;
-            var pureList = new Stack<long>(Range(0L, filter.Counts.LongLength)
-                .Where(i => configuration.IsPure(filter, i))
-                .Select(i => i));
+            if (pureList == null)
+            {
+                pureList = new Stack<long>(Range(0L, filter.Counts.LongLength)
+                    .Where(i => configuration.IsPure(filter, i))
+                    .Select(i => i));
+            }
             var countsIdentity = configuration.CountIdentity();
             while (pureList.Any())
             {
@@ -344,14 +355,18 @@
             where TCount : struct
             where TEntityHash : struct
         {
-            if (!filter.IsCompatibleWith(subtractedFilter)) throw new ArgumentException("The subtracted Bloom filter data is not compatible with the Bloom filter.", nameof(subtractedFilter));
+            if (!filter.IsCompatibleWith(subtractedFilter))
+                throw new ArgumentException(
+                    "The subtracted Bloom filter data is not compatible with the Bloom filter.", 
+                    nameof(subtractedFilter));
             var valueRes = true;
             var idRes = true;
+            var pureList = new Stack<long>();
             if (!filter.IsReverse)
             {
                 idRes = filter
-                    .Subtract(subtractedFilter, configuration, listA, listB, modifiedEntities, destructive)
-                    .Decode(configuration, listA, listB, modifiedEntities);
+                    .Subtract(subtractedFilter, configuration, listA, listB, modifiedEntities, pureList, destructive)
+                    .Decode(configuration, listA, listB, modifiedEntities, pureList);
             }
             var reverseFilter = filter.IsReverse ? filter.Reverse() : filter.ReverseFilter;
             var reverseSubtractedFilter = subtractedFilter.IsReverse ? subtractedFilter.Reverse() : subtractedFilter.ReverseFilter;
