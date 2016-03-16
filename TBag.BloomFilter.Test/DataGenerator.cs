@@ -5,6 +5,9 @@ namespace TBag.BloomFilter.Test
     using System.Collections.Generic;
     using TBag.HashAlgorithms;
 
+    /// <summary>
+    /// Generate test data.
+    /// </summary>
     internal static class DataGenerator
     {
         internal static IEnumerable<TestEntity> Generate()
@@ -18,6 +21,11 @@ namespace TBag.BloomFilter.Test
             }
         }
 
+        /// <summary>
+        /// Modifiy the given number of items in the list, either by adding, removing or modifying (done randomly).
+        /// </summary>
+        /// <param name="entities"></param>
+        /// <param name="changeCount"></param>
         internal static void Modify(this IList<TestEntity> entities, int changeCount)
         {
             if (entities == null || changeCount == 0) return;

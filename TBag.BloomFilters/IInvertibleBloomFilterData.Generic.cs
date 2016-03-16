@@ -45,6 +45,6 @@
         /// <summary>
         /// The Bloom filter data for the value hash (optional).
         /// </summary>
-        InvertibleBloomFilterData<TEntityHash, TId, TCount> ValueFilter { get; set; }
+        InvertibleBloomFilterData<TEntityHash, TId, TCount> ReverseFilter { get; set; }
     }
 }

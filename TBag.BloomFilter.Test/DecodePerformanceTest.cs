@@ -14,20 +14,20 @@ namespace TBag.BloomFilter.Test
         /// Measure the subtract and decode step performance of an invertible Bloom filter. Key metric is the percentage of differences correctly identified.
         /// </summary>
         [TestMethod]
-        public void DecodePerformance()
+        public void RibfDecodePerformance()
         {
             var configuration = new LargeBloomFilterConfiguration();
 
             var size = new int[] { 1000, 10000, 100000 };
-            var modPercentage = new double[] { 0.01D, 0.1D, 0.2D, 0.5D, 1.0D };
+            var modPercentage = new double[] { 0, 0.01D, 0.1D, 0.2D, 0.5D, 1.0D };
             foreach (var s in size)
             {
                 using (
                            var writer =
-                               new StreamWriter(System.IO.File.Open($"bloomfilterdecode-{s}.csv",
+                               new StreamWriter(System.IO.File.Open($"ribfdecode-{s}.csv",
                                    FileMode.Create)))
                 {
-                    writer.WriteLine("capacity,modCount,estimatedModCount,countDiff,countDiffSd");
+                    writer.WriteLine("capacity,modCount,detectedModCount,countDiff,countDiffSd,listADiff,listBDiff,listCDiff");
 
                     foreach (var mod in modPercentage)
                     {
@@ -36,7 +36,9 @@ namespace TBag.BloomFilter.Test
                         {
                             var countAggregate = new int[50];
                             var modCountResultAggregate = new int[50];
-
+                            var listADiff = new int[50];
+                            var listBDiff = new int[50];
+                            var listCDiff = new int[50];
                             for (var run = 0; run < 50; run++)
                             {
                                 var dataSet1 = DataGenerator.Generate().Take(s).ToList();
@@ -63,13 +65,17 @@ namespace TBag.BloomFilter.Test
                                 countAggregate[run] = onlyInSet1.Count() + onlyInSet2.Count() + modified.Count();
                                 modCountResultAggregate[run] = s1.Union(s2).Union(s3).Where(v => onlyInSet1.Contains(v) ||
                                 onlyInSet2.Contains(v) || modified.Contains(v)).Count();
+                                listADiff[run] = s1.Count() - onlyInSet1.Count();
+                                listBDiff[run] = s2.Count() - onlyInSet2.Count();
+                                listCDiff[run] = s3.Count() - modified.Count();
                             }
                             var countAvg = (long)countAggregate.Average();
                             var modCountResult = (long)modCountResultAggregate.Average();
                             var differenceResult =
                                 modCountResultAggregate.Select((r, i) => r - countAggregate[i]).ToArray();
                             var differenceSd = Math.Sqrt(differenceResult.Variance());
-                            writer.WriteLine($"{Math.Max(15, capacityPercentage * (int)(s * mod))},{countAvg},{modCountResult},{(long)differenceResult.Average()},{differenceSd}");
+                            writer
+                                .WriteLine($"{Math.Max(15, capacityPercentage * (int)(s * mod))},{countAvg},{modCountResult},{(long)differenceResult.Average()},{differenceSd},{listADiff.Average()},{listBDiff.Average()},{listCDiff.Average()}");
                         }
                     }
                 }

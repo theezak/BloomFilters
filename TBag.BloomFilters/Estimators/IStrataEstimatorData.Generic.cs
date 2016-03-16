@@ -19,6 +19,9 @@
         /// </summary>
         long Capacity { get; set; }
 
+        /// <summary>
+        /// The decode count factor.
+        /// </summary>
         double DecodeCountFactor { get; set; }
     }
 }

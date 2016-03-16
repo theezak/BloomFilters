@@ -62,6 +62,7 @@
         /// Add an item to the estimator.
         /// </summary>
         /// <param name="item"></param>
+        /// <remarks>based upon the strata, the value is either added to an IBF or to the b-bit minwise estimator.</remarks>
         public override void Add(TEntity item)
         {
             var idx = NumTrailingBinaryZeros(EntityHash(item));

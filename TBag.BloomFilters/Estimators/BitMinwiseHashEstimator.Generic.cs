@@ -65,7 +65,8 @@ namespace TBag.BloomFilters.Estimators
         public double Similarity(IBitMinwiseHashEstimator<TEntity, TId, TCount> estimator)
         {
             if (estimator == null) return 0.0D;
-            return Extract().Similarity(estimator.Extract());
+            return Extract()
+                .Similarity(estimator.Extract());
         }
 
         /// <summary>
@@ -76,7 +77,8 @@ namespace TBag.BloomFilters.Estimators
         public double Similarity(IBitMinwiseHashEstimatorData estimatorData)
         {
             if (estimatorData == null) return 0.0D;
-            return Extract().Similarity(estimatorData);
+            return Extract()
+                .Similarity(estimatorData);
         }
 
         /// <summary>
@@ -152,12 +154,7 @@ namespace TBag.BloomFilters.Estimators
                 var a = unchecked((uint)r.Next(universeSize));
                 var b = unchecked((uint)r.Next(universeSize));
                 var c = unchecked((uint)r.Next(universeSize));
-                hashFuncs[i] = hash => QHash(
-                    hash,
-                   a,
-                   b,
-                   c,
-                    bound);
+                hashFuncs[i] = hash => QHash(hash, a, b, c, bound);
             }
             return entity =>
             {
@@ -174,7 +171,7 @@ namespace TBag.BloomFilters.Estimators
         {
             var idhash = _entityHash(element);
             var entityHashes = _hashFunctions(element).ToArray();
-            for (int i = 0; i < _hashCount; i++)
+            for (var i = 0; i < _hashCount; i++)
             {
                 if (entityHashes[i] < _slots[i, idhash])
                 {

@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Estimators
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     /// <summary>
     /// Extension methods for the strata estimator data.
     /// </summary>

@@ -107,9 +107,7 @@
                 .Select(p => Math.Abs(p % _data.Counts.LongLength))
                 )
             {
-                _data.Counts[position] = Configuration.CountIncrease(_data.Counts[position]);
-                _data.IdSums[position] = Configuration.IdXor(_data.IdSums[position], id);
-                _data.HashSums[position] = Configuration.EntityHashXor(_data.HashSums[position], hashValue);
+                _data.Add(Configuration, id, hashValue, position);
             }
         }
 

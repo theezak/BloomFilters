@@ -6,8 +6,8 @@
     /// <summary>
     /// Implementation of <see cref="IHybridEstimatorData{TId,TCount}"/>
     /// </summary>
-    /// <typeparam name="TId"></typeparam>
-    /// <typeparam name="TCount"></typeparam>
+    /// <typeparam name="TId">The type of the entity identifier</typeparam>
+    /// <typeparam name="TCount">Thetype of the occurence count</typeparam>
     [DataContract, Serializable]
     public class HybridEstimatorData<TId,TCount> : IHybridEstimatorData<TId, TCount> 
         where TCount : struct
@@ -43,8 +43,16 @@
         [DataMember(Order = 5)]
         public BitMinwiseHashEstimatorData BitMinwiseEstimator { get; set; }
 
+        #region Implementation of IStrataEstimatorData{Tid, TCount}
+        /// <summary>
+        /// Strata estimator data as <see cref="IStrataEstimatorData{TId, TCount}"/>
+        /// </summary>
         IStrataEstimatorData<TId, TCount> IHybridEstimatorData<TId, TCount>.StrataEstimator => StrataEstimator;
 
-        IBitMinwiseHashEstimatorData IHybridEstimatorData<TId, TCount>.BitMinwiseEstimator => BitMinwiseEstimator;     
+        /// <summary>
+        /// The b-bit minwise estimator data as <see cref="IBitMinwiseHashEstimatorData"/>
+        /// </summary>
+        IBitMinwiseHashEstimatorData IHybridEstimatorData<TId, TCount>.BitMinwiseEstimator => BitMinwiseEstimator;
+        #endregion
     }
 }

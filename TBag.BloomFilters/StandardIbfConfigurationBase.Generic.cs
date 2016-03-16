@@ -86,9 +86,12 @@ namespace TBag.BloomFilters
             EntityHashEqualityComparer = EqualityComparer<int>.Default;
         }
 
+        /// <summary>
+        /// Get the identifier for a given entity
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         protected abstract long GetIdImpl(TEntity entity);
-
-     
 
         /// <summary>
         /// Performs Dillinger and Manolios double hashing. 
@@ -110,6 +113,12 @@ namespace TBag.BloomFilters
             }
         }
       
+        /// <summary>
+        /// Determine if an IBF, given this configuration and the given <paramref name="capacity"/>, will support a set of the given size.
+        /// </summary>
+        /// <param name="capacity"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
         public override bool Supports(ulong capacity, ulong size)
         {    
             return ((sbyte.MaxValue - 15) * size) > capacity;

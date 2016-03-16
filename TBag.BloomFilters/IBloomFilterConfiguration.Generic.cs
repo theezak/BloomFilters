@@ -11,6 +11,7 @@
     /// <typeparam name="TEntityHash"></typeparam>
     /// <typeparam name="THash">The hash value type</typeparam>
     /// <typeparam name="TCount">The occurence count type.</typeparam>
+    /// <remarks>Not the most efficient or elegant implementation, but useful for a test bed.</remarks>
     public interface IBloomFilterConfiguration<TEntity, TId, TEntityHash, THash, TCount> :
         IBloomFilterSizeConfiguration
         where TEntityHash : struct

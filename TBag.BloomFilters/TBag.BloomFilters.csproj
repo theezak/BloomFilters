@@ -45,6 +45,10 @@
     <Compile Include="BloomFilterConfigurationExtensions.cs" />
     <Compile Include="BloomFilterIdConfigurationBase.Generic.cs" />
     <Compile Include="Collections\BitArrayExtensions.cs" />
+    <Compile Include="HashSetExtensions.cs" />
+    <Compile Include="IbfConfigurationEntityHashWrapper.cs" />
+    <Compile Include="IbfConfigurationReverseWrapper.cs" />
+    <Compile Include="ReverseInvertibleBloomFilterDataExtensions.cs" />
     <Compile Include="StandardHighCountIbfConfigurationBase.Generic.cs" />
     <Compile Include="StandardIbfConfigurationBase.Generic.cs" />
     <Compile Include="KeyValueHashPairHighCountIbfConfiguration.cs" />
@@ -76,7 +80,6 @@
     <Compile Include="InvertibleReverseBloomFilter.Generic.cs" />
     <Compile Include="InvertibleBloomFilterData.Generic.cs" />
     <Compile Include="InvertibleBloomFilter.Generic.cs" />
-    <Compile Include="BloomFilter.cs" />
     <Compile Include="InvertibleBloomFilterDataExtensions.cs" />
     <Compile Include="InvertibleBloomFilterFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

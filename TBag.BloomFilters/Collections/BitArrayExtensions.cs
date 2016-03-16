@@ -1,7 +1,5 @@
 ﻿namespace System.Collections
 {
-    using Generic;
-
     /// <summary>
     /// Extensions for <see cref="BitArray"/>.
     /// </summary>

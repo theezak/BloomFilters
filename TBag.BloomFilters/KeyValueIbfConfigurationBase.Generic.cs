@@ -1,11 +1,10 @@
-﻿using System.Linq;
-
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters
 {
     using System;
     using System.Collections.Generic;
     using HashAlgorithms;
-    
+    using System.Linq;
+
     /// <summary>
     /// A default Bloom filter configuration, well suited for  key/value inveritble Bloom filters that are utilized according to their capacity.
     /// </summary>
@@ -115,7 +114,13 @@ namespace TBag.BloomFilters
                 yield return unchecked((int)(primaryHash + j * secondaryHash));
             }
         }
-      
+
+        /// <summary>
+        /// Determine if an IBF, given this configuration and the given <paramref name="capacity"/>, will support a set of the given size.
+        /// </summary>
+        /// <param name="capacity"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
         public override bool Supports(ulong capacity, ulong size)
         {    
             return ((sbyte.MaxValue - 15) * size) > capacity;

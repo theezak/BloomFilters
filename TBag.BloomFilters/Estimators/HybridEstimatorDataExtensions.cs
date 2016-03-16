@@ -1,12 +1,12 @@
-﻿using System;
-
-namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Estimators
 {
+    using System;
+
     /// <summary>
     /// Extension methods for the hybrid estimator data.
     /// </summary>
     public static class HybridEstimatorDataExtensions
-    {       
+    {
         /// <summary>
         /// Decode the hybrid estimator data instances.
         /// </summary>
@@ -18,8 +18,8 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="configuration">Configuration</param>
         /// <param name="destructive">When <c>true</c> the values of <paramref name="estimator"/> will be altered rendering it useless, otherwise <c>false</c></param>
         /// <returns>An estimate of the difference between two sets based upon the estimators.</returns>
-        public static ulong Decode<TEntity,TId,TCount>(this IHybridEstimatorData<int,TCount> estimator,
-            IHybridEstimatorData<int,TCount> otherEstimatorData,
+        public static ulong Decode<TEntity, TId, TCount>(this IHybridEstimatorData<int, TCount> estimator,
+            IHybridEstimatorData<int, TCount> otherEstimatorData,
             IBloomFilterConfiguration<TEntity, TId, int, int, TCount> configuration,
              bool destructive = false)
             where TCount : struct
@@ -28,11 +28,12 @@ namespace TBag.BloomFilters.Estimators
             if (estimator == null && otherEstimatorData == null) return 0L;
             if (estimator == null) return (ulong)otherEstimatorData.Capacity;
             if (otherEstimatorData == null) return (ulong)estimator.Capacity;
-            var decodeFactor = Math.Max(estimator.StrataEstimator?.DecodeCountFactor ?? 1.0D, 
+            var decodeFactor = Math.Max(estimator.StrataEstimator?.DecodeCountFactor ?? 1.0D,
                 otherEstimatorData.StrataEstimator?.DecodeCountFactor ?? 1.0D);
-            return estimator.StrataEstimator.Decode(otherEstimatorData.StrataEstimator, configuration, destructive) + 
-               (ulong)(decodeFactor*(estimator.BitMinwiseEstimator.Capacity - (estimator.BitMinwiseEstimator.Similarity(otherEstimatorData.BitMinwiseEstimator) * estimator.BitMinwiseEstimator.Capacity)));
-
+            return estimator.StrataEstimator.Decode(otherEstimatorData.StrataEstimator, configuration, destructive) +
+                (ulong)(decodeFactor * (estimator.BitMinwiseEstimator.Capacity - 
+                    (estimator.BitMinwiseEstimator.Similarity(otherEstimatorData.BitMinwiseEstimator) * 
+                        estimator.BitMinwiseEstimator.Capacity)));
         }
     }
 }

@@ -81,18 +81,14 @@
                .IdHashes(id, _data.HashFunctionCount)
                .Select(p => Math.Abs(p % _data.Counts.LongLength)))
             {
-                _data.Counts[position] = Configuration
-                    .ValueFilterConfiguration
-                    .CountIncrease(_data.Counts[position]);
-                _data.IdSums[position] = Configuration
-                    .ValueFilterConfiguration
-                    .IdXor(_data.IdSums[position], id);
-                _data.HashSums[position] = Configuration
-                    .ValueFilterConfiguration
-                    .EntityHashXor(_data.HashSums[position], hashValue);
+                _data.Add(Configuration.ValueFilterConfiguration, id, hashValue, position);
             }
         }
 
+        /// <summary>
+        /// Restore the data of the Bloom filter.
+        /// </summary>
+        /// <param name="data"></param>
         public override void Rehydrate(IInvertibleBloomFilterData<TId, int, TCount> data)
         {
             if (data == null)
@@ -158,6 +154,12 @@
             }
         }
 
+        /// <summary>
+        /// Determine if a given identifier occurs in the Bloom filter
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException">Not supported for a RIBF</exception>
         public override bool ContainsKey(TId key)
         {
             throw new NotImplementedException("ContainsKey is not supported on invertible reverse Bloom filters.");

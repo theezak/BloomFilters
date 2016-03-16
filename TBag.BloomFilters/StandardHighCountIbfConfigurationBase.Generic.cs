@@ -1,20 +1,22 @@
-﻿using System.Linq;
-
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters
 {
     using System;
     using System.Collections.Generic;
     using HashAlgorithms;
-    
+    using System.Linq;
+
     /// <summary>
     /// A standard Bloom filter configuration, well suited for Bloom filters that are utilized according to their capacity and store keys rather than key/value pairs.
     /// </summary>
     public abstract class StandardHighCountIbfConfigurationBase<TEntity> : 
         BloomFilterConfigurationBase<TEntity, long, int, int, int>
     {
+        #region Fields
         private readonly IMurmurHash _murmurHash = new Murmur3();
         private readonly IXxHash _xxHash = new XxHash();
+        #endregion
 
+        #region Constructor
         /// <summary>
         /// Constructor
         /// </summary>
@@ -26,7 +28,7 @@ namespace TBag.BloomFilters
                 ValueFilterConfiguration = this.ConvertToValueHash();
             }
         }
-
+    
         /// <summary>
         /// Constructor
         /// </summary>
@@ -85,15 +87,14 @@ namespace TBag.BloomFilters
             IdHashEqualityComparer = EqualityComparer<int>.Default;
             EntityHashEqualityComparer = EqualityComparer<int>.Default;
         }
+        #endregion
 
         /// <summary>
         /// Get the identifier (key) for a given entity.
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        protected abstract long GetIdImpl(TEntity entity);
-
-     
+        protected abstract long GetIdImpl(TEntity entity);     
 
         /// <summary>
         /// Performs Dillinger and Manolios double hashing. 
@@ -114,10 +115,16 @@ namespace TBag.BloomFilters
                 yield return unchecked((int)(primaryHash + j * secondaryHash));
             }
         }
-      
+
+        /// <summary>
+        /// Determine if an IBF, given this configuration and the given <paramref name="capacity"/>, will support a set of the given size.
+        /// </summary>
+        /// <param name="capacity"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
         public override bool Supports(ulong capacity, ulong size)
         {    
-            return ((sbyte.MaxValue - 15) * size) > capacity;
+            return ((int.MaxValue - 30) * size) > capacity;
         }
     }
 }

@@ -1,7 +1,7 @@
-using TBag.BloomFilters.Estimators;
-
 namespace TBag.BloomFilters
 {
+    using TBag.BloomFilters.Estimators;
+
     /// <summary>
     /// Interface for an invertible Bloom filter factory.
     /// </summary>

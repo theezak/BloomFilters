@@ -11,9 +11,12 @@
     public abstract class KeyValueHighCountIbfConfigurationBase<TEntity> : 
         BloomFilterConfigurationBase<TEntity, long, int, int, int>
     {
+        #region Fields
         private readonly IMurmurHash _murmurHash;
         private readonly IXxHash _xxHash;
+        #endregion
 
+        #region Constructor
         /// <summary>
         /// Constructor
         /// </summary>
@@ -76,7 +79,9 @@
             IdHashEqualityComparer = EqualityComparer<int>.Default;
             EntityHashEqualityComparer = EqualityComparer<int>.Default;
         }
+        #endregion
 
+        #region Abstract methods
         /// <summary>
         /// Implementation for getting the identifier of the given entity.
         /// </summary>
@@ -90,28 +95,9 @@
         /// <param name="entity"></param>
         /// <returns></returns>
         protected abstract int GetEntityHashImpl(TEntity entity);
+        #endregion
 
-
-        /// <summary>
-        /// Performs Dillinger and Manolios double hashing. 
-        /// </summary>
-        /// <param name="primaryHash"></param>
-        /// <param name="secondaryHash"></param>
-        /// <param name="hashFunctionCount"></param>
-        /// <param name="seed"></param>
-        /// <returns></returns>
-        private static IEnumerable<int> ComputeHash(
-            int primaryHash, 
-            int secondaryHash, 
-            uint hashFunctionCount, 
-            int seed = 0)
-        {
-            for(long j = seed; j < hashFunctionCount; j++)
-            {
-                yield return unchecked((int)Math.Abs(primaryHash + j * secondaryHash));
-            }
-        }
-
+        #region Implementation of Configuration
         /// <summary>
         /// Determine if the capacity of the Bloom filter supports the set size.
         /// </summary>
@@ -122,6 +108,29 @@
         {
             return (int.MaxValue - 30) * size > capacity;
         }
+        #endregion
+
+        #region Methods
+        /// <summary>
+        /// Performs Dillinger and Manolios double hashing. 
+        /// </summary>
+        /// <param name="primaryHash"></param>
+        /// <param name="secondaryHash"></param>
+        /// <param name="hashFunctionCount"></param>
+        /// <param name="seed"></param>
+        /// <returns></returns>
+        private static IEnumerable<int> ComputeHash(
+            int primaryHash,
+            int secondaryHash,
+            uint hashFunctionCount,
+            int seed = 0)
+        {
+            for (long j = seed; j < hashFunctionCount; j++)
+            {
+                yield return unchecked((int)Math.Abs(primaryHash + j * secondaryHash));
+            }
+        }
+        #endregion
     }
 }
 

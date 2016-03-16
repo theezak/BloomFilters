@@ -1,15 +1,14 @@
 ﻿namespace TBag.BloomFilters
 {
     using System;
-    using System.Collections.Generic;
   
     /// <summary>
     /// An invertible Bloom filter supports removal and additions.
     /// </summary>
-    /// <typeparam name="TEntity"></typeparam>
-    /// <typeparam name="TId"></typeparam>
-    /// <typeparam name="TCount"></typeparam>
-    /// <remarks>Contains both a regular invertible Bloom filter and an invertible reverse Bloom filter.</remarks>
+    /// <typeparam name="TEntity">The type of the entity</typeparam>
+    /// <typeparam name="TId">The type of the entity identifier</typeparam>
+    /// <typeparam name="TCount">The type of the occurence count in the Bloom filter.</typeparam>
+    /// <remarks>Contains both a regular invertible Bloom filter and a reverse invertible Bloom filter.</remarks>
     public class InvertibleHybridBloomFilter<TEntity, TId,TCount> : 
         InvertibleBloomFilter<TEntity, TId,TCount>
         where TCount : struct
@@ -62,7 +61,7 @@
             IBloomFilterConfiguration<TEntity, TId, int, int, TCount> bloomFilterConfiguration) : base(capacity, m, k, bloomFilterConfiguration)
         {
             _reverseBloomFilter = new InvertibleReverseBloomFilter<TEntity, TId, TCount>(capacity, m, k, bloomFilterConfiguration);
-            Extract().ValueFilter = _reverseBloomFilter.Extract().Reverse();
+            Extract().ReverseFilter = _reverseBloomFilter.Extract().Reverse();
         }
         #endregion
 
@@ -88,15 +87,24 @@
             _reverseBloomFilter.Remove(item);
         }
 
+        /// <summary>
+        /// Restore the data of the Bloom filter
+        /// </summary>
+        /// <param name="data"></param>
         public override void Rehydrate(IInvertibleBloomFilterData<TId, int, TCount> data)
         {
             if (data == null || 
-                data.ValueFilter == null)
+                data.ReverseFilter == null)
                 throw new ArgumentException("Data and value filter data are required for a hybrid estimator.", nameof(data));
             base.Rehydrate(data);
-            _reverseBloomFilter.Rehydrate(data.ValueFilter.Reverse());
+            _reverseBloomFilter.Rehydrate(data.ReverseFilter.Reverse());
         }
 
+        /// <summary>
+        /// Determine if the given item occurs in the Bloom filter.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public override bool Contains(TEntity item)
         {
             return base.Contains(item) &&

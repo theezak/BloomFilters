@@ -18,7 +18,8 @@
         /// <param name="filter"></param>
         /// <param name="otherFilter"></param>
         /// <returns></returns>
-        public static bool IsCompatibleWith<TId, TEntityHash, TCount>(this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter,
+        public static bool IsCompatibleWith<TId, TEntityHash, TCount>(
+            this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter,
             IInvertibleBloomFilterData<TId, TEntityHash, TCount> otherFilter)
             where TId : struct
             where TEntityHash : struct
@@ -30,8 +31,8 @@
                filter.HashFunctionCount == otherFilter.HashFunctionCount &&
                filter.Counts.LongLength == otherFilter.Counts.LongLength &&
                filter.HashSums?.LongLength == otherFilter.HashSums?.LongLength &&
-               (filter.ValueFilter == otherFilter.ValueFilter ||
-               filter.ValueFilter.IsCompatibleWith(otherFilter.ValueFilter));
+               (filter.ReverseFilter == otherFilter.ReverseFilter ||
+               filter.ReverseFilter.IsCompatibleWith(otherFilter.ReverseFilter));
         }
 
         /// <summary>
@@ -129,76 +130,7 @@
             return result;
         }
 
-        /// <summary>
-        /// Subtract, but return hash values.
-        /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <typeparam name="TId"></typeparam>
-        /// <typeparam name="TEntityHash"></typeparam>
-        /// <typeparam name="THash"></typeparam>
-        /// <typeparam name="TCount"></typeparam>
-        /// <param name="filterData"></param>
-        /// <param name="subtractedFilterData"></param>
-        /// <param name="configuration"></param>
-        /// <param name="listA"></param>
-        /// <param name="listB"></param>
-        /// <param name="modifiedEntities"></param>
-        /// <param name="destructive"></param>
-        /// <returns></returns>
-        internal static IInvertibleBloomFilterData<TId, TEntityHash, TCount> HashSubtract<TEntity, TId, TEntityHash, THash, TCount>(
-            this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filterData,
-            IInvertibleBloomFilterData<TId, TEntityHash, TCount> subtractedFilterData,
-            IBloomFilterConfiguration<TEntity, TId, TEntityHash, THash, TCount> configuration,
-               HashSet<TEntityHash> listA,
-            HashSet<TEntityHash> listB,
-           HashSet<TEntityHash> modifiedEntities,
-            bool destructive = false)
-            where TCount : struct
-            where TId : struct
-            where TEntityHash : struct
-            where THash : struct
-        {
-            if (!filterData.IsCompatibleWith(subtractedFilterData))
-                throw new ArgumentException("Subtracted invertible Bloom filters are not compatible.", nameof(subtractedFilterData));
-            var result = destructive
-                ? filterData
-                : new InvertibleBloomFilterData<TId, TEntityHash, TCount>
-                {
-                    BlockSize = filterData.BlockSize,
-                    Counts = new TCount[filterData.Counts.LongLength],
-                    HashFunctionCount = filterData.HashFunctionCount,
-                    HashSums = filterData.HashSums == null ? null : new TEntityHash[filterData.HashSums.LongLength],
-                    IdSums = new TId[filterData.IdSums.LongLength]
-                };
-            var countsIdentity = configuration.CountIdentity();
-            for (var i = 0L; i < filterData.Counts.LongLength; i++)
-            {
-                result.Counts[i] = configuration.CountSubtract(filterData.Counts[i], subtractedFilterData.Counts[i]);
-                var hashSum = configuration.EntityHashXor(filterData.HashSums[i], subtractedFilterData.HashSums[i]);
-                var idXorResult = configuration.IdXor(filterData.IdSums[i], subtractedFilterData.IdSums[i]);
-                if (configuration.IsPureCount(subtractedFilterData.Counts[i]) &&
-                    configuration.CountEqualityComparer.Equals(result.Counts[i], countsIdentity))
-                {
-                    if (!configuration.EntityHashEqualityComparer.Equals(configuration.EntityHashIdentity(), hashSum))
-                    {
-                        listA.Add(filterData.HashSums[i]);
-                        listB.Add(subtractedFilterData.HashSums[i]);
-                        hashSum = configuration.EntityHashIdentity();
-                        idXorResult = configuration.IdIdentity();
-                    }
-                    else if (!configuration.IdEqualityComparer.Equals(configuration.IdIdentity(), idXorResult))
-                    {
-                        modifiedEntities.Add(subtractedFilterData.HashSums[i]);
-                        idXorResult = configuration.IdIdentity();
-                    }
-                    
-                }
-                result.HashSums[i] = hashSum;
-               result.IdSums[i] = idXorResult;
-            }
-            return result;
-        }
-
+      
         /// <summary>
         /// Decode the filter.
         /// </summary>
@@ -287,105 +219,22 @@
                     }
                 }
             }
-            ModIntersection(listA, listB, modifiedEntities);
+            modifiedEntities.MoveModified(listA, listB);
             return filter.IsCompleteDecode(configuration);
         }
 
         /// <summary>
-        /// Decode the filter, but return hash values.
+        /// Determine if the decode succeeded.
         /// </summary>
-        /// <typeparam name="TEntity">The type of the entity</typeparam>
-        /// <typeparam name="TId">The type of the entity identifier</typeparam>
-        /// <typeparam name="TCount">The type of the occurence count for the invertible Bloom filter.</typeparam>
-        /// <typeparam name="TEntityHash"></typeparam>
-        /// <param name="filter">The Bloom filter data to decode</param>
+        /// <typeparam name="TEntity">The entity type</typeparam>
+        /// <typeparam name="TId">The identifier type</typeparam>
+        /// <typeparam name="TEntityHash">The type of the entity hash</typeparam>
+        /// <typeparam name="THash">The type of the hash</typeparam>
+        /// <typeparam name="TCount">The type of the occurence counter</typeparam>
+        /// <param name="filter">The IBF data</param>
         /// <param name="configuration">The Bloom filter configuration</param>
-        /// <param name="listA">Items in the original set, but not in the subtracted set.</param>
-        /// <param name="listB">Items not in the original set, but in the subtracted set.</param>
-        /// <param name="modifiedEntities">items in both sets, but with a different value.</param>
         /// <returns></returns>
-        internal static bool HashDecode<TEntity, TId, TEntityHash, TCount>(
-            this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter,
-            IBloomFilterConfiguration<TEntity, TId, TEntityHash, int, TCount> configuration,
-             HashSet<TEntityHash> listA,
-            HashSet<TEntityHash> listB,
-            HashSet<TEntityHash> modifiedEntities)
-            where TEntityHash : struct
-            where TId : struct
-            where TCount : struct
-        {
-           var countComparer = Comparer<TCount>.Default;
-            var pureList = new Stack<long>(Range(0L, filter.Counts.LongLength)
-                .Where(i => configuration.IsPure(filter, i))
-                .Select(i => i));
-            var countsIdentity = configuration.CountIdentity();
-            while (pureList.Any())
-            {
-                var pureIdx = pureList.Pop();
-                if (!configuration.IsPure(filter, pureIdx))
-                {
-                    continue;
-                }
-                var id = filter.IdSums[pureIdx];
-                var hashSum = filter.HashSums[pureIdx];
-                var count = filter.Counts[pureIdx];
-                var negCount = countComparer.Compare(count, countsIdentity) < 0;
-                var isModified = false;
-                foreach (var position in configuration
-                    .IdHashes(id, filter.HashFunctionCount)
-                    .Select(p => Math.Abs(p % filter.Counts.LongLength))
-                    .Where(p => !configuration.CountEqualityComparer.Equals(filter.Counts[p], countsIdentity)))
-                {
-                    if (configuration.IsPure(filter, position) &&
-                        configuration
-                            .EntityHashEqualityComparer.Equals(filter.HashSums[position], hashSum) &&
-                        !configuration.IdEqualityComparer.Equals(filter.IdSums[position], id))
-                    {
-                        modifiedEntities.Add(hashSum);
-                        isModified = true;
-                        if (negCount)
-                        {
-                            filter.Add(configuration, filter.IdSums[position], hashSum, position);
-                        }
-                        else
-                        {
-                            filter.Remove(configuration, filter.IdSums[position], hashSum, position);
-                        }
-                    }
-                    else
-                    {
-                        if (negCount)
-                        {
-                            filter.Add(configuration, id, hashSum, position);
-                        }
-                        else
-                        {
-                            filter.Remove(configuration, id, hashSum, position);
-                        }
-                    }
-                    if (configuration.IsPure(filter, position))
-                    {
-                        //count became pure, add to the list.
-                        pureList.Push(position);
-                    }
-                }
-                if (!isModified)
-                {
-                    if (negCount)
-                    {
-                        listB.Add(hashSum);
-                    }
-                    else
-                    {
-                        listA.Add(hashSum);
-                    }
-                }
-            }
-            ModIntersection(listA, listB, modifiedEntities);
-            return filter.IsCompleteDecode(configuration);
-        }
-
-        private static bool IsCompleteDecode<TEntity, TId, TEntityHash, THash, TCount>(
+        internal static bool IsCompleteDecode<TEntity, TId, TEntityHash, THash, TCount>(
             this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter,
             IBloomFilterConfiguration<TEntity, TId, TEntityHash, THash, TCount> configuration)
             where TCount : struct
@@ -409,16 +258,16 @@
         /// <summary>
         /// Remove an item from the given position.
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <typeparam name="TId"></typeparam>
-        /// <typeparam name="THash"></typeparam>
-        /// <typeparam name="TCount"></typeparam>
-        /// <typeparam name="TEntityHash"></typeparam>
-        /// <param name="filter"></param>
-        /// <param name="configuration"></param>
-        /// <param name="idValue"></param>
-        /// <param name="hashValue"></param>
-        /// <param name="position"></param>
+        /// <typeparam name="TEntity">The entity type</typeparam>
+        /// <typeparam name="TId">The type of the entity identifier</typeparam>
+        /// <typeparam name="TEntityHash">The type of the entity hash</typeparam>
+        /// <typeparam name="THash">The type of the hash</typeparam>
+        /// <typeparam name="TCount">The type of the Bloom filter occurence count</typeparam>
+        /// <param name="filter">The filter</param>
+        /// <param name="configuration">The configuration</param>
+        /// <param name="idValue">The identifier to remove</param>
+        /// <param name="hashValue">The hash value to remove</param>
+        /// <param name="position">The position of the cell to remove the identifier and hash from.</param>
         internal static void Remove<TEntity, TId, TEntityHash, THash, TCount>(
             this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter,
             IBloomFilterConfiguration<TEntity, TId, TEntityHash, THash, TCount> configuration,
@@ -440,11 +289,11 @@
         /// <summary>
         /// Add an item from the given position.
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <typeparam name="TId"></typeparam>
-        /// <typeparam name="THash"></typeparam>
-        /// <typeparam name="TCount"></typeparam>
-        /// <typeparam name="TEntityHash"></typeparam>
+        /// <typeparam name="TEntity">The entity type</typeparam>
+        /// <typeparam name="TId">The type of the entity identifier</typeparam>
+        /// <typeparam name="TEntityHash">The type of the entity hash</typeparam>
+        /// <typeparam name="THash">The type of the hash</typeparam>
+        /// <typeparam name="TCount">The type of the Bloom filter occurence count</typeparam>
         /// <param name="filter"></param>
         /// <param name="configuration"></param>
         /// <param name="idValue"></param>
@@ -474,7 +323,7 @@
         /// <typeparam name="TEntity">The entity type</typeparam>
         /// <typeparam name="TId">The type of the entity identifier</typeparam>
         /// <typeparam name="TCount">The type of the Bloom filter occurence count</typeparam>
-        /// <typeparam name="TEntityHash"></typeparam>
+        /// <typeparam name="TEntityHash">The type of the entity hash</typeparam>
         /// <param name="filter">Filter</param>
         /// <param name="subtractedFilter">The Bloom filter to subtract</param>
         /// <param name="configuration">The Bloom filter configuration</param>
@@ -504,8 +353,8 @@
                     .Subtract(subtractedFilter, configuration, listA, listB, modifiedEntities, destructive)
                     .Decode(configuration, listA, listB, modifiedEntities);
             }
-            var reverseFilter = filter.IsReverse ? filter.Reverse() : filter.ValueFilter;
-            var reverseSubtractedFilter = subtractedFilter.IsReverse ? subtractedFilter.Reverse() : subtractedFilter.ValueFilter;
+            var reverseFilter = filter.IsReverse ? filter.Reverse() : filter.ReverseFilter;
+            var reverseSubtractedFilter = subtractedFilter.IsReverse ? subtractedFilter.Reverse() : subtractedFilter.ReverseFilter;
             if (reverseFilter != null &&
                 reverseSubtractedFilter != null)
             {
@@ -524,9 +373,9 @@
         /// <summary>
         /// Reverse the filter data.
         /// </summary>
-        /// <typeparam name="TId"></typeparam>
-        /// <typeparam name="TEntityHash"></typeparam>
-        /// <typeparam name="TCount"></typeparam>
+        /// <typeparam name="TId">The identifier type</typeparam>
+        /// <typeparam name="TEntityHash">The entity hash type</typeparam>
+        /// <typeparam name="TCount">The occurence count type</typeparam>
         /// <param name="data"></param>
         /// <returns></returns>
         internal static InvertibleBloomFilterData<TEntityHash, TId, TCount> Reverse<TId, TEntityHash, TCount>(
@@ -548,45 +397,12 @@
         }
 
         /// <summary>
-        /// Subtract the given filter and decode for any changes
-        /// </summary>
-        /// <typeparam name="TEntity">The entity type</typeparam>
-        /// <typeparam name="TId">The type of the entity identifier</typeparam>
-        /// <typeparam name="TCount">The type of the Bloom filter occurence count</typeparam>
-        /// <typeparam name="TEntityHash"></typeparam>
-        /// <param name="filter">Filter</param>
-        /// <param name="subtractedFilter">The Bloom filter to subtract</param>
-        /// <param name="configuration">The Bloom filter configuration</param>
-        /// <param name="listA">Items in <paramref name="filter"/>, but not in <paramref name="subtractedFilter"/></param>
-        /// <param name="listB">Items in <paramref name="subtractedFilter"/>, but not in <paramref name="filter"/></param>
-        /// <param name="modifiedEntities">items in both filters, but with a different value.</param>
-        /// <param name="destructive">Optional parameter, when <c>true</c> the filter <paramref name="filter"/> will be modified, and thus rendered useless, by the decoding.</param>
-        /// <returns></returns>
-        public static bool HashSubtractAndDecode<TEntity, TId, TEntityHash, TCount>(
-            this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter,
-            IInvertibleBloomFilterData<TId, TEntityHash, TCount> subtractedFilter,
-            IBloomFilterConfiguration<TEntity, TId, TEntityHash, int, TCount> configuration,
-            HashSet<TEntityHash> listA,
-            HashSet<TEntityHash> listB,
-           HashSet<TEntityHash> modifiedEntities,
-            bool destructive = false)
-            where TId : struct
-            where TCount : struct
-            where TEntityHash : struct
-        {
-            if (filter == null || subtractedFilter == null) return true;
-            return filter
-               .HashSubtract(subtractedFilter, configuration, listA, listB, modifiedEntities, destructive)
-                .HashDecode(configuration, listA, listB, modifiedEntities);
-        }
-
-        /// <summary>
         /// Convert a <see cref="IInvertibleBloomFilterData{TId, TEntityHash, TCount}"/> to a concrete <see cref="InvertibleBloomFilterData{TId, TEntityHash, TCount}"/>.
         /// </summary>
-        /// <typeparam name="TId"></typeparam>
-        /// <typeparam name="TEntityHash"></typeparam>
-        /// <typeparam name="TCount"></typeparam>
-        /// <param name="filterData"></param>
+        /// <typeparam name="TId">The identifier type</typeparam>
+        /// <typeparam name="TEntityHash">The entity hash type</typeparam>
+        /// <typeparam name="TCount">The occurence count type</typeparam>
+        /// <param name="filterData">The IBF data</param>
         /// <returns></returns>
         internal static InvertibleBloomFilterData<TId, TEntityHash, TCount> ConvertToBloomFilterData<TId, TEntityHash, TCount>(
             this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filterData)
@@ -604,22 +420,8 @@
                 HashFunctionCount = filterData.HashFunctionCount,
                 HashSums = filterData.HashSums,
                 IdSums = filterData.IdSums,
-                ValueFilter = filterData.ValueFilter?.ConvertToBloomFilterData()
+                ReverseFilter = filterData.ReverseFilter?.ConvertToBloomFilterData()
             };
-        }
-
-        private static void ModIntersection<T>(HashSet<T> listA, HashSet<T> listB, HashSet<T> modifiedEntities)
-        {
-            if (listA == modifiedEntities || listB == modifiedEntities) return;
-            foreach (var modItem in listA.Where(itm => listB.Contains(itm)).ToArray())
-            {
-                modifiedEntities.Add(modItem);
-            }
-            foreach(var modItem in modifiedEntities)
-            {
-                listA.Remove(modItem);
-                listB.Remove(modItem);
-            }
         }
 
         private static IEnumerable<long> Range(long start, long end)

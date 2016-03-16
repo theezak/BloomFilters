@@ -37,12 +37,12 @@
         }
 
         /// <summary>
-        /// Compute similarity.
+        /// Compute similarity between <paramref name="minHashValues1"/> and <paramref name="minHashValues2"/>
         /// </summary>
-        /// <param name="minHashValues1"></param>
-        /// <param name="minHashValues2"></param>
-        /// <param name="numHashFunctions"></param>
-        /// <param name="bitSize"></param>
+        /// <param name="minHashValues1">The values</param>
+        /// <param name="minHashValues2">The values to compare against</param>
+        /// <param name="numHashFunctions">The number of hash functions to use</param>
+        /// <param name="bitSize">The number of bits for a single cell</param>
         /// <returns></returns>
         private static double ComputeSimilarityFromSignatures(
             BitArray minHashValues1, 

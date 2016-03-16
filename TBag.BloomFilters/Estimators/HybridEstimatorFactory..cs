@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Estimators
 {
+    using System;
+
     /// <summary>
     /// Encapsulates emperical data for creating hybrid estimators.
     /// </summary>
@@ -62,6 +62,16 @@ namespace TBag.BloomFilters.Estimators
             return result;
         }
 
+        /// <summary>
+        /// Create an estimator that matches the given <paramref name="data"/> estimator.
+        /// </summary>
+        /// <typeparam name="TEntity">The type of the entity</typeparam>
+        /// <typeparam name="TId">The type of the identifier</typeparam>
+        /// <typeparam name="TCount">The type of the occurence count</typeparam>
+        /// <param name="data">The estimator data to match</param>
+        /// <param name="configuration">The Bloom filter configuration</param>
+        /// <param name="setSize">The (estimated) size of the set to add to the estimator.</param>
+        /// <returns>An estimator</returns>
         public IHybridEstimator<TEntity, int, TCount> CreateMatchingEstimator<TEntity, TId, TCount>(
             IHybridEstimatorData<int, TCount> data,
             IBloomFilterConfiguration<TEntity, TId, int, int, TCount> configuration,

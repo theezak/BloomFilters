@@ -1,6 +1,4 @@
-﻿
-
-namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Estimators
 {
     using System;
     using System.Runtime.Serialization;
@@ -8,8 +6,8 @@ namespace TBag.BloomFilters.Estimators
     /// <summary>
     /// Serializable strata estimator data.
     /// </summary>
-    /// <typeparam name="TId"></typeparam>
-    /// <typeparam name="TCount"></typeparam>
+    /// <typeparam name="TId">The type of the identifer</typeparam>
+    /// <typeparam name="TCount">The type of the occurence count</typeparam>
     [DataContract, Serializable]
     public class StrataEstimatorData<TId,TCount> : IStrataEstimatorData<TId, TCount>
         where TCount : struct
@@ -33,6 +31,11 @@ namespace TBag.BloomFilters.Estimators
         [DataMember(Order = 3)]
         public InvertibleBloomFilterData<TId,int,TCount>[] BloomFilters { get; set; }
 
-        IInvertibleBloomFilterData<TId, int, TCount>[] IStrataEstimatorData<TId, TCount>.BloomFilters => BloomFilters;               
+        #region Implementation of IStrataEstimatorData{TId,TCount}
+        /// <summary>
+        /// The Bloom filters as <see cref="IInvertibleBloomFilterData{TId, TEntityHash, TCount}"/>
+        /// </summary>
+        IInvertibleBloomFilterData<TId, int, TCount>[] IStrataEstimatorData<TId, TCount>.BloomFilters => BloomFilters;
+        #endregion
     }
 }
