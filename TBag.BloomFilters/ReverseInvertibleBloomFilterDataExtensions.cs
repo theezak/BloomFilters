@@ -51,6 +51,14 @@
                     IdSums = new TId[filterData.IdSums.LongLength]
                 };
             var countsIdentity = configuration.CountIdentity();
+            if (subtractedFilterData.Counts.All(c => configuration.CountEqualityComparer.Equals(c, countsIdentity)))
+            {
+                //TODO: odd edge case. Make result the subtractedFilter ??? 
+            }
+            if (filterData.Counts.All(c => configuration.CountEqualityComparer.Equals(c, countsIdentity)))
+            {
+                //TODO: odd edge case. Make the result the filterData filter ???
+            }
             for (var i = 0L; i < filterData.Counts.LongLength; i++)
             {
                 result.Counts[i] = configuration.CountSubtract(filterData.Counts[i], subtractedFilterData.Counts[i]);
