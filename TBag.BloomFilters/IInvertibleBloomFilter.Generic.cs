@@ -26,6 +26,13 @@
         bool Contains(T item);
 
         /// <summary>
+        /// Determine if the given key is in the Bloom filter.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        bool ContainsKey(TId key);
+
+        /// <summary>
         /// Subtract and then decode.
         /// </summary>
         /// <param name="filter">Bloom filter to subtract</param>

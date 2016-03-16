@@ -18,13 +18,13 @@ namespace TBag.BloomFilters.Estimators
     {
         #region Fields
 
-        private readonly int _hashCount;
+        private int _hashCount;
         private readonly Func<TEntity, IEnumerable<int>> _hashFunctions;
         private readonly Func<TEntity, int> _entityHash;
-        private readonly byte _bitSize;
+        private byte _bitSize;
         private readonly IBloomFilterConfiguration<TEntity, TId, int, int, TCount> _configuration;
-        private readonly ulong _capacity;
-        private readonly int[,] _slots;
+        private ulong _capacity;
+        private int[] _slots;
 
         #endregion
 
@@ -105,6 +105,35 @@ namespace TBag.BloomFilters.Estimators
                 Values = Convert(_slots, _bitSize).ToBytes()
             };
         }
+
+        /// <summary>
+        /// Extract the full data from the b-bit inwise estimator
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks>Not for sending across the wire, but good for rehydrating.</remarks>
+        public BitMinwiseHashEstimatorFullData FullExtract()
+        {
+            return new BitMinwiseHashEstimatorFullData
+            {
+                BitSize = _bitSize,
+                Capacity = _capacity,
+                HashCount = _hashCount,
+                Values = _slots
+            };
+        }
+
+        /// <summary>
+        /// Rehydrate the given data.
+        /// </summary>
+        /// <param name="data"></param>
+        public void Rehydrate(IBitMinwiseHashEstimatorFullData data)
+        {
+            if (data == null) return;
+            _slots = data.Values;
+            _capacity = data.Capacity;
+           _hashCount = data.HashCount;
+            _bitSize = data.BitSize;
+        }
         #endregion
 
         #region Methods
@@ -114,27 +143,23 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="slots">The hashed values.</param>
         /// <param name="bitSize">The bit size to be used per slot.</param>
         /// <returns></returns>
-        private static BitArray Convert(int[,] slots, byte bitSize)
+        private static BitArray Convert(int[] slots, byte bitSize)
         {
-            var valueCount = slots.GetLength(1);
-            var hashValues = new BitArray(bitSize*slots.GetLength(0)*valueCount);
+            var hashValues = new BitArray((int)(bitSize * slots.LongLength));
             var idx = 0;
-            for (var hashCount = 0; hashCount < slots.GetLength(0); hashCount++)
+            for (var hashCount = 0; hashCount < slots.LongLength; hashCount++)
             {
-                for (var eltCount = 0; eltCount < valueCount; eltCount++)
+                var byteValue = BitConverter.GetBytes(slots[hashCount]);
+                var byteValueIdx = 0;
+                for (var b = 0; b < bitSize; b++)
                 {
-                    var byteValue = BitConverter.GetBytes(slots[hashCount, eltCount]);
-                    var byteValueIdx = 0;
-                    for (var b = 0; b < bitSize; b++)
+                    hashValues.Set(idx + b, (byteValue[byteValueIdx] & (1 << (b % 8))) != 0);
+                    if (b > 0 && b % 8 == 0)
                     {
-                        hashValues.Set(idx + b, (byteValue[byteValueIdx] & (1 << (b%8))) != 0);
-                        if (b > 0 && b%8 == 0)
-                        {
-                            byteValueIdx = (byteValueIdx + 1)%byteValue.Length;
-                        }
+                        byteValueIdx = (byteValueIdx + 1) % byteValue.Length;
                     }
-                    idx += bitSize;
                 }
+                idx += bitSize;
             }
             return hashValues;
         }
@@ -169,14 +194,16 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="element"></param>
         private void ComputeMinHash(TEntity element)
         {
-            var idhash = _entityHash(element);
+            var idhash = (ulong)_entityHash(element);
             var entityHashes = _hashFunctions(element).ToArray();
-            for (var i = 0; i < _hashCount; i++)
+            ulong idx = 0;
+            for (ulong i = 0L; i < (ulong)_hashCount; i++)
             {
-                if (entityHashes[i] < _slots[i, idhash])
+                 if (entityHashes[i] < _slots[idx+idhash])
                 {
-                    _slots[i, idhash] = entityHashes[i];
+                    _slots[idx + idhash] = entityHashes[i];
                 }
+                idx += _capacity;
             }
         }
 
@@ -186,15 +213,12 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="numHashFunctions"></param>
         /// <param name="setSize"></param>
         /// <returns></returns>
-        private static int[,] GetMinHashSlots(int numHashFunctions, ulong setSize)
+        private static int[] GetMinHashSlots(int numHashFunctions, ulong setSize)
         {
-            var minHashValues = new int[numHashFunctions, setSize];
-            for (uint i = 0; i < numHashFunctions; i++)
+            var minHashValues = new int[(ulong)numHashFunctions*setSize];
+            for (var i = 0L; i < minHashValues.LongLength; i++)
             {
-                for (ulong j = 0; j < setSize; j++)
-                {
-                    minHashValues[i, j] = int.MaxValue;
-                }
+                minHashValues[i] = int.MaxValue;
             }
             return minHashValues;
         }

@@ -10,6 +10,9 @@
         where TId : struct
         where TCount : struct
     {
+        /// <summary>
+        /// The decode count factor.
+        /// </summary>
         double DecodeCountFactor { get; set; }
 
         /// <summary>
@@ -39,5 +42,17 @@
         /// </summary>
         /// <returns></returns>
         IHybridEstimatorData<TId, TCount> Extract();
+
+        /// <summary>
+        /// Extract a serializable full version of the estimator data.
+        /// </summary>
+        /// <returns></returns>
+        IHybridEstimatorFullData<TId, TCount> FullExtract();
+
+        /// <summary>
+        /// Set the data for the hybrid estimator.
+        /// </summary>
+        /// <returns></returns>
+        void Rehydrate(IHybridEstimatorFullData<TId, TCount> data);
     }
 }

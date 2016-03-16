@@ -14,7 +14,7 @@ namespace TBag.BloomFilters.Estimators
         where TCount : struct
     {
         #region Fields
-        private readonly long _capacity;       
+        private  long _capacity;       
          protected const byte MaxTrailingZeros = sizeof(int)*8;
         #endregion
 
@@ -71,6 +71,31 @@ namespace TBag.BloomFilters.Estimators
                 DecodeCountFactor = DecodeCountFactor,
                 BloomFilters = StrataFilters.Select(s => s?.Extract()).ToArray()
             };
+        }
+
+        /// <summary>
+        /// Restore the strata estimator from the given data
+        /// </summary>
+        /// <param name="data"></param>
+        public void Rehydrate(IStrataEstimatorData<int, TCount> data)
+        {
+            if (data == null) return;
+            _capacity = data.Capacity;
+            DecodeCountFactor = data.DecodeCountFactor;
+            for (int i = 0; i < StrataFilters.Length; i++)
+            {
+                if (data.BloomFilters == null ||
+                    data.BloomFilters.Length <= i ||
+                    data.BloomFilters[i] == null)
+                {
+                    StrataFilters[i] = null;
+                }
+                else
+                {
+                    CreateNewFilter(i);
+                    StrataFilters[i].Rehydrate(data.BloomFilters[i]);
+                }
+            }
         }
 
         /// <summary>
@@ -151,9 +176,14 @@ namespace TBag.BloomFilters.Estimators
         {
             if (StrataFilters[idx] == null)
             {
-                StrataFilters[idx] = new InvertibleBloomFilter<TEntity, int, TCount>(_capacity, 0.001F, Configuration);
+                CreateNewFilter(idx);
             }
             StrataFilters[idx].Add(item);
+        }
+
+        private void CreateNewFilter(long idx)
+        {
+            StrataFilters[idx] = new InvertibleBloomFilter<TEntity, int, TCount>(_capacity, 0.001F, Configuration);
         }
         #endregion
     }

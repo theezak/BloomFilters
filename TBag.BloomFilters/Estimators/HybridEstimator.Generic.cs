@@ -16,10 +16,9 @@
     {
         #region Fields
         private readonly BitMinwiseHashEstimator<TEntity, int, TCount> _minwiseEstimator;
-        private readonly byte _maxStrata;
-        private readonly long _capacity;
-        private readonly long _setSize;
-
+        private byte _maxStrata;
+        private long _capacity;
+        private long _setSize;
         #endregion
 
         #region Constructor
@@ -105,6 +104,38 @@
                 CountEstimate = _setSize
             };
         }
+
+        /// <summary>
+        /// Extract the full estimator data
+        /// </summary>
+        /// <remarks>Do not serialize across the wire, but can be used to rehydrate an estimator.</remarks>
+        /// <returns></returns>
+        IHybridEstimatorFullData<int, TCount> IHybridEstimator<TEntity, int, TCount>.FullExtract()
+        {
+            return new HybridEstimatorFullData<int, TCount>
+            {
+                Capacity = _capacity,
+                BitMinwiseEstimator = _minwiseEstimator.FullExtract(),
+                StrataEstimator = Extract(),
+                StrataCount = _maxStrata,
+                CountEstimate = _setSize
+            };
+        }
+
+        /// <summary>
+        /// Rehydrate the hybrid estimator from full data.
+        /// </summary>
+        /// <param name="data"></param>
+        void IHybridEstimator<TEntity, int, TCount>.Rehydrate(IHybridEstimatorFullData<int, TCount> data)
+        {
+            if (data == null) return;
+            _minwiseEstimator.Rehydrate(data.BitMinwiseEstimator);
+            _capacity = data.Capacity;
+            _maxStrata = data.StrataCount;
+            _setSize = data.CountEstimate;
+            Rehydrate(data.StrataEstimator);
+        }
+
         /// <summary>
         /// Decode the given hybrid estimator.
         /// </summary>
@@ -133,6 +164,9 @@
                 .Extract()
                 .Decode(estimator, Configuration);
         }
+
+        
+       
         #endregion
     }
 }

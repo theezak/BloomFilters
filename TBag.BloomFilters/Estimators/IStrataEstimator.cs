@@ -46,6 +46,12 @@
         StrataEstimatorData<TId, TCount> Extract();
 
         /// <summary>
+        /// Rehydrate the data
+        /// </summary>
+        /// <param name="data"></param>
+        void Rehydrate(IStrataEstimatorData<int, TCount> data);
+
+        /// <summary>
         /// Remove an item from the estimator
         /// </summary>
         /// <param name="item"></param>
