@@ -10,7 +10,8 @@
         /// Create a hybrid estimator, utilizing the provided Bloom filter configuration and estimated set size.
         /// </summary>
         /// <typeparam name="TEntity">The type of the entity stored in the estimator.</typeparam>
-        /// <typeparam name="TCount">The type of the occurence counter for the invertible Bloom filter.</typeparam>
+        /// <typeparam name="TId">The type of the entity identifier</typeparam>
+        /// <typeparam name="TCount">The type of the occurence counter for the invertible Bloom filter.</typeparam>        
         /// <param name="configuration">Bloom filter configuration</param>
         /// <param name="setSize">Estimated total count of the items to be added to the estimator.</param>
         /// <param name="failedDecodeCount">Optional parameter indicating the number of failed decodes.</param>
@@ -26,8 +27,9 @@
         /// <summary>
         /// Create a hybrid estimator that matches the given hybrid estimator data.
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <typeparam name="TCount"></typeparam>
+        /// <typeparam name="TEntity">The type of the entity</typeparam>
+        /// <typeparam name="TId">The type of the entity identifier</typeparam>
+        /// <typeparam name="TCount">The type of the occurrence counter</typeparam>        
         /// <param name="data">Hybrid estimator data from another set.</param>
         /// <param name="configuration">Bloom filter configuration</param>
         /// <param name="setSize">The size of the set to estimate (your local set)</param>

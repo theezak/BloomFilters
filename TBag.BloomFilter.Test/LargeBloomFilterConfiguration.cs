@@ -2,8 +2,8 @@
 {
     using System;
     using System.Text;
-    using TBag.BloomFilters;
-    using TBag.HashAlgorithms;
+    using BloomFilters;
+    using HashAlgorithms;
 
     /// <summary>
     /// A test Bloom filter configuration.

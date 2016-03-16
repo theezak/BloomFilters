@@ -8,12 +8,9 @@
         /// <summary>
         /// 
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <typeparam name="TId"></typeparam>
-        /// <typeparam name="TEntityHash"></typeparam>
-        /// <typeparam name="THash"></typeparam>
-        /// <typeparam name="TCount"></typeparam>
-        /// <param name="configuration"></param>
+        /// <typeparam name="TEntity">The entity type</typeparam>
+        /// <typeparam name="TId">The entity identifier type</typeparam>
+          /// <typeparam name="TCount">The type for the occurrence counter</typeparam>
         /// <returns></returns>
         /// <remarks>Remarkably strange plumbing: for estimators, we want to handle the entity hash as the identifier.</remarks>
         internal static IBloomFilterConfiguration<TEntity, int, int, int, TCount> ConvertToEntityHashId

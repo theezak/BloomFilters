@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters
+﻿using System.Diagnostics.Contracts;
+
+namespace TBag.BloomFilters
 {
     using System;
     using System.Collections.Generic;
@@ -42,6 +44,7 @@
         {
             if (!filterData.IsCompatibleWith(subtractedFilterData))
                 throw new ArgumentException("Subtracted invertible Bloom filters are not compatible.", nameof(subtractedFilterData));
+            Contract.Assume(filterData!=null);
             var result = destructive
                 ? filterData
                 : new InvertibleBloomFilterData<TId, TEntityHash, TCount>
@@ -49,7 +52,7 @@
                     BlockSize = filterData.BlockSize,
                     Counts = new TCount[filterData.Counts.LongLength],
                     HashFunctionCount = filterData.HashFunctionCount,
-                    HashSums = filterData.HashSums == null ? null : new TEntityHash[filterData.HashSums.LongLength],
+                    HashSums = new TEntityHash[filterData.HashSums.LongLength],
                     IdSums = new TId[filterData.IdSums.LongLength]
                 };
             var countsIdentity = configuration.CountIdentity();

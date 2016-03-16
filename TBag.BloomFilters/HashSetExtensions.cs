@@ -17,7 +17,7 @@ namespace TBag.BloomFilters
         internal static void MoveModified<TId>(this HashSet<TId> modifiedEntities, HashSet<TId> listA, HashSet<TId> listB)
         {
             if (listA == modifiedEntities || listB == modifiedEntities) return;
-            foreach (var modItem in listA.Where(itm => listB.Contains(itm)).ToArray())
+            foreach (var modItem in listA.Where(listB.Contains).ToArray())
             {
                 modifiedEntities.Add(modItem);
             }

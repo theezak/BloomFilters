@@ -30,16 +30,22 @@
         /// <param name="minWiseHashCount">number of hash functions for the bit minwise estimator</param>
         /// <param name="setSize">Estimated maximum set size for the bit minwise estimator (capacity)</param>
         /// <param name="maxStrata">Maximum strate for the strata estimator.</param>
+        /// <param name="errorRate">Desired error rate for the IBF</param>
         /// <param name="configuration">The configuration</param>
+        /// <param name="ibfHashCount">Optional hash function count for the IBF</param>
         public HybridEstimator(
             long capacity,
             byte bitSize,
             int minWiseHashCount,
             long setSize,
             byte maxStrata,
-            IBloomFilterConfiguration<TEntity, TId, int, int, TCount> configuration) : base(
+            float errorRate,
+            IBloomFilterConfiguration<TEntity, TId, int, int, TCount> configuration,
+            uint? ibfHashCount = null) : base(
                 capacity, 
-                configuration.ConvertToEntityHashId())        
+                errorRate,
+                configuration.ConvertToEntityHashId(),
+                ibfHashCount)        
         {
             _capacity = capacity;
             _maxStrata = maxStrata;
@@ -51,7 +57,7 @@
                 Configuration, 
                 bitSize, 
                 minWiseHashCount, 
-                Math.Max((uint)(_setSize * (1 - (inStrata / max))), 1));
+                Math.Max((uint)(_setSize * (1 - inStrata / max)), 1));
             DecodeCountFactor = _capacity >= 20 ? 1.45D : 1.0D;
         }
         #endregion

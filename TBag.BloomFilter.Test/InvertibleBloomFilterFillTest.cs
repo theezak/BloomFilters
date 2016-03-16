@@ -1,12 +1,12 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TBag.HashAlgorithms;
-using System.Collections.Generic;
-using TBag.BloomFilters;
-using System.Linq;
+﻿
 
 namespace TBag.BloomFilter.Test
 {
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using System.Collections.Generic;
+    using BloomFilters;
+    using System.Linq;
+
     /// <summary>
     /// Simple add and lookup test on Bloom filter.
     /// </summary>
@@ -26,23 +26,9 @@ namespace TBag.BloomFilter.Test
             {
                 bloomFilter.Add(itm);
             }
-            var notFoundCount = 0;
-            foreach(var itm in testData)
-            {
-                if (!bloomFilter.Contains(itm))
-                {
-                    notFoundCount++;
-                }
-            }
+            var notFoundCount = testData.Count(itm => !bloomFilter.Contains(itm));
             Assert.IsTrue(notFoundCount <= errorRate * size, "False negative error rate violated");
-            notFoundCount = 0;
-            foreach(var itm in DataGenerator.Generate().Skip(addSize).Take(addSize))
-            {
-                if (bloomFilter.Contains(itm))
-                {
-                    notFoundCount++;
-                }
-            }
+            notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.Contains(itm));
             Assert.IsTrue(notFoundCount <= errorRate * size, "False positive error rate violated");
 
         }
@@ -60,23 +46,9 @@ namespace TBag.BloomFilter.Test
             {
                 bloomFilter.Add(itm);
             }
-            var notFoundCount = 0;
-            foreach (var itm in testData)
-            {
-                if (!bloomFilter.Contains(itm))
-                {
-                    notFoundCount++;
-                }
-            }
+            var notFoundCount = testData.Count(itm => !bloomFilter.Contains(itm));
             Assert.IsTrue(notFoundCount <= errorRate * size, "False negative error rate violated");
-            notFoundCount = 0;
-            foreach (var itm in DataGenerator.Generate().Skip(addSize).Take(addSize))
-            {
-                if (bloomFilter.Contains(itm))
-                {
-                    notFoundCount++;
-                }
-            }
+            notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.Contains(itm));
             Assert.IsTrue(notFoundCount <= errorRate * size, "False positive error rate violated");
         }
 
@@ -93,23 +65,9 @@ namespace TBag.BloomFilter.Test
             {
                 bloomFilter.Add(itm);
             }
-            var notFoundCount = 0;
-            foreach (var itm in testData)
-            {
-                if (!bloomFilter.Contains(itm))
-                {
-                    notFoundCount++;
-                }
-            }
+            var notFoundCount = testData.Count(itm => !bloomFilter.Contains(itm));
             Assert.IsTrue(notFoundCount <= errorRate * size, "False negative error rate violated");
-            notFoundCount = 0;
-            foreach (var itm in DataGenerator.Generate().Skip(addSize).Take(addSize))
-            {
-                if (bloomFilter.Contains(itm))
-                {
-                    notFoundCount++;
-                }
-            }
+            notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.Contains(itm));
             Assert.IsTrue(notFoundCount <= errorRate * size, "False positive error rate violated");
         }
 
@@ -118,7 +76,7 @@ namespace TBag.BloomFilter.Test
         {
             var addSize = 100000;
             var testData = DataGenerator.Generate().Take(addSize).ToList();
-            long size = testData.LongCount();
+            var size = testData.LongCount();
             var configuration = new DefaultBloomFilterConfiguration();
             var bloomFilter = new InvertibleBloomFilter<TestEntity, long, sbyte>(size, 0.01F, configuration);
             foreach (var itm in testData)

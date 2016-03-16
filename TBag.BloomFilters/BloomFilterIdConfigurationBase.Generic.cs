@@ -37,7 +37,7 @@
 
         public virtual long BestSize(long capacity, float errorRate)
         {
-            return (long)Math.Abs((capacity * Math.Log(errorRate)) / Math.Pow(2, Math.Log(2.0D)));
+            return (long)Math.Abs(capacity * Math.Log(errorRate) / Math.Pow(2, Math.Log(2.0D)));
         }
 
         /// <summary>

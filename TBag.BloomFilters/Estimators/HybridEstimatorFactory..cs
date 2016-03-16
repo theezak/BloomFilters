@@ -11,6 +11,7 @@
         /// Create a hybrid estimator
         /// </summary>
         /// <typeparam name="TEntity">The entity type</typeparam>
+        /// <typeparam name="TId">The type of the entity identifier</typeparam>
         /// <typeparam name="TCount">The type of occurence count.</typeparam>
         /// <param name="configuration">Bloom filter configuration</param>
         /// <param name="setSize">Number of elements in the set that is added.</param>
@@ -25,9 +26,12 @@
         {
             byte strata = 7;
             var capacity = 80L;
+            byte hashFunctionCount = 4;
+            float errorRate = 0.001F;
             if (failedDecodeCount > 2)
             {
                 capacity = capacity * failedDecodeCount;
+                errorRate = 0.0001F;
             }
             if (setSize < 10000L &&
                 failedDecodeCount >= 4 &&
@@ -55,7 +59,9 @@
                 10, 
                 setSize, 
                 strata,
-                configuration)
+                errorRate,
+                configuration,
+                hashFunctionCount)
             {
                 DecodeCountFactor = Math.Pow(2, failedDecodeCount)
             };
@@ -75,19 +81,22 @@
         public IHybridEstimator<TEntity, int, TCount> CreateMatchingEstimator<TEntity, TId, TCount>(
             IHybridEstimatorData<int, TCount> data,
             IBloomFilterConfiguration<TEntity, TId, int, int, TCount> configuration,
-            long setSize) 
+            long setSize)
             where TCount : struct
             where TId : struct
-           {
-           var estimator = new HybridEstimator<TEntity, TId, TCount>(
-               data.Capacity, 
-               data.BitMinwiseEstimator.BitSize, 
-               data.BitMinwiseEstimator.HashCount, 
-               setSize, 
-               data.StrataCount, 
-               configuration);
-            estimator.DecodeCountFactor = data.StrataEstimator.DecodeCountFactor;
-            return estimator;
+        {
+            return new HybridEstimator<TEntity, TId, TCount>(
+                data.Capacity,
+                data.BitMinwiseEstimator.BitSize,
+                data.BitMinwiseEstimator.HashCount,
+                setSize,
+                data.StrataCount,
+                data.StrataEstimator.ErrorRate,
+                configuration,
+                data.StrataEstimator.HashFunctionCount)
+            {
+                DecodeCountFactor = data.StrataEstimator.DecodeCountFactor
+            };
         }
     }
 }

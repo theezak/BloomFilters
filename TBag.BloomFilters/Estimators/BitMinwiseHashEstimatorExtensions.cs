@@ -52,7 +52,7 @@
         {
             uint identicalMinHashes = 0;
             var unions = (long) numHashFunctions;
-            if (minHashValues1 == null || minHashValues2 == null) return (1.0D*identicalMinHashes)/unions;
+            if (minHashValues1 == null || minHashValues2 == null) return 1.0D*identicalMinHashes/unions;
             var bitRange = Enumerable.Range(0, bitSize).ToArray();
             var minHash1Length = minHashValues1.Length/bitSize;
             var minHash2Length = minHashValues2.Length/bitSize;
@@ -67,7 +67,7 @@
                 }
                 idx += bitSize;
             }
-            return (1.0D*identicalMinHashes)/ Math.Max(minHash1Length, minHash2Length);
+            return 1.0D*identicalMinHashes / Math.Max(minHash1Length, minHash2Length);
         }
     }
 }

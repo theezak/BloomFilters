@@ -76,10 +76,7 @@
         {
            var id = Configuration.ValueFilterConfiguration.GetId(item);
             var hashValue = Configuration.ValueFilterConfiguration.EntityHashes(item, 1).First();
-            foreach (var position in Configuration
-               .ValueFilterConfiguration
-               .IdHashes(id, _data.HashFunctionCount)
-               .Select(p => Math.Abs(p % _data.Counts.LongLength)))
+            foreach (var position in Probe(id))
             {
                 _data.Add(Configuration.ValueFilterConfiguration, id, hashValue, position);
             }
@@ -110,18 +107,15 @@
         /// <remarks></remarks>
         public override bool Contains(TEntity item)
         {
-            var valueId = Configuration.ValueFilterConfiguration.GetId(item);
+            var id = Configuration.ValueFilterConfiguration.GetId(item);
             var hashValue = Configuration.ValueFilterConfiguration.EntityHashes(item, 1).First();
             var countIdentity = Configuration.ValueFilterConfiguration.CountIdentity();
-            foreach (var position in Configuration
-                .ValueFilterConfiguration
-                .IdHashes(valueId, _data.HashFunctionCount)
-                .Select(p => Math.Abs(p % _data.Counts.LongLength)))
+            foreach (var position in Probe(id))
             {
                 if (Configuration.ValueFilterConfiguration.IsPure(_data, position) &&
                     (!Configuration
                         .ValueFilterConfiguration
-                        .IdEqualityComparer.Equals(_data.IdSums[position], valueId) ||
+                        .IdEqualityComparer.Equals(_data.IdSums[position], id) ||
                         !Configuration
                         .ValueFilterConfiguration
                         .EntityHashEqualityComparer.Equals(_data.HashSums[position], hashValue)))
@@ -144,10 +138,7 @@
         {
             var id = Configuration.ValueFilterConfiguration.GetId(item);
             var hashValue = Configuration.ValueFilterConfiguration.EntityHashes(item, 1).First();
-            foreach (var position in Configuration
-                .ValueFilterConfiguration
-                .IdHashes(id, _data.HashFunctionCount)
-                .Select(p => Math.Abs(p % _data.Counts.LongLength)))
+            foreach (var position in Probe(id))
             {
                 _data
                     .Remove(Configuration.ValueFilterConfiguration, id, hashValue, position);
@@ -184,6 +175,21 @@
                  listA,
                  listB,
                  modifiedEntities);
+        }
+        #endregion
+
+        #region Methods
+        /// <summary>
+        /// Generate the sequence of cell locations to hash the given key to.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        private IEnumerable<long> Probe(int key)
+        {
+            return Configuration
+                .ValueFilterConfiguration
+                .IdHashes(key, _data.HashFunctionCount)
+                .Select(p => Math.Abs(p%_data.Counts.LongLength));
         }
         #endregion
     }

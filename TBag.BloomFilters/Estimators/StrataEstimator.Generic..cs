@@ -1,4 +1,6 @@
 ﻿
+using System.Diagnostics.Contracts;
+
 namespace TBag.BloomFilters.Estimators
 {
     using System;
@@ -16,6 +18,9 @@ namespace TBag.BloomFilters.Estimators
         #region Fields
         private  long _capacity;       
          protected const byte MaxTrailingZeros = sizeof(int)*8;
+        private float _errorRate;
+        private long _size;
+        private uint _hashFunctionCount;
         #endregion
 
         #region Properties
@@ -46,14 +51,21 @@ namespace TBag.BloomFilters.Estimators
         /// Constructor
         /// </summary>
         /// <param name="capacity"></param>
+        /// <param name="errorRate">Desired error rate</param>
         /// <param name="configuration"></param>
+        /// <param name="hashFunctionCount">Optional hash function count</param>
         public StrataEstimator(
             long capacity, 
-            IBloomFilterConfiguration<TEntity,int,int,int,TCount> configuration)
+            float errorRate,
+            IBloomFilterConfiguration<TEntity,int,int,int,TCount> configuration,
+            uint? hashFunctionCount = null)
         {
             EntityHash = e => configuration.EntityHashes(e, 1).First();
             _capacity = capacity;
+            _hashFunctionCount = hashFunctionCount ?? configuration.BestHashFunctionCount(capacity, errorRate);
             Configuration = configuration;
+            _errorRate = errorRate;
+            _size = configuration.BestCompressedSize(capacity, errorRate);
             DecodeCountFactor = _capacity >= 20 ? 1.39D : 1.0D;
         }
         #endregion
@@ -69,7 +81,9 @@ namespace TBag.BloomFilters.Estimators
             {
                 Capacity = _capacity,
                 DecodeCountFactor = DecodeCountFactor,
-                BloomFilters = StrataFilters.Select(s => s?.Extract()).ToArray()
+                BloomFilters = StrataFilters.Select(s => s?.Extract()).ToArray(),
+                HashFunctionCount = _hashFunctionCount,
+                ErrorRate = _errorRate
             };
         }
 
@@ -81,6 +95,9 @@ namespace TBag.BloomFilters.Estimators
         {
             if (data == null) return;
             _capacity = data.Capacity;
+            _errorRate = data.ErrorRate;
+            _size = Configuration.BestCompressedSize(_capacity, _errorRate);
+            _hashFunctionCount = data.HashFunctionCount;
             DecodeCountFactor = data.DecodeCountFactor;
             for (int i = 0; i < StrataFilters.Length; i++)
             {
@@ -178,12 +195,19 @@ namespace TBag.BloomFilters.Estimators
             {
                 CreateNewFilter(idx);
             }
+            Contract.Assert(StrataFilters[idx] != null);
             StrataFilters[idx].Add(item);
         }
 
         private void CreateNewFilter(long idx)
         {
-            StrataFilters[idx] = new InvertibleBloomFilter<TEntity, int, TCount>(_capacity, 0.001F, Configuration);
+            Contract.Requires(idx >= 0 && idx < StrataFilters.Length);
+            Contract.Ensures(StrataFilters[idx] != null);
+            StrataFilters[idx] = new InvertibleBloomFilter<TEntity, int, TCount>(
+                _capacity, 
+                _size, 
+                _hashFunctionCount, 
+                Configuration);
         }
         #endregion
     }

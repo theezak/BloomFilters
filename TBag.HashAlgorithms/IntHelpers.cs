@@ -38,7 +38,7 @@ internal static class IntHelpers
             // we only read aligned longs, so a simple casting is enough       
             fixed (byte* pbyte = &bb[pos])
             {
-                return *((ulong*) pbyte);
+                return *(ulong*) pbyte;
             }
         }
     }

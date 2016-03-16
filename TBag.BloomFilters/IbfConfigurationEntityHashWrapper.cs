@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using TBag.HashAlgorithms;
+    using HashAlgorithms;
 
     /// <summary>
     /// Bloom filter configuration for an estimator
@@ -21,7 +21,9 @@
         private Func<TEntity, int> _getId;
         private readonly IMurmurHash _murmurHash = new Murmur3();
         private readonly IXxHash _xxHash = new XxHash();
-
+        private Func<int, int, int> _idXor;
+        private Func<IInvertibleBloomFilterData<int, int, TCount>, long, bool> _isPure;
+        private Func<int, uint, IEnumerable<int>> _idHashes;
         /// <summary>
         /// Constructor
         /// </summary>
@@ -30,10 +32,14 @@
             IBloomFilterConfiguration<TEntity, TId, int, int, TCount> configuration)
         {
             _wrappedConfiguration = configuration;
-            _getId = e => _wrappedConfiguration.EntityHashes(e, 1).First();
-            IdXor = (id1, id2) => id1 ^ id2;
-            IsPure = (d, p) => IsPureCount(d.Counts[p]);
-            IdHashes = (id, hashCount) =>
+            //additional hash to ensure Id and entity hash are different.
+            _getId = e => BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(_wrappedConfiguration.EntityHashes(e, 1).First()), 12345678), 0);
+            _idXor = (id1, id2) => id1 ^ id2;
+            //utilizing the fact that the hash sum and id sum should actually be the same, since they are both the first entity hash.
+            //This makes the IBF for the strata estimator behave as a standard IBF. 
+            _isPure = (d, p) => IsPureCount(d.Counts[p]) && 
+                BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(d.HashSums[p]), 12345678), 0) == d.IdSums[p];
+            _idHashes = (id, hashCount) =>
             {
                 //generate the given number of hashes.
                 var murmurHash = BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(id)), 0);
@@ -51,6 +57,25 @@
         }
 
         #region Implementation of Ibf configuration
+
+        public override Func<int, int, int> IdXor
+        {
+            get { return _idXor;}
+            set { _idXor = value; }
+        }
+
+        public override Func<IInvertibleBloomFilterData<int, int, TCount>, long, bool> IsPure
+        {
+            get { return _isPure; }
+            set { _isPure = value; }
+        }
+
+        public override Func<int, uint, IEnumerable<int>> IdHashes
+        {
+            get { return _idHashes; }
+            set { _idHashes = value; }
+        }
+
         public override Func<TCount, TCount> CountDecrease
         {
             get { return _wrappedConfiguration.CountDecrease; }

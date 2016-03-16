@@ -3,7 +3,7 @@ namespace TBag.BloomFilter.Test
 {
     using System;
     using System.Collections.Generic;
-    using TBag.HashAlgorithms;
+    using HashAlgorithms;
 
     /// <summary>
     /// Generate test data.
@@ -32,19 +32,17 @@ namespace TBag.BloomFilter.Test
             var added = new List<TestEntity>();
             var idSeed = long.MaxValue;
             var random = new MersenneTwister();
-            var rand = new Random(11);
             var eIndex = 0;
             for(int i=0; i < changeCount; i++)
             {
                 var operation = random.NextInt32() % 3;
                 if (operation == 0 && eIndex < entities.Count)
                 {
-                    var index = rand.Next(0, entities.Count - 1);
-                    entities.RemoveAt(eIndex);
+                     entities.RemoveAt(eIndex);
                 }
                 else if (operation == 1 && eIndex < entities.Count)
                 {
-                    entities[eIndex++].Value = (random.NextInt32()).ToString();
+                    entities[eIndex++].Value = random.NextInt32().ToString();
                 }
                 else 
                 {

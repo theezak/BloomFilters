@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TBag.HashAlgorithms
+﻿namespace TBag.HashAlgorithms
 {
+    using System;
+
     public class FnvHash64 : IFnvHash64
     {
         private const ulong FnvPrime = unchecked(1099511628211);

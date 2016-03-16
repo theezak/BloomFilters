@@ -33,8 +33,8 @@
             var maxDifference = otherEstimatorData.CountEstimate + estimator.CountEstimate;
             var strataDecode = estimator.StrataEstimator.Decode(otherEstimatorData.StrataEstimator, configuration, maxDifference, destructive);
             var minwiseDecode = (ulong)(decodeFactor * (estimator.BitMinwiseEstimator.Capacity - 
-                    (estimator.BitMinwiseEstimator.Similarity(otherEstimatorData.BitMinwiseEstimator) * 
-                        estimator.BitMinwiseEstimator.Capacity)));
+                    estimator.BitMinwiseEstimator.Similarity(otherEstimatorData.BitMinwiseEstimator) * 
+                        estimator.BitMinwiseEstimator.Capacity));
             return strataDecode + minwiseDecode;
         }
     }

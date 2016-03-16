@@ -1,14 +1,7 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TBag.BloomFilters;
-using TBag.HashAlgorithms;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using TBag.BloomFilters.Estimators;
-
-namespace TBag.BloomFilter.Test
+﻿namespace TBag.BloomFilter.Test
 {
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+
     [TestClass]
     public class StrataEstimatorTest
     {

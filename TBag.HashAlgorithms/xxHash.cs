@@ -20,7 +20,7 @@ namespace TBag.HashAlgorithms
             return BitConverter.GetBytes(Digest(Update(
                 array,
                 array.Length,
-                Init(new XXH_State(), seed))));
+                Init(new XxhState(), seed))));
         }
 
         //private static uint CalculateHash(byte[] buf, int len = -1, uint seed = 0)
@@ -85,7 +85,7 @@ namespace TBag.HashAlgorithms
         //    return h32;
         //}
 
-        private static XXH_State Init(XXH_State state, uint seed = 0)
+        private static XxhState Init(XxhState state, uint seed = 0)
         {
             if (state.Memory != null) return state;
             state.Seed = seed;
@@ -99,7 +99,7 @@ namespace TBag.HashAlgorithms
             return state;
         }
 
-        private static XXH_State Update(byte[] input, int len, XXH_State state)
+        private static XxhState Update(byte[] input, int len, XxhState state)
         {
             int index = 0;
             state.TotalLen += (uint) len;
@@ -165,13 +165,13 @@ namespace TBag.HashAlgorithms
         {
             // NOTE: It's faster than BitConverter.ToUInt32 (suprised? me too)
             return
-                ((uint)buffer[offset]) |
+                (uint)buffer[offset] |
                 ((uint)buffer[offset + 1] << 8) |
                 ((uint)buffer[offset + 2] << 16) |
                 ((uint)buffer[offset + 3] << 24);
         }
 
-        private static uint Digest(XXH_State state)
+        private static uint Digest(XxhState state)
         {
             uint h32;
             int index = 0;
@@ -226,7 +226,7 @@ namespace TBag.HashAlgorithms
             return (value << count) | (value >> (32 - count));
         }
 
-        private class XXH_State
+        private class XxhState
         {
             public byte[] Memory;
             public int Memsize;

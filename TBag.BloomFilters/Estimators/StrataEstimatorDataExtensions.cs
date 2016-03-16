@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
 
     /// <summary>
     /// Extension methods for the strata estimator data.
@@ -18,6 +17,7 @@
         /// <param name="data">Estimator data</param>
         /// <param name="otherEstimatorData">The other estimate</param>
         /// <param name="configuration">The Bloom filter configuration</param>
+        /// <param name="maxDifference">The maximum number of items in the difference (usually the sum of the set sizes)</param>
         /// <param name="destructive">When <c>true</c> the <paramref name="data"/> will be altered and no longer usable, else <c>false</c></param>
         /// <returns></returns>
         public static ulong Decode<TEntity,TId,TCount>(this IStrataEstimatorData<int,TCount> data, 

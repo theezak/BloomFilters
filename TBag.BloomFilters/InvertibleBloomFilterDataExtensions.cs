@@ -96,7 +96,7 @@
                 BlockSize = filterData.BlockSize,
                 Counts = new TCount[filterData.Counts.LongLength],
                 HashFunctionCount = filterData.HashFunctionCount,
-                HashSums = filterData.HashSums == null ? null : new TEntityHash[filterData.HashSums.LongLength],
+                HashSums = new TEntityHash[filterData.HashSums.LongLength],
                 IdSums = new TId[filterData.IdSums.LongLength]
             };
             var countsIdentity = configuration.CountIdentity();
@@ -136,13 +136,14 @@
             return result;
         }
 
-      
+
         /// <summary>
         /// Decode the filter.
         /// </summary>
         /// <typeparam name="TEntity">The type of the entity</typeparam>
         /// <typeparam name="TId">The type of the entity identifier</typeparam>
         /// <typeparam name="TCount">The type of the occurence count for the invertible Bloom filter.</typeparam>
+        /// <typeparam name="TEntityHash">The type of the entity hash</typeparam>
         /// <param name="filter">The Bloom filter data to decode</param>
         /// <param name="configuration">The Bloom filter configuration</param>
         /// <param name="listA">Items in the original set, but not in the subtracted set.</param>
@@ -259,7 +260,8 @@
             for (var position = 0L; position < filter.Counts.LongLength; position++)
             {
                 if (!configuration.IdEqualityComparer.Equals(idIdentity, filter.IdSums[position]) ||
-                    (filter.HashSums == null || !configuration.EntityHashEqualityComparer.Equals(entityHashIdentity, filter.HashSums[position])) ||
+                    filter.HashSums == null || 
+                    !configuration.EntityHashEqualityComparer.Equals(entityHashIdentity, filter.HashSums[position]) ||
                     !configuration.CountEqualityComparer.Equals(filter.Counts[position], countIdentity))
                     return false;
             }

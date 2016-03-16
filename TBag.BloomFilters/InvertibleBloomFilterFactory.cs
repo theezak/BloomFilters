@@ -1,7 +1,7 @@
 ﻿namespace TBag.BloomFilters
 {
     using Estimators;
-
+    using System;
     /// <summary>
     /// Place holder for a factory to create Bloom filters based upon strata estimators.
     /// </summary>
@@ -22,7 +22,11 @@
             float? errorRate = null)
             where TId : struct
         {
-            if (errorRate.HasValue)
+            if (capacity <= 0)
+            {
+                capacity = 1;
+            }
+             if (errorRate.HasValue)
             {
                 return new InvertibleReverseBloomFilter<TEntity, TId, int>(capacity, errorRate.Value, bloomFilterConfiguration);
             }
@@ -32,7 +36,7 @@
         /// <summary>
         /// Create an invertible Bloom filter that is sized for the set size determined by the estimators <paramref name="estimator"/> and <paramref name="otherEstimator"/>.
         /// </summary>
-        // <typeparam name="TEntity">The type of the entity</typeparam>
+        /// <typeparam name="TEntity">The type of the entity</typeparam>
         /// <typeparam name="TId">The type of the entity identifier</typeparam>
         /// <param name="bloomFilterConfiguration">The Bloom filter configuration</param>
         /// <param name="estimator">An estimator</param>
@@ -48,17 +52,18 @@
             bool destructive = false)
             where TId : struct
         {
-            var estimate = estimator.Decode(otherEstimator, bloomFilterConfiguration, destructive);
-            return CreateHighUtilizationFilter(
-               bloomFilterConfiguration,
-               (long)estimate,
-               errorRate ?? 0.001F);
+            var estimate = (long)Math.Max(1, estimator.Decode(otherEstimator, bloomFilterConfiguration, destructive));
+            uint hashFunctionCount = (uint)(estimate < 200 ? 3 : 4);
+            var size = bloomFilterConfiguration.BestCompressedSize(
+                estimate,
+                errorRate ?? 0.001F);
+            return new InvertibleReverseBloomFilter<TEntity, TId, int>(estimate, size, hashFunctionCount, bloomFilterConfiguration);
         }
 
         /// <summary>
         /// Create an invertible Bloom filter that is compatible with the given bloom filter data.
         /// </summary>
-        // <typeparam name="TEntity">The type of the entity</typeparam>
+        /// <typeparam name="TEntity">The type of the entity</typeparam>
         /// <typeparam name="TId">The type of the entity identifier</typeparam>
         /// <param name="bloomFilterConfiguration">The Bloom filter configuration</param>
         /// <param name="capacity">The capacity for the filter</param>
@@ -82,7 +87,7 @@
         /// <summary>
         /// Create an invertible Bloom filter
         /// </summary>
-        // <typeparam name="TEntity">The type of the entity</typeparam>
+        /// <typeparam name="TEntity">The type of the entity</typeparam>
         /// <typeparam name="TId">The type of the entity identifier</typeparam>
         /// <param name="bloomFilterConfiguration">The Bloom filter configuration</param>
         /// <param name="capacity">The capacity</param>
@@ -95,6 +100,10 @@
             float? errorRate = null)
             where TId : struct
         {
+            if (capacity <= 0)
+            {
+                capacity = 1;
+            }
             return errorRate.HasValue ? 
                 new InvertibleReverseBloomFilter<TEntity, TId, sbyte>(capacity, errorRate.Value, bloomFilterConfiguration) : 
                 new InvertibleReverseBloomFilter<TEntity, TId, sbyte>(capacity, bloomFilterConfiguration);

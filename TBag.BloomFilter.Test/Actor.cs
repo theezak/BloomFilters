@@ -5,15 +5,15 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using TBag.BloomFilters;
-    using TBag.BloomFilters.Estimators;
+    using BloomFilters;
+    using BloomFilters.Estimators;
 
     /// <summary>
     /// A full working test harness for creating an estimator, serializing the estimator and receiving the filter.
     /// </summary>
     internal class Actor
     {
-        private readonly ProtoBuf.Meta.RuntimeTypeModel _protobufModel;
+        private readonly RuntimeTypeModel _protobufModel;
         private readonly IList<TestEntity> _dataSet;
         private readonly IHybridEstimatorFactory _hybridEstimatorFactory;
         private readonly IBloomFilterConfiguration<TestEntity, long, int, int, int> _configuration;
@@ -40,7 +40,7 @@
         }
 
         /// <summary>
-        /// Given a serialized estimator (<paramref name="estimator"/>), determine the size of the difference, create a Bloom filter for the difference and return that Bloom filter
+        /// Given a serialized estimator (<paramref name="estimatorStream"/>), determine the size of the difference, create a Bloom filter for the difference and return that Bloom filter
         /// </summary>
         /// <param name="estimatorStream">The estimator</param>
         /// <returns></returns>

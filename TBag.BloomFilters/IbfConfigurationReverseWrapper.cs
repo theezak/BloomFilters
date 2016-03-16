@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using TBag.HashAlgorithms;
+    using HashAlgorithms;
 
     /// <summary>
     /// Bloom filter configuration for a value Bloom filter.
@@ -20,6 +20,8 @@
         private readonly IBloomFilterConfiguration<TEntity, TId, int, int, TCount> _wrappedConfiguration;
         private readonly IMurmurHash _murmurHash = new Murmur3();
         private readonly IXxHash _xxHash = new XxHash();
+        private Func<int, int, int> _idXor;
+        private Func<int, uint, IEnumerable<int>> _idHashes;
 
         /// <summary>
         /// Constructor
@@ -29,8 +31,8 @@
             IBloomFilterConfiguration<TEntity, TId, int, int, TCount> configuration)
         {
             _wrappedConfiguration = configuration;
-            IdXor = (id1, id2) => id1 ^ id2;
-            IdHashes = (id, hashCount) =>
+            _idXor = (id1, id2) => id1 ^ id2;
+            _idHashes = (id, hashCount) =>
             {
                 //generate the given number of hashes.
                 var murmurHash = BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(id)), 0);
@@ -43,15 +45,7 @@
             };
         }
 
-        #region Configuration implementation
-        private IEnumerable<TId> GetEntityHashes(TEntity entity, uint count)
-        {
-            var id = _wrappedConfiguration.GetId(entity);
-            for (var j = 0; j < count; j++)
-            {
-                yield return id;
-            }
-        }
+        #region Configuration implementation      
         public override Func<TCount, TCount> CountDecrease
         {
             get { return _wrappedConfiguration.CountDecrease; }
@@ -65,6 +59,16 @@
             {
                 throw new NotImplementedException("Setting the GetId method on a derived configuration for value hashing is not supported.");
             }
+        }
+
+        public override Func<int, int, int> IdXor {
+            get { return _idXor; }
+            set { _idXor = value; }
+        }
+
+        public override Func<int, uint, IEnumerable<int>> IdHashes {
+            get { return _idHashes; }
+            set { _idHashes = value; }
         }
 
         public override Func<IInvertibleBloomFilterData<int, TId, TCount>, long, bool> IsPure
@@ -164,6 +168,18 @@
         {
             return _wrappedConfiguration.Supports(capacity, size);
         }
+        #endregion
+
+        #region Methods
+        private IEnumerable<TId> GetEntityHashes(TEntity entity, uint count)
+        {
+            var id = _wrappedConfiguration.GetId(entity);
+            for (var j = 0; j < count; j++)
+            {
+                yield return id;
+            }
+        }
+
         /// <summary>
         /// Performs Dillinger and Manolios double hashing. 
         /// </summary>

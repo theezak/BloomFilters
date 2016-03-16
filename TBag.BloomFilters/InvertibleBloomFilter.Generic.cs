@@ -93,7 +93,7 @@
         #endregion
 
         #region Implementation of Bloom Filter public contract
-
+       
         /// <summary>
         /// Add an item to the Bloom filter.
         /// </summary>
@@ -102,10 +102,7 @@
         {
             var id = Configuration.GetId(item);
             var hashValue = Configuration.EntityHashes(item, 1).First();
-            foreach (var position in Configuration
-                .IdHashes(id, _data.HashFunctionCount)
-                .Select(p => Math.Abs(p % _data.Counts.LongLength))
-                )
+            foreach (var position in Probe(id))
             {
                 _data.Add(Configuration, id, hashValue, position);
             }
@@ -145,9 +142,7 @@
         {
             var id = Configuration.GetId(item);
             var hashValue = Configuration.EntityHashes(item, 1).First();
-            foreach (var position in Configuration
-                .IdHashes(id, _data.HashFunctionCount)
-                .Select(p => Math.Abs(p % _data.Counts.LongLength)))
+            foreach (var position in Probe(id))
             {
                 _data.Remove(Configuration, id, hashValue, position);
             }
@@ -164,9 +159,7 @@
             var id = Configuration.GetId(item);
             var hashValue = Configuration.EntityHashes(item, 1).First();
             var countIdentity = Configuration.CountIdentity();
-            foreach (var position in Configuration
-                .IdHashes(id, _data.HashFunctionCount)
-                .Select(p => Math.Abs(p % _data.Counts.LongLength)))
+            foreach (var position in Probe(id))
             {
                 if (Configuration.IsPure(_data, position) &&
                     (!Configuration.IdEqualityComparer.Equals(_data.IdSums[position], id) ||
@@ -174,7 +167,7 @@
                 {
                     return false;
                 }
-                else if (Configuration.CountEqualityComparer.Equals(_data.Counts[position], countIdentity))
+                if (Configuration.CountEqualityComparer.Equals(_data.Counts[position], countIdentity))
                 {
                     return false;
                 }
@@ -190,16 +183,14 @@
         public virtual bool ContainsKey(TId key)
         {
             var countIdentity = Configuration.CountIdentity();
-            foreach (var position in Configuration
-                .IdHashes(key, _data.HashFunctionCount)
-                .Select(p => Math.Abs(p % _data.Counts.LongLength)))
+            foreach (var position in Probe(key))
             {
                 if (Configuration.IsPure(_data, position) &&
                     !Configuration.IdEqualityComparer.Equals(_data.IdSums[position], key))
                 {
                     return false;
                 }
-                else if (Configuration.CountEqualityComparer.Equals(_data.Counts[position], countIdentity))
+                if (Configuration.CountEqualityComparer.Equals(_data.Counts[position], countIdentity))
                 {
                     return false;
                 }
@@ -239,6 +230,20 @@
             return _data.SubtractAndDecode(filter, Configuration, listA, listB, modifiedEntities);
         }
 
+        #endregion
+
+        #region Methods
+        /// <summary>
+        /// Generate the sequence of cell locations to hash the given key to.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        private IEnumerable<long> Probe(TId key)
+        {
+            return Configuration
+                .IdHashes(key, _data.HashFunctionCount)
+                .Select(p => Math.Abs(p % _data.Counts.LongLength));
+        }
         #endregion
     }
 }

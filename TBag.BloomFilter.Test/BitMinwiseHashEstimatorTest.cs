@@ -2,7 +2,7 @@
 {
      using Microsoft.VisualStudio.TestTools.UnitTesting;
     using System.Linq;
-    using TBag.BloomFilters.Estimators;
+    using BloomFilters.Estimators;
 
     /// <summary>
     /// Summary description for BitMinwiseHashEstimatorTest
@@ -10,13 +10,6 @@
     [TestClass]
     public class BitMinwiseHashEstimatorTest
     {
-        public BitMinwiseHashEstimatorTest()
-        {
-            //
-            // TODO: Add constructor logic here
-            //
-        }
-
         /// <summary>
         /// Add items and estimate a difference utilizing a b-bit minwise estimator.
         /// </summary>
