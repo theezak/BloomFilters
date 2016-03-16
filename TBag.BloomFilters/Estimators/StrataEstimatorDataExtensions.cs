@@ -23,6 +23,7 @@
         public static ulong Decode<TEntity,TId,TCount>(this IStrataEstimatorData<int,TCount> data, 
             IStrataEstimatorData<int,TCount> otherEstimatorData,
             IBloomFilterConfiguration<TEntity,TId,int,int,TCount> configuration,
+            long? maxDifference = null,
             bool destructive = false)
             where TId :struct
             where TCount : struct
@@ -31,6 +32,8 @@
             var strataConfig = configuration.ConvertToEntityHashId();
             if (data == null) return (ulong)otherEstimatorData.Capacity;
             if (otherEstimatorData == null) return (ulong)data.Capacity;
+            //the difference already seen between the two sets.
+            var hasDecoded = false;
             var setA = new HashSet<int>();
             for (int i = data.BloomFilters.Length - 1; i >= 0; i--)
             {
@@ -39,14 +42,19 @@
                 if (ibf == null && estimatorIbf == null) continue;
                 if (ibf == null || estimatorIbf == null)
                 {
-                    return (ulong)(Math.Pow(2, i + 1) * data.DecodeCountFactor * Math.Max(setA.Count, 1));
+
+                    if (!hasDecoded) return (ulong)(maxDifference ?? 1L);
+                    return (ulong)(Math.Pow(2, i + 1) * data.DecodeCountFactor * setA.Count);
                 }
                 if (!ibf.SubtractAndDecode(estimatorIbf, strataConfig, setA, setA, setA, destructive))
                 {
-                    return (ulong)(Math.Pow(2, i + 1) * data.DecodeCountFactor * Math.Max(setA.Count, 1));
+                    if (!hasDecoded) return (ulong)(maxDifference ?? 1L);
+                    return (ulong)(Math.Pow(2, i + 1) * data.DecodeCountFactor * setA.Count);
                 }
+                hasDecoded = true;
             }
-           return (ulong)(Math.Max(data.DecodeCountFactor, otherEstimatorData.DecodeCountFactor) * setA.LongCount());
+            if (!hasDecoded) return (ulong)(maxDifference ?? 1L);
+            return (ulong)(Math.Max(data.DecodeCountFactor, otherEstimatorData.DecodeCountFactor) * setA.Count);
         }
     }
 }

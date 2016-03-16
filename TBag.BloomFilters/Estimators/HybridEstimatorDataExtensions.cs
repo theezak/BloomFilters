@@ -26,14 +26,16 @@
             where TId : struct
         {
             if (estimator == null && otherEstimatorData == null) return 0L;
-            if (estimator == null) return (ulong)otherEstimatorData.Capacity;
-            if (otherEstimatorData == null) return (ulong)estimator.Capacity;
+            if (estimator == null) return (ulong)otherEstimatorData.CountEstimate;
+            if (otherEstimatorData == null) return (ulong)estimator.CountEstimate;
             var decodeFactor = Math.Max(estimator.StrataEstimator?.DecodeCountFactor ?? 1.0D,
                 otherEstimatorData.StrataEstimator?.DecodeCountFactor ?? 1.0D);
-            return estimator.StrataEstimator.Decode(otherEstimatorData.StrataEstimator, configuration, destructive) +
-                (ulong)(decodeFactor * (estimator.BitMinwiseEstimator.Capacity - 
+            var maxDifference = otherEstimatorData.CountEstimate + estimator.CountEstimate;
+            var strataDecode = estimator.StrataEstimator.Decode(otherEstimatorData.StrataEstimator, configuration, maxDifference, destructive);
+            var minwiseDecode = (ulong)(decodeFactor * (estimator.BitMinwiseEstimator.Capacity - 
                     (estimator.BitMinwiseEstimator.Similarity(otherEstimatorData.BitMinwiseEstimator) * 
                         estimator.BitMinwiseEstimator.Capacity)));
+            return strataDecode + minwiseDecode;
         }
     }
 }

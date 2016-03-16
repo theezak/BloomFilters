@@ -101,7 +101,7 @@ namespace TBag.BloomFilters.Estimators
             bool destructive = false)
         {
             return Extract()
-                .Decode(estimator, Configuration, destructive);
+                .Decode(estimator, Configuration, null, destructive);
         }
 
         /// <summary>
