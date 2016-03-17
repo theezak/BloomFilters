@@ -65,7 +65,7 @@
                     .ToInt32(
                         _xxHash.Hash(
                             BitConverter.GetBytes(id),
-                            unchecked((uint) (murmurHash%(uint.MaxValue - 1)))),
+                            unchecked((uint) (murmurHash))),
                         0);
                 return ComputeHash(
                     murmurHash,
@@ -255,7 +255,7 @@
             uint hashFunctionCount,
             int seed = 0)
         {
-            for (long j = seed; j < hashFunctionCount; j++)
+            for (long j = seed; j < hashFunctionCount+seed; j++)
             {
                 yield return unchecked((int)Math.Abs(primaryHash + j * secondaryHash));
             }

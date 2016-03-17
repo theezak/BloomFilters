@@ -25,10 +25,11 @@
             where TId : struct
         {
             byte strata = 7;
-            var capacity = 40L;
+            //lower capacities (as low as 40) work well for smaller differences counts.
+            var capacity = 80L;
             byte hashFunctionCount = 3;
             float errorRate = 0.001F;
-            if (failedDecodeCount > 1)
+            if (failedDecodeCount >= 1)
             {
                 capacity = capacity * failedDecodeCount;
                 hashFunctionCount = 4;
@@ -38,8 +39,8 @@
                 errorRate = 0.0001F;
             }
             if (setSize < 10000L &&
-                failedDecodeCount >= 4 &&
-                failedDecodeCount <= 6)
+                failedDecodeCount >= 3 &&
+                failedDecodeCount <= 5)
             {
                 strata = 3;
             }
@@ -58,17 +59,16 @@
                 strata = 13;
             }
             var result = new HybridEstimator<TEntity, TId, TCount>(
-                capacity, 
-                2, 
-                10, 
-                setSize, 
+                capacity,
+                2,
+                10,
+                setSize,
                 strata,
                 errorRate,
                 configuration,
                 hashFunctionCount)
-            {
-                DecodeCountFactor = Math.Pow(2, failedDecodeCount)
-            };
+            { };
+            result.DecodeCountFactor *= Math.Pow(2, failedDecodeCount);
             return result;
         }
 

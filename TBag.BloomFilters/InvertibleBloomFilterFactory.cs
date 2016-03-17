@@ -70,6 +70,39 @@
         }
 
         /// <summary>
+        /// Create an invertible Bloom filter that is sized for the set size determined by the estimators <paramref name="estimator"/> and <paramref name="otherEstimator"/>.
+        /// </summary>
+        /// <typeparam name="TEntity">The type of the entity</typeparam>
+        /// <typeparam name="TId">The type of the entity identifier</typeparam>
+        /// <param name="bloomFilterConfiguration">The Bloom filter configuration</param>
+        /// <param name="errorRate">The desired error rate for the Bloom flter (between 0 and 1)</param>
+        /// <param name="hashFunctionCount">Optional hash function count.</param>
+        /// <param name="destructive">When <c>true</c> the estimator <paramref name="estimator"/> will be destroyed by this operation, else <c>false</c>.</param>
+        /// <returns></returns>
+        public IInvertibleBloomFilter<TEntity, TId, sbyte> CreateFilter<TEntity, TId>(
+            IBloomFilterConfiguration<TEntity, TId, int, int, sbyte> bloomFilterConfiguration,
+           long estimate,
+            float? errorRate = null,
+            uint? hashFunctionCount = null,
+            bool destructive = false)
+            where TId : struct
+        {
+            estimate = Math.Max(1, estimate);
+            errorRate = errorRate ?? 0.001F;
+            hashFunctionCount = hashFunctionCount ?? bloomFilterConfiguration.BestHashFunctionCount(estimate, errorRate.Value);
+            if (estimate < 200 && hashFunctionCount.Value < 4)
+            {
+                hashFunctionCount = 4;
+            }
+            else if (estimate >= 200 && hashFunctionCount.Value < 3)
+            {
+                hashFunctionCount = 3;
+            }
+            var size = bloomFilterConfiguration.BestCompressedSize(estimate, errorRate.Value);
+            return new InvertibleReverseBloomFilter<TEntity, TId, sbyte>(estimate, size, hashFunctionCount.Value, bloomFilterConfiguration);
+        }
+
+        /// <summary>
         /// Create an invertible Bloom filter that is compatible with the given bloom filter data.
         /// </summary>
         /// <typeparam name="TEntity">The type of the entity</typeparam>

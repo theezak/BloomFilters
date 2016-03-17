@@ -58,7 +58,10 @@
                 bitSize, 
                 minWiseHashCount, 
                 Math.Max((uint)(_setSize * (1 - inStrata / max)), 1));
-            DecodeCountFactor = _capacity >= 20 ? 1.45D : 1.0D;
+            if (DecodeCountFactor > 1.0D)
+            {
+                DecodeCountFactor = 1.45D;
+            }
         }
         #endregion
 
@@ -149,10 +152,10 @@
         /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns>An estimate of the number of differences between the two sets that the estimators are based upon.</returns>
 
-        public ulong Decode(IHybridEstimator<TEntity, int, TCount> estimator,
+        public long Decode(IHybridEstimator<TEntity, int, TCount> estimator,
             bool destructive = false)
          {
-             if (estimator == null) return (ulong)_capacity;
+             if (estimator == null) return _capacity;
             return Decode(estimator.Extract(), destructive);
         }
 
@@ -162,10 +165,10 @@
         /// <param name="estimator">The estimator for the other set.</param>
         /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns>An estimate of the number of differences between the two sets that the estimators are based upon.</returns>
-        public ulong Decode(IHybridEstimatorData<int, TCount> estimator,
+        public long Decode(IHybridEstimatorData<int, TCount> estimator,
             bool destructive = false)
         {
-            if (estimator == null) return (ulong)_setSize;
+            if (estimator == null) return _setSize;
             return ((IHybridEstimator<TEntity, int, TCount>) this)
                 .Extract()
                 .Decode(estimator, Configuration);

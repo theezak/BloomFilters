@@ -61,6 +61,7 @@
     <Compile Include="Actor.cs" />
     <Compile Include="DecodePerformanceTest.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="SmallBloomFilterConfiguration.cs" />
     <Compile Include="LargeBloomFilterConfiguration.cs" />
     <Compile Include="HybridEstimatorTest.cs" />
     <Compile Include="BitMinwiseHashEstimatorTest.cs" />

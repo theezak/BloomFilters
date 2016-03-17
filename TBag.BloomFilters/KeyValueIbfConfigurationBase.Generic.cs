@@ -33,20 +33,16 @@
         private EqualityComparer<int> _hashEqualityComparer;
         private EqualityComparer<int> _entityHashEqualityComparer;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         protected KeyValueIbfConfigurationBase(bool createValueFilter = true)
         {
             if (createValueFilter)
             {
                 ValueFilterConfiguration = this.ConvertToValueHash();
             }
-        }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        protected KeyValueIbfConfigurationBase()
-        {
-             _getId = GetIdImpl;
+            _getId = GetIdImpl;
             _getEntityHash = GetEntityHashImpl;
             _idHashes = (id, hashCount) =>
             {
@@ -62,7 +58,7 @@
                 .ToInt32(
                     _xxHash.Hash(
                         BitConverter.GetBytes(id),
-                        unchecked((uint)(murmurHash % (uint.MaxValue - 1)))),
+                        unchecked((uint)(murmurHash))),
                     0);
                 return ComputeHash(
                     murmurHash,
@@ -83,14 +79,14 @@
             };
             _isPure = (d, p) => IsPureCount(d.Counts[p]);
             _idXor = (id1, id2) => id1 ^ id2;
-            _entityHashIdentity = ()=> 0;
+            _entityHashIdentity = () => 0;
             _idIdentity = () => 0L;
             _entityHashXor = (h1, h2) => h1 ^ h2;
             _countUnity = () => 1;
             _isPureCount = c => Math.Abs(c) == 1;
             _countIdentity = () => 0;
-            _countDecrease = c => (sbyte)(c-1);
-            _countIncrease = c => (sbyte)(c+1);
+            _countDecrease = c => (sbyte)(c - 1);
+            _countIncrease = c => (sbyte)(c + 1);
             _countSubtract = (c1, c2) => (sbyte)(c1 - c2);
             _countEqualityComparer = EqualityComparer<sbyte>.Default;
             _idEqualityComparer = EqualityComparer<long>.Default;
@@ -259,7 +255,7 @@
             uint hashFunctionCount,
             int seed = 0)
         {
-            for (long j = seed; j < hashFunctionCount; j++)
+            for (long j = seed; j < hashFunctionCount+seed; j++)
             {
                 yield return unchecked((int)(primaryHash + j * secondaryHash));
             }

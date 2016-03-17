@@ -27,7 +27,7 @@
         /// <param name="estimator"></param>
         /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns>Estimated difference as the number of elements.</returns>
-        ulong Decode(IStrataEstimator<TEntity, TId, TCount> estimator,
+        long Decode(IStrataEstimator<TEntity, TId, TCount> estimator,
             bool destructive = false);
 
         /// <summary>
@@ -36,7 +36,7 @@
         /// <param name="estimator"></param>
         /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns>Estimated difference as the number of elements.</returns>
-        ulong Decode(IStrataEstimatorData<TId, TCount> estimator,
+        long Decode(IStrataEstimatorData<TId, TCount> estimator,
             bool destructive = false);
 
         /// <summary>

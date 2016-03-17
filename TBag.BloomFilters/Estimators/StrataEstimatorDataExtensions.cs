@@ -20,7 +20,7 @@
         /// <param name="maxDifference">The maximum number of items in the difference (usually the sum of the set sizes)</param>
         /// <param name="destructive">When <c>true</c> the <paramref name="data"/> will be altered and no longer usable, else <c>false</c></param>
         /// <returns></returns>
-        public static ulong Decode<TEntity,TId,TCount>(this IStrataEstimatorData<int,TCount> data, 
+        public static long Decode<TEntity,TId,TCount>(this IStrataEstimatorData<int,TCount> data, 
             IStrataEstimatorData<int,TCount> otherEstimatorData,
             IBloomFilterConfiguration<TEntity,TId,int,int,TCount> configuration,
             long? maxDifference = null,
@@ -30,8 +30,8 @@
         {
             if (data == null && otherEstimatorData == null) return 0L;
             var strataConfig = configuration.ConvertToEntityHashId();
-            if (data == null) return (ulong)otherEstimatorData.Capacity;
-            if (otherEstimatorData == null) return (ulong)data.Capacity;
+            if (data == null) return otherEstimatorData.Capacity;
+            if (otherEstimatorData == null) return data.Capacity;
             //the difference already seen between the two sets.
             var hasDecoded = false;
             var setA = new HashSet<int>();
@@ -43,18 +43,18 @@
                 if (ibf == null || estimatorIbf == null)
                 {
 
-                    if (!hasDecoded) return (ulong)(maxDifference ?? 1L);
-                    return (ulong)(Math.Pow(2, i + 1) * data.DecodeCountFactor * setA.Count);
+                    if (!hasDecoded) return maxDifference ?? 1L;
+                    return (long)(Math.Pow(2, i + 1) * data.DecodeCountFactor * setA.Count);
                 }
                 if (!ibf.SubtractAndDecode(estimatorIbf, strataConfig, setA, setA, setA, destructive))
                 {
-                    if (!hasDecoded) return (ulong)(maxDifference ?? 1L);
-                    return (ulong)(Math.Pow(2, i + 1) * data.DecodeCountFactor * setA.Count);
+                    if (!hasDecoded && setA.Count == 0) return (maxDifference ?? 1L);
+                    return (long)(Math.Pow(2, i + 1) * data.DecodeCountFactor * setA.Count);
                 }
                 hasDecoded = true;
             }
-            if (!hasDecoded) return (ulong)(maxDifference ?? 1L);
-            return (ulong)(Math.Max(data.DecodeCountFactor, otherEstimatorData.DecodeCountFactor) * setA.Count);
+            if (!hasDecoded) return maxDifference ?? 1L;
+            return (long)(Math.Max(data.DecodeCountFactor, otherEstimatorData.DecodeCountFactor) * setA.Count);
         }
     }
 }

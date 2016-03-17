@@ -66,7 +66,7 @@ namespace TBag.BloomFilters.Estimators
             Configuration = configuration;
             _errorRate = errorRate;
             _size = configuration.BestCompressedSize(capacity, errorRate);
-            DecodeCountFactor = _capacity >= 20 ? 1.39D : 1.0D;
+            DecodeCountFactor = _capacity >= 80 ? 1.39D : 1.0D;
         }
         #endregion
 
@@ -139,7 +139,7 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="estimator">Estimator data to subtract.</param>
         /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns></returns>
-        public virtual ulong Decode(IStrataEstimatorData<int, TCount> estimator,
+        public virtual long Decode(IStrataEstimatorData<int, TCount> estimator,
             bool destructive = false)
         {
             return Extract()
@@ -152,7 +152,7 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="estimator">Other estimator.</param>
         /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns></returns>
-        public virtual ulong Decode(IStrataEstimator<TEntity, int, TCount> estimator,
+        public virtual long Decode(IStrataEstimator<TEntity, int, TCount> estimator,
             bool destructive = false)
         {
             return Decode(estimator.Extract(), destructive);
