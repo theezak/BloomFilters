@@ -32,6 +32,7 @@ namespace TBag.BloomFilters
         /// <param name="estimator"></param>
         /// <param name="otherEstimator"></param>
         /// <param name="errorRate"></param>
+        /// <param name="hashFunctionCount">Optional hash function count</param>
         /// <param name="destructive"></param>
         /// <returns></returns>
         /// <remarks>Estimators will utilize Bloom filters with a capacity set to the estimated number of differences, but then add the whole set. This results in much higher count values than a Bloom filter with a capacity equal to the set size would deal with.</remarks>
@@ -40,6 +41,7 @@ namespace TBag.BloomFilters
             IHybridEstimatorData<int, int> estimator,
             IHybridEstimatorData<int, int> otherEstimator,
             float? errorRate = null,
+            uint? hashFunctionCount = null,
             bool destructive = false)
             where TId : struct;
 

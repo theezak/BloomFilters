@@ -25,12 +25,16 @@
             where TId : struct
         {
             byte strata = 7;
-            var capacity = 80L;
-            byte hashFunctionCount = 4;
+            var capacity = 40L;
+            byte hashFunctionCount = 3;
             float errorRate = 0.001F;
-            if (failedDecodeCount > 2)
+            if (failedDecodeCount > 1)
             {
                 capacity = capacity * failedDecodeCount;
+                hashFunctionCount = 4;
+            }
+            if (failedDecodeCount > 2)
+            {
                 errorRate = 0.0001F;
             }
             if (setSize < 10000L &&

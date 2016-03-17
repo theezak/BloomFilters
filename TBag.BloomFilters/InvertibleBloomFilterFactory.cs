@@ -42,6 +42,7 @@
         /// <param name="estimator">An estimator</param>
         /// <param name="otherEstimator">An estimator</param>
         /// <param name="errorRate">The desired error rate for the Bloom flter (between 0 and 1)</param>
+        /// <param name="hashFunctionCount">Optional hash function count.</param>
         /// <param name="destructive">When <c>true</c> the estimator <paramref name="estimator"/> will be destroyed by this operation, else <c>false</c>.</param>
         /// <returns></returns>
         public IInvertibleBloomFilter<TEntity, TId, int> CreateHighUtilizationFilter<TEntity, TId>(
@@ -49,15 +50,15 @@
             IHybridEstimatorData<int, int> estimator,
             IHybridEstimatorData<int, int> otherEstimator,
             float? errorRate = null,
+            uint? hashFunctionCount = null,
             bool destructive = false)
             where TId : struct
         {
+            errorRate = errorRate ?? 0.001F;
             var estimate = (long)Math.Max(1, estimator.Decode(otherEstimator, bloomFilterConfiguration, destructive));
-            uint hashFunctionCount = (uint)(estimate < 200 ? 3 : 4);
-            var size = bloomFilterConfiguration.BestCompressedSize(
-                estimate,
-                errorRate ?? 0.001F);
-            return new InvertibleReverseBloomFilter<TEntity, TId, int>(estimate, size, hashFunctionCount, bloomFilterConfiguration);
+            hashFunctionCount = hashFunctionCount ?? bloomFilterConfiguration.BestHashFunctionCount(estimate, errorRate.Value);
+            var size = bloomFilterConfiguration.BestCompressedSize(estimate, errorRate.Value);
+            return new InvertibleReverseBloomFilter<TEntity, TId, int>(estimate, size, hashFunctionCount.Value, bloomFilterConfiguration);
         }
 
         /// <summary>
