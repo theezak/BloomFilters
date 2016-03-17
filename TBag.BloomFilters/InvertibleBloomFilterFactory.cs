@@ -57,6 +57,14 @@
             errorRate = errorRate ?? 0.001F;
             var estimate = (long)Math.Max(1, estimator.Decode(otherEstimator, bloomFilterConfiguration, destructive));
             hashFunctionCount = hashFunctionCount ?? bloomFilterConfiguration.BestHashFunctionCount(estimate, errorRate.Value);
+            if (estimate < 200 && hashFunctionCount.Value < 4)
+            {
+                hashFunctionCount = 4;
+            }
+            else if (estimate >= 200 && hashFunctionCount.Value < 3)
+            {
+                hashFunctionCount = 3;
+            }
             var size = bloomFilterConfiguration.BestCompressedSize(estimate, errorRate.Value);
             return new InvertibleReverseBloomFilter<TEntity, TId, int>(estimate, size, hashFunctionCount.Value, bloomFilterConfiguration);
         }
