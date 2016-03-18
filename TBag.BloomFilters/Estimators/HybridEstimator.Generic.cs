@@ -30,22 +30,16 @@
         /// <param name="minWiseHashCount">number of hash functions for the bit minwise estimator</param>
         /// <param name="setSize">Estimated maximum set size for the bit minwise estimator (capacity)</param>
         /// <param name="maxStrata">Maximum strate for the strata estimator.</param>
-        /// <param name="errorRate">Desired error rate for the IBF</param>
         /// <param name="configuration">The configuration</param>
-        /// <param name="ibfHashCount">Optional hash function count for the IBF</param>
         public HybridEstimator(
             long capacity,
             byte bitSize,
             int minWiseHashCount,
             long setSize,
             byte maxStrata,
-            float errorRate,
-            IBloomFilterConfiguration<TEntity, TId, int, int, TCount> configuration,
-            uint? ibfHashCount = null) : base(
+            IBloomFilterConfiguration<TEntity, TId, int, int, TCount> configuration) : base(
                 capacity, 
-                errorRate,
-                configuration.ConvertToEntityHashId(),
-                ibfHashCount)        
+                configuration.ConvertToEntityHashId())        
         {
             _capacity = capacity;
             _maxStrata = maxStrata;
@@ -58,10 +52,7 @@
                 bitSize, 
                 minWiseHashCount, 
                 Math.Max((uint)(_setSize * (1 - inStrata / max)), 1));
-            if (DecodeCountFactor > 1.0D)
-            {
-                DecodeCountFactor = 1.45D;
-            }
+            DecodeCountFactor = _capacity >= 20 ? 1.45D : 1.0D;
         }
         #endregion
 
@@ -152,7 +143,7 @@
         /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns>An estimate of the number of differences between the two sets that the estimators are based upon.</returns>
 
-        public long Decode(IHybridEstimator<TEntity, int, TCount> estimator,
+        public long? Decode(IHybridEstimator<TEntity, int, TCount> estimator,
             bool destructive = false)
          {
              if (estimator == null) return _capacity;
@@ -165,7 +156,7 @@
         /// <param name="estimator">The estimator for the other set.</param>
         /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns>An estimate of the number of differences between the two sets that the estimators are based upon.</returns>
-        public long Decode(IHybridEstimatorData<int, TCount> estimator,
+        public long? Decode(IHybridEstimatorData<int, TCount> estimator,
             bool destructive = false)
         {
             if (estimator == null) return _setSize;

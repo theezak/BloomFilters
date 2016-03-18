@@ -66,7 +66,7 @@ namespace TBag.BloomFilters
                 .ToInt32(
                     _xxHash.Hash(
                         BitConverter.GetBytes(id),
-                        unchecked((uint)(murmurHash))),
+                        unchecked((uint)(murmurHash % (uint.MaxValue - 1)))),
                     0);
                 return ComputeHash(
                     murmurHash,
@@ -125,7 +125,7 @@ namespace TBag.BloomFilters
             uint hashFunctionCount,
             int seed = 0)
         {
-            for (long j = seed; j < hashFunctionCount+seed; j++)
+            for (long j = seed; j < hashFunctionCount; j++)
             {
                 yield return unchecked((int)(primaryHash + j * secondaryHash));
             }

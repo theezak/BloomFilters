@@ -26,7 +26,7 @@
                 bloomFilterFactory,
                 configuration);
             var dataSet2 = DataGenerator.Generate().Take(100000).ToList();
-            dataSet2.Modify(500);
+            dataSet2.Modify(100000);
             var actor2 = new Actor(
                 dataSet2,
                 estimatorFactory,

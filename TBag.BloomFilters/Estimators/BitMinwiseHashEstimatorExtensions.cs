@@ -44,30 +44,47 @@
         /// <param name="numHashFunctions">The number of hash functions to use</param>
         /// <param name="bitSize">The number of bits for a single cell</param>
         /// <returns></returns>
+        /// <remarks>Handles differences in size between the bit arrays although that is not ideal and will magnify any differences.</remarks>
         private static double ComputeSimilarityFromSignatures(
             BitArray minHashValues1, 
             BitArray minHashValues2,
             int numHashFunctions, 
             byte bitSize)
         {
-            uint identicalMinHashes = 0;
-            var unions = (long) numHashFunctions;
-            if (minHashValues1 == null || minHashValues2 == null) return 1.0D*identicalMinHashes/unions;
+            if (minHashValues1 == null || 
+                minHashValues2 == null ||
+                numHashFunctions <= 0 ||
+                bitSize == 0) return 0.0D;
+            if (minHashValues1.Length > minHashValues2.Length)
+            {
+                //swap to ensure minHashValues1 is the smallest.
+                var swap = minHashValues1;
+                minHashValues1 = minHashValues2;
+                minHashValues2 = swap;
+            }
+             uint identicalMinHashes = 0;
             var bitRange = Enumerable.Range(0, bitSize).ToArray();
+            var blockSizeinBits1 = (minHashValues1.Length/numHashFunctions) * bitSize;
             var minHash1Length = minHashValues1.Length/bitSize;
-            var minHash2Length = minHashValues2.Length/bitSize;
-            var minCount = Math.Min(minHash1Length, minHash2Length);
-            var idx = 0;
-            for (int i = 0; i < minCount; i++)
+             var sizeDiffInBitsPerBlock =  bitSize*((minHashValues2.Length - minHashValues1.Length)/numHashFunctions);
+            var idx1 = 0;
+            var idx2 = 0;
+            for (var i = 0; i < minHash1Length; i++)
             {
                 if (bitRange
-                    .All(b => minHashValues1.Get(idx + b) == minHashValues2.Get(idx + b)))
+                    .All(b => minHashValues1.Get(idx1 + b) == minHashValues2.Get(idx2 + b)))
                 {
                     identicalMinHashes++;
                 }
-                idx += bitSize;
+                idx1 += bitSize;
+                idx2 += bitSize;
+                if (sizeDiffInBitsPerBlock > 0 &&
+                    idx1 % blockSizeinBits1 == 0)
+                {
+                    idx2 += sizeDiffInBitsPerBlock;
+                }
             }
-            return 1.0D*identicalMinHashes / Math.Max(minHash1Length, minHash2Length);
+             return identicalMinHashes / (1.0D * minHashValues2.Length / bitSize);
         }
     }
 }

@@ -36,9 +36,8 @@
             _getId = e => BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(_wrappedConfiguration.EntityHashes(e, 1).First()), 12345678), 0);
             _idXor = (id1, id2) => id1 ^ id2;
             //utilizing the fact that the hash sum and id sum should actually be the same, since they are both the first entity hash.
-            //This makes the IBF for the strata estimator behave as a standard IBF. 
-            _isPure = (d, p) => IsPureCount(d.Counts[p]) && 
-                BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(d.HashSums[p]), 12345678), 0) == d.IdSums[p];
+            //This makes the IBF for the strata estimator behave as a standard IBF, but makes it also more selective (decode errors, which are likely, causes it to lower the count)
+            _isPure = (d, p) => IsPureCount(d.Counts[p]);// && BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(d.HashSums[p]), 12345678), 0) == d.IdSums[p];
             _idHashes = (id, hashCount) =>
             {
                 //generate the given number of hashes.
@@ -47,7 +46,7 @@
                 var hash2 = BitConverter
             .ToInt32(_xxHash.Hash(
                     BitConverter.GetBytes(id),
-                    unchecked((uint)(murmurHash))),
+                    unchecked((uint)(murmurHash % (uint.MaxValue - 1)))),
                 0);
                 return ComputeHash(
                     murmurHash,
@@ -162,7 +161,7 @@
             uint hashFunctionCount,
             int seed = 0)
         {
-            for (long j = seed; j < hashFunctionCount+seed; j++)
+            for (long j = seed; j < hashFunctionCount; j++)
             {
                 yield return unchecked((int)(primaryHash + j * secondaryHash));
             }

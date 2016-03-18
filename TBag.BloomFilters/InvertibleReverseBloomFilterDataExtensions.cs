@@ -1,10 +1,9 @@
-﻿using System.Diagnostics.Contracts;
-
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Diagnostics.Contracts;
 
     /// <summary>
     /// Extensions specific to the RIBF.
@@ -171,16 +170,14 @@ namespace TBag.BloomFilters
                         pureList.Push(position);
                     }
                 }
-                if (!isModified)
+                if (isModified) continue;
+                if (negCount)
                 {
-                    if (negCount)
-                    {
-                        listB.Add(hashSum);
-                    }
-                    else
-                    {
-                        listA.Add(hashSum);
-                    }
+                    listB.Add(hashSum);
+                }
+                else
+                {
+                    listA.Add(hashSum);
                 }
             }
             modifiedEntities.MoveModified(listA, listB);

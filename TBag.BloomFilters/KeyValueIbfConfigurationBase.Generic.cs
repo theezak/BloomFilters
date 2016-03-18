@@ -32,10 +32,11 @@
         private EqualityComparer<long> _idEqualityComparer;
         private EqualityComparer<int> _hashEqualityComparer;
         private EqualityComparer<int> _entityHashEqualityComparer;
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
+       
+       /// <summary>
+       /// Constructor
+       /// </summary>
+       /// <param name="createValueFilter">When <c>true</c> a configuration for the RIBF is created as well.</param>
         protected KeyValueIbfConfigurationBase(bool createValueFilter = true)
         {
             if (createValueFilter)
@@ -58,7 +59,7 @@
                 .ToInt32(
                     _xxHash.Hash(
                         BitConverter.GetBytes(id),
-                        unchecked((uint)(murmurHash))),
+                        unchecked((uint)(murmurHash % (uint.MaxValue - 1)))),
                     0);
                 return ComputeHash(
                     murmurHash,
@@ -79,14 +80,14 @@
             };
             _isPure = (d, p) => IsPureCount(d.Counts[p]);
             _idXor = (id1, id2) => id1 ^ id2;
-            _entityHashIdentity = () => 0;
+            _entityHashIdentity = ()=> 0;
             _idIdentity = () => 0L;
             _entityHashXor = (h1, h2) => h1 ^ h2;
             _countUnity = () => 1;
             _isPureCount = c => Math.Abs(c) == 1;
             _countIdentity = () => 0;
-            _countDecrease = c => (sbyte)(c - 1);
-            _countIncrease = c => (sbyte)(c + 1);
+            _countDecrease = c => (sbyte)(c-1);
+            _countIncrease = c => (sbyte)(c+1);
             _countSubtract = (c1, c2) => (sbyte)(c1 - c2);
             _countEqualityComparer = EqualityComparer<sbyte>.Default;
             _idEqualityComparer = EqualityComparer<long>.Default;
@@ -255,7 +256,7 @@
             uint hashFunctionCount,
             int seed = 0)
         {
-            for (long j = seed; j < hashFunctionCount+seed; j++)
+            for (long j = seed; j < hashFunctionCount; j++)
             {
                 yield return unchecked((int)(primaryHash + j * secondaryHash));
             }

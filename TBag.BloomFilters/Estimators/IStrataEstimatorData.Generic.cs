@@ -23,15 +23,5 @@
         /// The decode count factor.
         /// </summary>
         double DecodeCountFactor { get; set; }
-
-        /// <summary>
-        /// The desired error rate for the IBF
-        /// </summary>
-        float ErrorRate { get; set; }
-
-        /// <summary>
-        /// The number of hash functions to use.
-        /// </summary>
-        uint HashFunctionCount { get; set; }
     }
 }

@@ -269,7 +269,7 @@
             uint hashFunctionCount,
             int seed = 0)
         {
-            for (long j = seed; j < hashFunctionCount+seed; j++)
+            for (long j = seed; j < hashFunctionCount; j++)
             {
                 yield return unchecked((int) (primaryHash + j*secondaryHash));
             }

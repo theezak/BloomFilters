@@ -18,7 +18,6 @@
         private readonly IHybridEstimatorFactory _hybridEstimatorFactory;
         private readonly IBloomFilterConfiguration<TestEntity, long, int, int, int> _configuration;
         private readonly IInvertibleBloomFilterFactory _bloomFilterFactory;
-        private readonly IBloomFilterConfiguration<TestEntity, long, int, int, sbyte> _smallConfiguration;
 
         /// <summary>
         /// Constructor
@@ -38,7 +37,6 @@
             _hybridEstimatorFactory = hybridEstimatorFactory;
             _bloomFilterFactory = bloomFilterFactory;
             _configuration = configuration;
-            _smallConfiguration = new SmallBloomFilterConfiguration();
         }
 
         /// <summary>
@@ -58,7 +56,12 @@
                 estimator.Add(item);
             }
             var estimate = estimator.Extract().Decode(otherEstimator, _configuration);
-             var filter = _bloomFilterFactory.CreateFilter(_smallConfiguration, (long)estimate);
+            if (estimate==null)
+            {
+                //TODO: add communication step to create a new estimator.
+                estimate = Math.Max(estimator.Extract().CountEstimate, otherEstimator.CountEstimate);
+            }
+             var filter = _bloomFilterFactory.CreateHighUtilizationFilter(_configuration, estimate.Value);
             foreach (var item in _dataSet)
             {
                 filter.Add(item);

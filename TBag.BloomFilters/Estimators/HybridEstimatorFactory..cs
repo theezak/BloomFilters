@@ -25,50 +25,42 @@
             where TId : struct
         {
             byte strata = 7;
-            //lower capacities (as low as 40) work well for smaller differences counts.
             var capacity = 80L;
-            byte hashFunctionCount = 3;
-            float errorRate = 0.001F;
-            if (failedDecodeCount >= 1)
-            {
-                capacity = capacity * failedDecodeCount;
-                hashFunctionCount = 4;
-            }
+            byte bitSize = 2;
+            var minwiseHashCount = 20;
             if (failedDecodeCount > 2)
             {
-                errorRate = 0.0001F;
-            }
-            if (setSize < 10000L &&
-                failedDecodeCount >= 3 &&
-                failedDecodeCount <= 5)
-            {
-                strata = 3;
-            }
+                capacity = capacity * failedDecodeCount;
+                bitSize = 3;
+                strata = 13;
+                minwiseHashCount = 40;
+            }           
             if (setSize >= 10000L)
             {
-                capacity *= 2L;
-                if (capacity > 250 &&
-                    failedDecodeCount > 2)
+                strata = 9;
+                capacity *= 4L;
+                if (capacity > 400 &&
+                    failedDecodeCount > 1)
                 {
                     strata = 13;
                 }
             }
-            if (setSize > 500000L &&
-                failedDecodeCount > 1)
+            if (setSize > 50000L)
             {
                 strata = 13;
+                capacity *= 4L;
+                minwiseHashCount = 40;
             }
             var result = new HybridEstimator<TEntity, TId, TCount>(
-                capacity,
-                2,
-                10,
-                setSize,
+                capacity, 
+                bitSize, 
+                minwiseHashCount, 
+                setSize, 
                 strata,
-                errorRate,
-                configuration,
-                hashFunctionCount)
-            { };
-            result.DecodeCountFactor *= Math.Pow(2, failedDecodeCount);
+                configuration)
+            {
+                DecodeCountFactor = Math.Pow(2, failedDecodeCount)
+            };
             return result;
         }
 
@@ -95,9 +87,7 @@
                 data.BitMinwiseEstimator.HashCount,
                 setSize,
                 data.StrataCount,
-                data.StrataEstimator.ErrorRate,
-                configuration,
-                data.StrataEstimator.HashFunctionCount)
+                configuration)
             {
                 DecodeCountFactor = data.StrataEstimator.DecodeCountFactor
             };

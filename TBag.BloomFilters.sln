@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TBag.BloomFilters.Test", "T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TBag.HashAlgorithms", "TBag.HashAlgorithms\TBag.HashAlgorithms.csproj", "{8D5BDB3F-01E3-4343-8116-6AB9FB12ACDC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TBag.BloomFilters.Measurements.Test", "TBag.BloomFilters.Measurements.Test\TBag.BloomFilters.Measurements.Test.csproj", "{C241F65B-50E3-4266-A963-6200BCC9D396}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{8D5BDB3F-01E3-4343-8116-6AB9FB12ACDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D5BDB3F-01E3-4343-8116-6AB9FB12ACDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D5BDB3F-01E3-4343-8116-6AB9FB12ACDC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C241F65B-50E3-4266-A963-6200BCC9D396}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C241F65B-50E3-4266-A963-6200BCC9D396}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C241F65B-50E3-4266-A963-6200BCC9D396}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C241F65B-50E3-4266-A963-6200BCC9D396}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

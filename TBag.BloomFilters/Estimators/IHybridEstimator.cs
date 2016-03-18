@@ -27,7 +27,7 @@
         /// <param name="estimator"></param>
         /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns>An estimated number of items that are different.</returns>
-        long Decode(IHybridEstimator<TEntity, TId, TCount> estimator, bool destructive = false);
+        long? Decode(IHybridEstimator<TEntity, TId, TCount> estimator, bool destructive = false);
 
         /// <summary>
         /// Estimate the difference with the given estimator.
@@ -35,7 +35,7 @@
         /// <param name="estimator"></param>
         /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns>An estimated number of items that are different.</returns>
-        long Decode(IHybridEstimatorData<TId, TCount> estimator, bool destructive = false);
+        long? Decode(IHybridEstimatorData<TId, TCount> estimator, bool destructive = false);
 
         /// <summary>
         /// Extract a serializable version of the estimator data.

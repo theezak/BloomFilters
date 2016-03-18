@@ -40,6 +40,7 @@
             return (long)Math.Abs(capacity * Math.Log(errorRate) / Math.Pow(2, Math.Log(2.0D)));
         }
 
+      
         /// <summary>
         /// This determines an error rate assuming that at higher capacity a higher error rate is acceptable as a trade off for space. Provide your own error rate if this does not work for you.
         /// </summary>

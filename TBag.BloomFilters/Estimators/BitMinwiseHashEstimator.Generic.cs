@@ -147,9 +147,9 @@ namespace TBag.BloomFilters.Estimators
         {
             var hashValues = new BitArray((int)(bitSize * slots.LongLength));
             var idx = 0;
-            for (var hashCount = 0; hashCount < slots.LongLength; hashCount++)
+            for (var i = 0; i < slots.LongLength; i++)
             {
-                var byteValue = BitConverter.GetBytes(slots[hashCount]);
+                var byteValue = BitConverter.GetBytes(slots[i]);
                 var byteValueIdx = 0;
                 for (var b = 0; b < bitSize; b++)
                 {
@@ -197,7 +197,7 @@ namespace TBag.BloomFilters.Estimators
             var idhash = (ulong)_entityHash(element);
             var entityHashes = _hashFunctions(element).ToArray();
             ulong idx = 0;
-            for (ulong i = 0L; i < (ulong)_hashCount; i++)
+            for (var i = 0L; i < entityHashes.LongLength; i++)
             {
                  if (entityHashes[i] < _slots[idx+idhash])
                 {

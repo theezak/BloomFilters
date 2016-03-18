@@ -31,18 +31,6 @@
         [DataMember(Order = 3)]
         public InvertibleBloomFilterData<TId,int,TCount>[] BloomFilters { get; set; }
 
-        /// <summary>
-        /// The desired error rate for the IBF.
-        /// </summary>
-        [DataMember(Order = 4)]
-        public float ErrorRate { get; set; }
-
-        /// <summary>
-        /// The number of hash functions to use.
-        /// </summary>
-        [DataMember(Order = 5)]
-        public uint HashFunctionCount { get; set; }
-
         #region Implementation of IStrataEstimatorData{TId,TCount}
         /// <summary>
         /// The Bloom filters as <see cref="IInvertibleBloomFilterData{TId, TEntityHash, TCount}"/>

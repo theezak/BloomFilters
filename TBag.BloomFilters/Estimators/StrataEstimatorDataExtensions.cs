@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters.Estimators
+﻿using System.Diagnostics.PerformanceData;
+
+namespace TBag.BloomFilters.Estimators
 {
     using System;
     using System.Collections.Generic;
@@ -17,44 +19,37 @@
         /// <param name="data">Estimator data</param>
         /// <param name="otherEstimatorData">The other estimate</param>
         /// <param name="configuration">The Bloom filter configuration</param>
-        /// <param name="maxDifference">The maximum number of items in the difference (usually the sum of the set sizes)</param>
         /// <param name="destructive">When <c>true</c> the <paramref name="data"/> will be altered and no longer usable, else <c>false</c></param>
         /// <returns></returns>
-        public static long Decode<TEntity,TId,TCount>(this IStrataEstimatorData<int,TCount> data, 
+        public static long? Decode<TEntity,TId,TCount>(this IStrataEstimatorData<int,TCount> data, 
             IStrataEstimatorData<int,TCount> otherEstimatorData,
             IBloomFilterConfiguration<TEntity,TId,int,int,TCount> configuration,
-            long? maxDifference = null,
             bool destructive = false)
             where TId :struct
             where TCount : struct
         {
-            if (data == null && otherEstimatorData == null) return 0L;
+            if (data == null || otherEstimatorData == null) return null;
             var strataConfig = configuration.ConvertToEntityHashId();
-            if (data == null) return otherEstimatorData.Capacity;
-            if (otherEstimatorData == null) return data.Capacity;
-            //the difference already seen between the two sets.
+            var decodeFactor = Math.Max(data.DecodeCountFactor, otherEstimatorData.DecodeCountFactor);
+            //TODO: if hasDecoded is false once decoding completed, it is actually recommended to increase the strata (and maybe the size). Maybe provide an indicator/diagnostics for that?
             var hasDecoded = false;
             var setA = new HashSet<int>();
-            for (int i = data.BloomFilters.Length - 1; i >= 0; i--)
+            for (var i = data.BloomFilters.Length - 1; i >= 0; i--)
             {
                 var ibf = data.BloomFilters[i];
                 var estimatorIbf = i >= otherEstimatorData.BloomFilters.Length ? null : otherEstimatorData.BloomFilters[i];
                 if (ibf == null && estimatorIbf == null) continue;
-                if (ibf == null || estimatorIbf == null)
+                if (ibf == null ||
+                    estimatorIbf == null ||
+                    !ibf.SubtractAndDecode(estimatorIbf, strataConfig, setA, setA, setA, destructive))
                 {
-
-                    if (!hasDecoded) return maxDifference ?? 1L;
-                    return (long)(Math.Pow(2, i + 1) * data.DecodeCountFactor * setA.Count);
-                }
-                if (!ibf.SubtractAndDecode(estimatorIbf, strataConfig, setA, setA, setA, destructive))
-                {
-                    if (!hasDecoded && setA.Count == 0) return (maxDifference ?? 1L);
-                    return (long)(Math.Pow(2, i + 1) * data.DecodeCountFactor * setA.Count);
+                    if (!hasDecoded) return null;
+                     return (long)(Math.Pow(2, i + 1) * decodeFactor * setA.Count);
                 }
                 hasDecoded = true;
             }
-            if (!hasDecoded) return maxDifference ?? 1L;
-            return (long)(Math.Max(data.DecodeCountFactor, otherEstimatorData.DecodeCountFactor) * setA.Count);
+            if (!hasDecoded) return null;
+            return (long)(decodeFactor * setA.Count);
         }
     }
 }

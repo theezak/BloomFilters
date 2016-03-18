@@ -80,7 +80,7 @@
             IBloomFilterConfiguration<TEntity, TId, TEntityHash, THash, TCount> configuration,
             HashSet<TId> listA,
             HashSet<TId> listB,
-            HashSet<TId> modifiedEntities,
+            HashSet<TId> modifiedEntities = null,
             Stack<long> pureList = null,
             bool destructive = false
             )
@@ -97,10 +97,11 @@
                 Counts = new TCount[filterData.Counts.LongLength],
                 HashFunctionCount = filterData.HashFunctionCount,
                 HashSums = new TEntityHash[filterData.HashSums.LongLength],
-                IdSums = new TId[filterData.IdSums.LongLength]
+                IdSums = new TId[filterData.IdSums.LongLength],
+                IsReverse =  filterData.IsReverse
             };
             var countsIdentity = configuration.CountIdentity();
-            for (long i = 0L; i < filterData.Counts.LongLength; i++)
+            for (var i = 0L; i < filterData.Counts.LongLength; i++)
             {
                 result.Counts[i] = configuration.CountSubtract(filterData.Counts[i], subtractedFilterData.Counts[i]);
                 var hashSum = configuration.EntityHashXor(
@@ -122,7 +123,7 @@
                     }
                     else if (!configuration.EntityHashEqualityComparer.Equals(configuration.EntityHashIdentity(), hashSum))
                     {
-                        modifiedEntities.Add(subtractedFilterData.IdSums[i]);
+                        modifiedEntities?.Add(subtractedFilterData.IdSums[i]);
                         hashSum = configuration.EntityHashIdentity();
                     }                                        
                 }
@@ -156,7 +157,7 @@
             IBloomFilterConfiguration<TEntity, TId, TEntityHash, int, TCount> configuration,
             HashSet<TId> listA,
             HashSet<TId> listB,
-            HashSet<TId> modifiedEntities,
+            HashSet<TId> modifiedEntities = null,
             Stack<long> pureList = null)
             where TEntityHash : struct
             where TId : struct
@@ -191,7 +192,7 @@
                         !configuration.EntityHashEqualityComparer.Equals(filter.HashSums[position], hashSum) &&
                         configuration.IdEqualityComparer.Equals(id, filter.IdSums[position]))
                     {
-                        modifiedEntities.Add(id);
+                        modifiedEntities?.Add(id);
                         isModified = true;
                         if (negCount)
                         {
@@ -219,19 +220,17 @@
                         pureList.Push(position);
                     }
                 }
-                if (!isModified)
+                if (isModified) continue;
+                if (negCount)
                 {
-                    if (negCount)
-                    {
-                        listB.Add(id);
-                    }
-                    else
-                    {
-                        listA.Add(id);
-                    }
+                    listB.Add(id);
+                }
+                else
+                {
+                    listA.Add(id);
                 }
             }
-            modifiedEntities.MoveModified(listA, listB);
+            modifiedEntities?.MoveModified(listA, listB);
             return filter.IsCompleteDecode(configuration);
         }
 
@@ -259,8 +258,7 @@
             var countIdentity = configuration.CountIdentity();
             for (var position = 0L; position < filter.Counts.LongLength; position++)
             {
-                if (!configuration.IdEqualityComparer.Equals(idIdentity, filter.IdSums[position]) ||
-                    filter.HashSums == null || 
+                if (!configuration.IdEqualityComparer.Equals(idIdentity, filter.IdSums[position]) ||                   
                     !configuration.EntityHashEqualityComparer.Equals(entityHashIdentity, filter.HashSums[position]) ||
                     !configuration.CountEqualityComparer.Equals(filter.Counts[position], countIdentity))
                     return false;
@@ -364,16 +362,18 @@
             var valueRes = true;
             var idRes = true;
             var pureList = new Stack<long>();
-            if (!filter.IsReverse)
-            {
-                idRes = filter
-                    .Subtract(subtractedFilter, configuration, listA, listB, modifiedEntities, pureList, destructive)
-                    .Decode(configuration, listA, listB, modifiedEntities, pureList);
-            }
             var reverseFilter = filter.IsReverse ? filter.Reverse() : filter.ReverseFilter;
             var reverseSubtractedFilter = subtractedFilter.IsReverse ? subtractedFilter.Reverse() : subtractedFilter.ReverseFilter;
-            if (reverseFilter != null &&
-                reverseSubtractedFilter != null)
+            var hasReverseFilter = reverseFilter != null && reverseSubtractedFilter != null;
+            if (!filter.IsReverse)
+            {
+                //add a dummy mod set when there is a reverse filter, because a regular filter is pretty bad at recognizing modified entites.
+                var modSet = hasReverseFilter ? null : modifiedEntities;
+                idRes = filter
+                    .Subtract(subtractedFilter, configuration, listA, listB, modSet, pureList, destructive)
+                    .Decode(configuration, listA, listB, modSet, pureList);
+            }
+           if (hasReverseFilter)
             {
                  valueRes = reverseFilter
                     .HashSubtractAndDecode(
