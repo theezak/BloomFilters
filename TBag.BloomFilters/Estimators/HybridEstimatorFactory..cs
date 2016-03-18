@@ -35,10 +35,10 @@
                 strata = 13;
                 minwiseHashCount = 40;
             }           
-            if (setSize >= 10000L)
+            if (setSize > 25000L)
             {
                 strata = 9;
-                capacity *= 4L;
+                capacity *= 3L;
                 if (capacity > 400 &&
                     failedDecodeCount > 1)
                 {
@@ -48,7 +48,6 @@
             if (setSize > 50000L)
             {
                 strata = 13;
-                capacity *= 4L;
                 minwiseHashCount = 40;
             }
             var result = new HybridEstimator<TEntity, TId, TCount>(
