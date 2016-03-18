@@ -15,7 +15,7 @@ namespace TBag.BloomFilters.Measurements.Test
         {
             var configuration = new LargeBloomFilterConfiguration();
 
-            var size = new[] { 1000, 10000, 100000 };
+            var size = new[] { 1000 };//, 10000, 100000 };
             var modPercentage = new[] { 0, 0.01D, 0.1D, 0.2D, 0.5D, 1.0D };
             foreach (var s in size)
             {
@@ -88,7 +88,7 @@ namespace TBag.BloomFilters.Measurements.Test
         {
             var configuration = new LargeBloomFilterConfiguration();
 
-            var size = new[] { 1000, 10000, 100000 };
+            var size = new[] { 1000}; //, 10000, 100000 };
             var modPercentage = new[] { 0, 0.01D, 0.1D, 0.2D, 0.5D, 1.0D };
             foreach (var s in size)
             {
