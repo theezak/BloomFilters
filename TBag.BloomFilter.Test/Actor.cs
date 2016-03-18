@@ -40,11 +40,31 @@
         }
 
         /// <summary>
+        /// Given an estimator, get an estimate.
+        /// </summary>
+        /// <param name="estimatorStream"></param>
+        /// <returns></returns>
+        /// <remarks>Needed only when the first estimate fails. An alternative is now calculating the filter here and sending it to the other actor (depends upon which actor wants to know the difference).</remarks>
+        public long? GetEstimate(MemoryStream estimatorStream)
+        {
+            var otherEstimator =
+               (HybridEstimatorData<int, int>)
+                   _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, int>));
+            var estimator = _hybridEstimatorFactory.CreateMatchingEstimator(otherEstimator, _configuration,
+                _dataSet.LongCount());
+            foreach (var item in _dataSet)
+            {
+                estimator.Add(item);
+            }
+            return estimator.Extract().Decode(otherEstimator, _configuration);
+        }
+
+        /// <summary>
         /// Given a serialized estimator (<paramref name="estimatorStream"/>), determine the size of the difference, create a Bloom filter for the difference and return that Bloom filter
         /// </summary>
         /// <param name="estimatorStream">The estimator</param>
         /// <returns></returns>
-        public MemoryStream RequestFilter(MemoryStream estimatorStream)
+        public MemoryStream RequestFilter(MemoryStream estimatorStream, Actor otherActor)
         {
             var otherEstimator =
                 (IHybridEstimatorData<int, int>)
@@ -56,10 +76,20 @@
                 estimator.Add(item);
             }
             var estimate = estimator.Extract().Decode(otherEstimator, _configuration);
-            if (estimate==null)
+            if (estimate != null)
             {
-                //TODO: add communication step to create a new estimator.
-                estimate = Math.Max(estimator.Extract().CountEstimate, otherEstimator.CountEstimate);
+                //additional communication step needed to create a new estimator.
+                estimator = _hybridEstimatorFactory.Create(_configuration, _dataSet.Count(), 1);
+                foreach (var item in _dataSet)
+                {
+                    estimator.Add(item);
+                }
+                using (var stream = new MemoryStream())
+                {
+                  _protobufModel.Serialize(stream, estimator.Extract());
+                    stream.Position = 0;
+                    estimate = otherActor.GetEstimate(stream);
+                }
             }
              var filter = _bloomFilterFactory.CreateHighUtilizationFilter(_configuration, estimate.Value);
             foreach (var item in _dataSet)
@@ -89,7 +119,7 @@
                 _protobufModel.Serialize(estimatorStream, estimator.Extract());
                 estimatorStream.Position = 0;
                 //send the estimator to the other actor and receive the filter from that actor.
-                var otherFilterStream = actor.RequestFilter(estimatorStream);
+                var otherFilterStream = actor.RequestFilter(estimatorStream, this);
                 var otherFilter = (IInvertibleBloomFilterData<long, int, int>)
                     _protobufModel.Deserialize(otherFilterStream, null, typeof(InvertibleBloomFilterData<long, int, int>));
                 otherFilterStream.Dispose();

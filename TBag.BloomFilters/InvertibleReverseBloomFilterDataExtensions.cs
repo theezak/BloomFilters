@@ -164,7 +164,7 @@
                             filter.Remove(configuration, id, hashSum, position);
                         }
                     }
-                    if (configuration.IsPure(filter, position))
+                     if (configuration.IsPure(filter, position))
                     {
                         //count became pure, add to the list.
                         pureList.Push(position);

@@ -51,15 +51,17 @@
                 minwiseHashCount = 40;
             }
             var result = new HybridEstimator<TEntity, TId, TCount>(
-                capacity, 
-                bitSize, 
-                minwiseHashCount, 
-                setSize, 
+                capacity,
+                bitSize,
+                minwiseHashCount,
+                setSize,
                 strata,
                 configuration)
+            { };
+            if (failedDecodeCount > 1)
             {
-                DecodeCountFactor = Math.Pow(2, failedDecodeCount)
-            };
+                result.DecodeCountFactor = Math.Pow(2, failedDecodeCount);
+            }
             return result;
         }
 

@@ -186,7 +186,7 @@
                 foreach (var position in configuration
                     .IdHashes(id, filter.HashFunctionCount)
                     .Select(p => Math.Abs(p % filter.Counts.LongLength))
-                    .Where(p => !configuration.CountEqualityComparer.Equals(filter.Counts[p], countsIdentity)))
+                     .Where(p => !configuration.CountEqualityComparer.Equals(filter.Counts[p], countsIdentity)))
                 {
                     if (configuration.IsPure(filter, position) &&
                         !configuration.EntityHashEqualityComparer.Equals(filter.HashSums[position], hashSum) &&
