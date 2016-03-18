@@ -26,7 +26,7 @@
             //at least 3 hash functions.
             return Math.Max(
                 3,
-                (uint)Math.Ceiling(Math.Abs(Math.Log(2.0D) * (1.0D * BestSize(capacity, errorRate) / capacity))));
+                (uint)Math.Floor(Math.Abs(Math.Log(2.0D) * (1.0D * BestSize(capacity, errorRate) / capacity))));
         }
 
         public virtual long BestCompressedSize(long capacity, float errorRate)
