@@ -19,6 +19,10 @@ Support has been added for serializing and deserializing Bloom filters and estim
 ## Overloading a Bloom filter
 When utilizing an invertible Bloom filter within the capacity it was sized for, the count will seldom exceed 2 or 3. However, when utilizing estimators, the idea is that the invertible Bloom filter will be utilized at a much higher capacity than it was sized for, thus accepting a higher error rate and much higher count values. To account for both scenario's, the actual count type is configurable. Two types will be supported out of the box: sbyte and int.
 
+## Computational overhead
+The cost of computing the value hash can be considerable. If this becomes an issue, a dictionary of keys and pre-computed hash values can be maintained )for example in a NoSQL store). An example of the key-value Bloom filter configuration needed to utilize these precomputed values has been included.
+
+The estimators and Bloom filters themselves can in fact be pre-computed under certain conditions.
 
 ## Wishlist
 Although this is initially just a testbed, an obvious wishlist item is a buffer pool to counteract some of the horrible things the Bloom Filter does to memory management.
