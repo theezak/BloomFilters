@@ -16,11 +16,16 @@ namespace TBag.BloomFilters.Estimators
         where TCount : struct
     {
         #region Fields
-        private  long _capacity;       
+        private  long _capacity;
          protected const byte MaxTrailingZeros = sizeof(int)*8;
         #endregion
 
         #region Properties
+        /// <summary>
+        /// The maximum strata.
+        /// </summary>
+        protected byte MaxStrata { get; set; }
+
         /// <summary>
         /// Function to determine the hash value for a given entity.
         /// </summary>
@@ -51,12 +56,26 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="configuration"></param>
         public StrataEstimator(
             long capacity, 
-            IBloomFilterConfiguration<TEntity,int,int,int,TCount> configuration)
+            IBloomFilterConfiguration<TEntity,int,int,int,TCount> configuration) : this(capacity, configuration, MaxTrailingZeros)
+        { }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="capacity"></param>
+        /// <param name="configuration"></param>
+        /// <param name="maxStrata"></param>
+             protected StrataEstimator(
+            long capacity,
+            IBloomFilterConfiguration<TEntity, int, int, int, TCount> configuration,
+            byte maxStrata)
         {
             EntityHash = e => configuration.EntityHashes(e, 1).First();
             _capacity = capacity;
+            MaxStrata = maxStrata;
             Configuration = configuration;
             DecodeCountFactor = _capacity >= 20 ? 1.39D : 1.0D;
+            CreateFilters();
         }
         #endregion
 
@@ -84,18 +103,13 @@ namespace TBag.BloomFilters.Estimators
             if (data == null) return;
             _capacity = data.Capacity;
             DecodeCountFactor = data.DecodeCountFactor;
+            if (data.BloomFilters == null) return;
             for (int i = 0; i < StrataFilters.Length; i++)
             {
-                if (data.BloomFilters == null ||
-                    data.BloomFilters.Length <= i ||
+                if (data.BloomFilters.Length > i &&
                     data.BloomFilters[i] == null)
                 {
-                    StrataFilters[i] = null;
-                }
-                else
-                {
-                    CreateNewFilter(i);
-                    StrataFilters[i].Rehydrate(data.BloomFilters[i]);
+                    StrataFilters[i]?.Rehydrate(data.BloomFilters[i]);
                 }
             }
         }
@@ -176,19 +190,18 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="idx">Index of the strata estimator</param>
         protected void Add(TEntity item, long idx)
         {
-            if (StrataFilters[idx] == null)
-            {
-                CreateNewFilter(idx);
-            }
-            Contract.Assert(StrataFilters[idx] != null);
-            StrataFilters[idx].Add(item);
+            StrataFilters[idx]?.Add(item);
         }
 
-        private void CreateNewFilter(long idx)
+        /// <summary>
+        /// Create new filters
+        /// </summary>
+        private void CreateFilters()
         {
-            Contract.Requires(idx >= 0 && idx < StrataFilters.Length);
-            Contract.Ensures(StrataFilters[idx] != null);
-            StrataFilters[idx] = new InvertibleBloomFilter<TEntity, int, TCount>(_capacity, 0.001F, Configuration);
+          for(var idx = 0; idx < StrataFilters.Length; idx++)
+                StrataFilters[idx] = idx < MaxStrata ?
+                    new InvertibleBloomFilter<TEntity, int, TCount>(_capacity, 0.001F, Configuration): 
+                    null;
         }
         #endregion
     }

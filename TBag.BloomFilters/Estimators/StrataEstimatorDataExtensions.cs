@@ -31,13 +31,14 @@ namespace TBag.BloomFilters.Estimators
             if (data == null || otherEstimatorData == null) return null;
             var strataConfig = configuration.ConvertToEntityHashId();
             var decodeFactor = Math.Max(data.DecodeCountFactor, otherEstimatorData.DecodeCountFactor);
-            //TODO: if hasDecoded is false once decoding completed, it is actually recommended to increase the strata (and maybe the size). Maybe provide an indicator/diagnostics for that?
             var hasDecoded = false;
             var setA = new HashSet<int>();
             for (var i = data.BloomFilters.Length - 1; i >= 0; i--)
             {
                 var ibf = data.BloomFilters[i];
-                var estimatorIbf = i >= otherEstimatorData.BloomFilters.Length ? null : otherEstimatorData.BloomFilters[i];
+                var estimatorIbf = i >= otherEstimatorData.BloomFilters.Length ? 
+                    null : 
+                    otherEstimatorData.BloomFilters[i];
                 if (ibf == null && estimatorIbf == null) continue;
                 if (ibf == null ||
                     estimatorIbf == null ||

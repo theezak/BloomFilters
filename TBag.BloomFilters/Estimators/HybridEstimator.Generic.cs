@@ -16,7 +16,6 @@
     {
         #region Fields
         private readonly BitMinwiseHashEstimator<TEntity, int, TCount> _minwiseEstimator;
-        private byte _maxStrata;
         private long _capacity;
         private long _setSize;
         #endregion
@@ -39,10 +38,10 @@
             byte maxStrata,
             IBloomFilterConfiguration<TEntity, TId, int, int, TCount> configuration) : base(
                 capacity, 
-                configuration.ConvertToEntityHashId())        
+                configuration.ConvertToEntityHashId(),
+                maxStrata)        
         {
             _capacity = capacity;
-            _maxStrata = maxStrata;
             var max = Math.Pow(2, MaxTrailingZeros);
              _setSize = setSize;
             //TODO: clean up math. This is very close though to what actually ends up in the estimator.
@@ -65,7 +64,7 @@
         public override void Add(TEntity item)
         {
             var idx = NumTrailingBinaryZeros(EntityHash(item));
-            if (idx < _maxStrata)
+            if (idx < MaxStrata)
             {
                 Add(item, idx);
             }
@@ -82,7 +81,7 @@
         /// <exception cref="NotSupportedException">Removal is not supported on a hybrid estimator that utilizes the minwise estimator.</exception>
         public override void Remove(TEntity item)
         {
-            if (_maxStrata < MaxTrailingZeros)
+            if (MaxStrata < MaxTrailingZeros)
             {
                 throw new NotSupportedException("Removal not supported on a hybrid estimator.");
             }
@@ -100,7 +99,7 @@
                 Capacity = _capacity,
                 BitMinwiseEstimator = _minwiseEstimator.Extract(),
                 StrataEstimator = Extract(),
-                StrataCount = _maxStrata,
+                StrataCount = MaxStrata,
                 CountEstimate = _setSize
             };
         }
@@ -117,7 +116,7 @@
                 Capacity = _capacity,
                 BitMinwiseEstimator = _minwiseEstimator.FullExtract(),
                 StrataEstimator = Extract(),
-                StrataCount = _maxStrata,
+                StrataCount = MaxStrata,
                 CountEstimate = _setSize
             };
         }
@@ -131,7 +130,7 @@
             if (data == null) return;
             _minwiseEstimator.Rehydrate(data.BitMinwiseEstimator);
             _capacity = data.Capacity;
-            _maxStrata = data.StrataCount;
+            MaxStrata = data.StrataCount;
             _setSize = data.CountEstimate;
             Rehydrate(data.StrataEstimator);
         }
@@ -165,8 +164,6 @@
                 .Decode(estimator, Configuration);
         }
 
-        
-       
         #endregion
     }
 }

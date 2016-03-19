@@ -25,13 +25,20 @@
             where TCount : struct
             where TId : struct
         {
-            if (estimator == null && otherEstimatorData == null) return 0L;
-            if (estimator == null) return otherEstimatorData.CountEstimate;
-            if (otherEstimatorData == null) return estimator.CountEstimate;
+            if (estimator == null && 
+                otherEstimatorData == null) return 0L;
+            if (estimator == null ||
+                estimator.CountEstimate <= 0L)
+                return otherEstimatorData.CountEstimate;
+            if (otherEstimatorData == null ||
+                otherEstimatorData.CountEstimate <= 0)
+                return estimator.CountEstimate;
             var decodeFactor = Math.Max(estimator.StrataEstimator?.DecodeCountFactor ?? 1.0D,
                 otherEstimatorData.StrataEstimator?.DecodeCountFactor ?? 1.0D);
             var maxDifference = otherEstimatorData.CountEstimate + estimator.CountEstimate;
-            var strataDecode = estimator.StrataEstimator.Decode(otherEstimatorData.StrataEstimator, configuration, destructive);
+            var strataDecode = estimator
+                .StrataEstimator
+                .Decode(otherEstimatorData.StrataEstimator, configuration, destructive);
             if (!strataDecode.HasValue) return null;
             var minwiseDecode = 2 * (long)(decodeFactor * (estimator.BitMinwiseEstimator.Capacity - 
                      estimator.BitMinwiseEstimator.Similarity(otherEstimatorData.BitMinwiseEstimator) * 
