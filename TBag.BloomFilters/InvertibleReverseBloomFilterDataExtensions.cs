@@ -46,14 +46,7 @@
             Contract.Assume(filterData!=null);
             var result = destructive
                 ? filterData
-                : new InvertibleBloomFilterData<TId, TEntityHash, TCount>
-                {
-                    BlockSize = filterData.BlockSize,
-                    Counts = new TCount[filterData.Counts.LongLength],
-                    HashFunctionCount = filterData.HashFunctionCount,
-                    HashSums = new TEntityHash[filterData.HashSums.LongLength],
-                    IdSums = new TId[filterData.IdSums.LongLength]
-                };
+                : filterData.Duplicate();
             var countsIdentity = configuration.CountIdentity();
             for (var i = 0L; i < filterData.Counts.LongLength; i++)
             {
@@ -134,9 +127,9 @@
                 var isModified = false;
                 foreach (var position in configuration
                     .IdHashes(id, filter.HashFunctionCount)
-                    .Select(p => Math.Abs(p % filter.Counts.LongLength))
-                    .Where(p => !configuration.CountEqualityComparer.Equals(filter.Counts[p], countsIdentity)))
+                    .Select(p => Math.Abs(p % filter.Counts.LongLength)))
                 {
+                    var wasZero = configuration.CountEqualityComparer.Equals(filter.Counts[position], countsIdentity);
                     if (configuration.IsPure(filter, position) &&
                         configuration
                             .EntityHashEqualityComparer.Equals(filter.HashSums[position], hashSum) &&
@@ -164,7 +157,8 @@
                             filter.Remove(configuration, id, hashSum, position);
                         }
                     }
-                     if (configuration.IsPure(filter, position))
+                     if (!wasZero && 
+                        configuration.IsPure(filter, position))
                     {
                         //count became pure, add to the list.
                         pureList.Push(position);

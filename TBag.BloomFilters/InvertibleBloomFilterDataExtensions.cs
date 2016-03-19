@@ -91,15 +91,9 @@
         {
             if (!filterData.IsCompatibleWith(subtractedFilterData))
                 throw new ArgumentException("Subtracted invertible Bloom filters are not compatible.", nameof(subtractedFilterData));
-            var result = destructive ? filterData : new InvertibleBloomFilterData<TId, TEntityHash, TCount>
-            {
-                BlockSize = filterData.BlockSize,
-                Counts = new TCount[filterData.Counts.LongLength],
-                HashFunctionCount = filterData.HashFunctionCount,
-                HashSums = new TEntityHash[filterData.HashSums.LongLength],
-                IdSums = new TId[filterData.IdSums.LongLength],
-                IsReverse =  filterData.IsReverse
-            };
+            var result = destructive ?
+                filterData :
+                filterData.Duplicate();
             var countsIdentity = configuration.CountIdentity();
             for (var i = 0L; i < filterData.Counts.LongLength; i++)
             {
@@ -185,9 +179,10 @@
                 var isModified = false;
                 foreach (var position in configuration
                     .IdHashes(id, filter.HashFunctionCount)
-                    .Select(p => Math.Abs(p % filter.Counts.LongLength))
-                     .Where(p => !configuration.CountEqualityComparer.Equals(filter.Counts[p], countsIdentity)))
+                    .Select(p => Math.Abs(p % filter.Counts.LongLength)))
+                   //  .Where(p => !configuration.CountEqualityComparer.Equals(filter.Counts[p], countsIdentity)))
                 {
+                    var wasZero = configuration.CountEqualityComparer.Equals(filter.Counts[position], countsIdentity);
                     if (configuration.IsPure(filter, position) &&
                         !configuration.EntityHashEqualityComparer.Equals(filter.HashSums[position], hashSum) &&
                         configuration.IdEqualityComparer.Equals(id, filter.IdSums[position]))
@@ -213,8 +208,8 @@
                         {
                             filter.Remove(configuration, id, hashSum, position);
                         }
-                    }
-                    if (configuration.IsPure(filter, position))
+                    }                  
+                    if (!wasZero && configuration.IsPure(filter, position))
                     {
                         //count became pure, add to the list.
                         pureList.Push(position);
@@ -264,6 +259,33 @@
                     return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// Duplicate the invertible Bloom filter data
+        /// </summary>
+        /// <typeparam name="TId">The entity identifier type</typeparam>
+        /// <typeparam name="TEntityHash">The entity hash type</typeparam>
+        /// <typeparam name="TCount">The occurence count type</typeparam>
+        /// <param name="data">The data to duplicate.</param>
+        /// <returns></returns>
+        /// <remarks>Explicitly does not duplicate the reverse IBF data.</remarks>
+        internal static InvertibleBloomFilterData<TId,TEntityHash,TCount> Duplicate<TId,TEntityHash,TCount>(
+            this IInvertibleBloomFilterData<TId,TEntityHash,TCount> data)
+            where TCount : struct
+            where TId : struct
+            where TEntityHash : struct
+        {
+            if (data == null) return null;
+            return new InvertibleBloomFilterData<TId, TEntityHash, TCount>
+            {
+                BlockSize = data.BlockSize,
+                Counts = new TCount[data.Counts.LongLength],
+                HashFunctionCount = data.HashFunctionCount,
+                HashSums = new TEntityHash[data.HashSums.LongLength],
+                IdSums = new TId[data.IdSums.LongLength],
+                IsReverse = data.IsReverse
+            };
         }
 
         /// <summary>

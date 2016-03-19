@@ -16,7 +16,7 @@
         private readonly RuntimeTypeModel _protobufModel;
         private readonly IList<TestEntity> _dataSet;
         private readonly IHybridEstimatorFactory _hybridEstimatorFactory;
-        private readonly IBloomFilterConfiguration<TestEntity, long, int, int, int> _configuration;
+       private readonly IBloomFilterConfiguration<TestEntity, long, int, int, int> _configuration;
         private readonly IInvertibleBloomFilterFactory _bloomFilterFactory;
 
         /// <summary>
@@ -76,19 +76,27 @@
                 estimator.Add(item);
             }
             var estimate = estimator.Extract().Decode(otherEstimator, _configuration);
-            if (estimate != null)
+            if (estimate == null)
             {
                 //additional communication step needed to create a new estimator.
-                estimator = _hybridEstimatorFactory.Create(_configuration, _dataSet.Count(), 1);
-                foreach (var item in _dataSet)
+                byte failedDecodeCount = 0;
+                while (estimate == null && failedDecodeCount < 5)
                 {
-                    estimator.Add(item);
+                    estimator = _hybridEstimatorFactory.Create(_configuration, _dataSet.Count(), ++failedDecodeCount);
+                    foreach (var item in _dataSet)
+                    {
+                        estimator.Add(item);
+                    }
+                    using (var stream = new MemoryStream())
+                    {
+                        _protobufModel.Serialize(stream, estimator.Extract());
+                        stream.Position = 0;
+                        estimate = otherActor.GetEstimate(stream);
+                    }
                 }
-                using (var stream = new MemoryStream())
+                if (estimate == null)
                 {
-                  _protobufModel.Serialize(stream, estimator.Extract());
-                    stream.Position = 0;
-                    estimate = otherActor.GetEstimate(stream);
+                    throw new NullReferenceException("Did not negotiate a good estimate");
                 }
             }
              var filter = _bloomFilterFactory.CreateHighUtilizationFilter(_configuration, estimate.Value);

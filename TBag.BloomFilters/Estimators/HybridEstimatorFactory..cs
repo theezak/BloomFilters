@@ -28,9 +28,14 @@
             var capacity = 80L;
             byte bitSize = 2;
             var minwiseHashCount = 20;
-            if (failedDecodeCount > 2)
+            if (failedDecodeCount == 1)
             {
-                capacity = capacity * failedDecodeCount;
+                capacity = 160L;
+                strata = 9;
+            }
+            if (failedDecodeCount > 1)
+            {
+                capacity = capacity * (failedDecodeCount+1);
                 bitSize = 3;
                 strata = 13;
                 minwiseHashCount = 40;
