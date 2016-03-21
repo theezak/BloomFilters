@@ -1,14 +1,16 @@
-﻿namespace TBag.BloomFilters
+﻿using System.Collections.Generic;
+
+namespace TBag.BloomFilters
 {
     /// <summary>
     /// interface for invertible Bloom filter data.
     /// </summary>
     /// <typeparam name="TId"></typeparam>  
-    /// <typeparam name="TEntityHash"></typeparam>
+    /// <typeparam name="THash"></typeparam>
     /// <typeparam name="TCount">The type for the count</typeparam>
-    public interface IInvertibleBloomFilterData<TId,TEntityHash,TCount>
+    public interface IInvertibleBloomFilterData<TId,THash,TCount>
         where TCount : struct
-        where TEntityHash : struct
+        where THash : struct
         where TId : struct
     {
         /// <summary>
@@ -35,7 +37,7 @@
         /// <summary>
         /// The hash sums (for entity values).
         /// </summary>
-        TEntityHash[] HashSums { get; set; }
+        THash[] HashSums { get; set; }
 
         /// <summary>
         /// The identifier sums (for entity identifiers).
@@ -45,6 +47,6 @@
         /// <summary>
         /// The Bloom filter data for the value hash (optional).
         /// </summary>
-        InvertibleBloomFilterData<TEntityHash, TId, TCount> ReverseFilter { get; set; }
+        InvertibleBloomFilterData<TId, THash, TCount> ReverseFilter { get; set; }
     }
 }

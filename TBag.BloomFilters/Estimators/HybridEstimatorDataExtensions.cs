@@ -20,7 +20,7 @@
         /// <returns>An estimate of the difference between two sets based upon the estimators.</returns>
         public static long? Decode<TEntity, TId, TCount>(this IHybridEstimatorData<int, TCount> estimator,
             IHybridEstimatorData<int, TCount> otherEstimatorData,
-            IBloomFilterConfiguration<TEntity, TId, int, int, TCount> configuration,
+            IBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration,
              bool destructive = false)
             where TCount : struct
             where TId : struct

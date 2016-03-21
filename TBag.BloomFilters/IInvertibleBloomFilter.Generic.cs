@@ -64,6 +64,33 @@
         void Remove(T item);
 
         /// <summary>
+        /// Remove by key
+        /// </summary>
+        /// <param name="key"></param>
+        void RemoveKey(TId key);
+
+        /// <summary>
+        /// Initialize
+        /// </summary>
+        /// <param name="capacity"></param>
+        void Initialize(long capacity);
+
+        /// <summary>
+        /// Initialize
+        /// </summary>
+        /// <param name="capacity"></param>
+        /// <param name="errorRate"></param>
+        void Initialize(long capacity, float errorRate);
+
+        /// <summary>
+        /// Initialize
+        /// </summary>
+        /// <param name="capacity">The capacity</param>
+        /// <param name="m">Size per hash function</param>
+        /// <param name="k">Hash function count</param>
+        void Initialize(long capacity, long m, uint k);
+
+        /// <summary>
         /// Subtract and then decode.
         /// </summary>
         /// <param name="filter">Bloom filter to subtract</param>

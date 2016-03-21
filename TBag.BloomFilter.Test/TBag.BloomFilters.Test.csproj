@@ -59,7 +59,9 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Actor.cs" />
+    <Compile Include="KeyValueBloomFilterConfiguration.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="KeyValueLargeBloomFilterConfiguration.cs" />
     <Compile Include="LargeBloomFilterConfiguration.cs" />
     <Compile Include="HybridEstimatorTest.cs" />
     <Compile Include="BitMinwiseHashEstimatorTest.cs" />

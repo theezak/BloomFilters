@@ -6,15 +6,38 @@
     /// <summary>
     /// Base class for the Bloom filter configuration for identifiers.
     /// </summary>
-    /// <typeparam name="TId"></typeparam>
-    /// <typeparam name="THash"></typeparam>
-    public abstract class BloomFilterIdConfigurationBase<TId, THash> : IBloomFilterSizeConfiguration
+    /// <typeparam name="TEntity">Type of the entity</typeparam>
+    /// <typeparam name="TId">Type of the entity identifier</typeparam>
+    /// <typeparam name="THash">Type of the hash value</typeparam>
+    public abstract class BloomFilterIdConfigurationBase<TEntity, TId, THash> : IBloomFilterSizeConfiguration
        where THash : struct
     {
         /// <summary>
         /// Function to determine a sequence (of given length) for a given identifier.
         /// </summary>
-        public virtual Func<TId, uint, IEnumerable<THash>> IdHashes { get; set; }
+        public virtual Func<THash, THash, uint, IEnumerable<THash>> Hashes { get; set; }
+
+        /// <summary>
+        /// Identifier hash
+        /// </summary>
+        public virtual Func<TId, THash> IdHash { get; set; }
+
+        /// <summary>
+        /// Get the identifier for an entity.
+        /// </summary>
+        public virtual Func<TEntity, TId> GetId { get; set; }
+
+        /// <summary>
+        /// Equality comparer for <typeparamref name="TId"/>
+        /// </summary>
+        public virtual EqualityComparer<TId> IdEqualityComparer
+        { get; set; }
+
+
+        /// <summary>
+        /// The identity value for <typeparamref name="TId"/> (for example 0 when the identifier is a number).
+        /// </summary>
+        public virtual Func<TId> IdIdentity { get; set; }
 
         /// <summary>
         /// Determine the XOR of two identifiers.

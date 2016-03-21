@@ -1,7 +1,7 @@
 ﻿namespace TBag.BloomFilters.Estimators
 {
     using System;
-
+    using System.Collections.Generic;
     /// <summary>
     /// A hybrid estimator with a limited strata that cuts over to a bit minwise estimator.
     /// </summary>
@@ -9,13 +9,13 @@
     /// <typeparam name="TId">The identifier type</typeparam>
     /// <typeparam name="TCount">The type of occurence count.</typeparam>
     public class HybridEstimator<TEntity, TId, TCount> : 
-        StrataEstimator<TEntity, TCount>,
+        StrataEstimator<TEntity, TId, TCount>,
         IHybridEstimator<TEntity, int, TCount> 
         where TCount : struct
         where TId : struct
     {
         #region Fields
-        private readonly BitMinwiseHashEstimator<TEntity, int, TCount> _minwiseEstimator;
+        private readonly BitMinwiseHashEstimator<KeyValuePair<int,int>, int, TCount> _minwiseEstimator;
         private long _capacity;
         private long _setSize;
         #endregion
@@ -36,9 +36,9 @@
             int minWiseHashCount,
             long setSize,
             byte maxStrata,
-            IBloomFilterConfiguration<TEntity, TId, int, int, TCount> configuration) : base(
-                capacity, 
-                configuration.ConvertToEntityHashId(),
+            IBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration) : base(
+                capacity,
+                configuration,
                 maxStrata)        
         {
             _capacity = capacity;
@@ -46,8 +46,8 @@
              _setSize = setSize;
             //TODO: clean up math. This is very close though to what actually ends up in the estimator.
             var inStrata = max - Math.Pow(2, MaxTrailingZeros - maxStrata);           
-            _minwiseEstimator = new BitMinwiseHashEstimator<TEntity, int, TCount>(
-                Configuration, 
+            _minwiseEstimator = new BitMinwiseHashEstimator<KeyValuePair<int,int>, int, TCount>(
+                Configuration.ConvertToEntityHashId(), 
                 bitSize, 
                 minWiseHashCount, 
                 Math.Max((uint)(_setSize * (1 - inStrata / max)), 1));
@@ -63,14 +63,15 @@
         /// <remarks>based upon the strata, the value is either added to an IBF or to the b-bit minwise estimator.</remarks>
         public override void Add(TEntity item)
         {
-            var idx = NumTrailingBinaryZeros(EntityHash(item));
+            var idHash = Configuration.IdHash(Configuration.GetId(item));
+            var idx = NumTrailingBinaryZeros(idHash);
             if (idx < MaxStrata)
             {
-                Add(item, idx);
+                Add(idHash, Configuration.EntityHash(item), idx);
             }
             else
             {
-                _minwiseEstimator.Add(item);
+                _minwiseEstimator.Add(new KeyValuePair<int, int>(idHash, Configuration.EntityHash(item)));
             }
         }
 

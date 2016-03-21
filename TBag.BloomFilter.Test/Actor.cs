@@ -16,7 +16,7 @@
         private readonly RuntimeTypeModel _protobufModel;
         private readonly IList<TestEntity> _dataSet;
         private readonly IHybridEstimatorFactory _hybridEstimatorFactory;
-       private readonly IBloomFilterConfiguration<TestEntity, long, int, int, int> _configuration;
+       private readonly IBloomFilterConfiguration<TestEntity, long, int,  int> _configuration;
         private readonly IInvertibleBloomFilterFactory _bloomFilterFactory;
 
         /// <summary>
@@ -29,7 +29,7 @@
         public Actor(IList<TestEntity> dataSet,
             IHybridEstimatorFactory hybridEstimatorFactory,
             IInvertibleBloomFilterFactory bloomFilterFactory,
-            IBloomFilterConfiguration<TestEntity, long, int, int, int> configuration)
+            IBloomFilterConfiguration<TestEntity, long, int,  int> configuration)
         {
             _protobufModel = TypeModel.Create();
             _protobufModel.UseImplicitZeroDefaults = true;

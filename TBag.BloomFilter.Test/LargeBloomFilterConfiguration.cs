@@ -8,22 +8,14 @@
     /// <summary>
     /// A test Bloom filter configuration.
     /// </summary>
-    internal class LargeBloomFilterConfiguration : KeyValueHighCountIbfConfigurationBase<TestEntity>
+    internal class LargeBloomFilterConfiguration : StandardIbfConfigurationBase<TestEntity, int>
     {
-        private readonly IMurmurHash _murmurHash = new Murmur3();
+        public LargeBloomFilterConfiguration() : base(new HighUtilizationCountConfiguration())
+        {}
 
         protected override long GetIdImpl(TestEntity entity)
         {
             return entity?.Id ?? 0L;
-        }
-
-        /// <summary>
-        /// Performs Dillinger and Manolios double hashing. 
-        /// </summary>
-        protected override int GetEntityHashImpl(TestEntity entity)
-        {
-            var value = $"{entity.Value}";
-            return BitConverter.ToInt32(_murmurHash.Hash(Encoding.Unicode.GetBytes(value), (uint)value.GetHashCode()), 0);
         }
     }
 }

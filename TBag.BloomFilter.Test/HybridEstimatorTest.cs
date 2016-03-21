@@ -14,7 +14,7 @@
         public void HybridEstimatorBasicFillAndEstimate()
         {
             var data = DataGenerator.Generate().Take(10000).ToArray();
-            var configuration = new LargeBloomFilterConfiguration();
+            var configuration = new KeyValueLargeBloomFilterConfiguration();
             var factory = new HybridEstimatorFactory();
             var estimator = factory.Create(configuration, data.Length);
             foreach (var element in data)
@@ -29,7 +29,7 @@
             {
                 elt.Value += 10;
             }
-            foreach (var element in data.Reverse())
+            foreach (var element in data)
                 //just making sure we do not depend upon the order of adding things.
                 estimator2.Add(element);
             var differenceCount = estimator.Decode(estimator2);

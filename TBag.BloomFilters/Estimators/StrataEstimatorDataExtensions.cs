@@ -23,7 +23,7 @@ namespace TBag.BloomFilters.Estimators
         /// <returns></returns>
         public static long? Decode<TEntity,TId,TCount>(this IStrataEstimatorData<int,TCount> data, 
             IStrataEstimatorData<int,TCount> otherEstimatorData,
-            IBloomFilterConfiguration<TEntity,TId,int,int,TCount> configuration,
+            IBloomFilterConfiguration<TEntity,TId,int,TCount> configuration,
             bool destructive = false)
             where TId :struct
             where TCount : struct

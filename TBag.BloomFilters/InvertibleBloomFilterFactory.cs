@@ -17,7 +17,7 @@
         /// <param name="errorRate">The desired error rate (between 0 and 1)</param>
         /// <returns></returns>
         public IInvertibleBloomFilter<TEntity, TId, int> CreateHighUtilizationFilter<TEntity, TId>(
-            IBloomFilterConfiguration<TEntity,TId,int,int, int> bloomFilterConfiguration,
+            IBloomFilterConfiguration<TEntity,TId,int, int> bloomFilterConfiguration,
             long capacity,
             float? errorRate = null)
             where TId : struct
@@ -26,11 +26,16 @@
             {
                 capacity = 1;
             }
-            if (errorRate.HasValue)
+            var ibf =  new InvertibleReverseBloomFilter<TEntity, TId, int>(bloomFilterConfiguration);
+           if (errorRate.HasValue)
             {
-                return new InvertibleReverseBloomFilter<TEntity, TId, int>(capacity, errorRate.Value, bloomFilterConfiguration);
+                ibf.Initialize(capacity, errorRate.Value);
             }
-            return new InvertibleReverseBloomFilter<TEntity, TId, int>(capacity, bloomFilterConfiguration);
+           else
+            {
+                ibf.Initialize(capacity);
+            }
+            return ibf;
         }
 
         /// <summary>
@@ -44,17 +49,14 @@
         /// <returns></returns>
         /// <remarks>For the scenario where you need to match a received filter with the set you own, so you can find the differences.</remarks>
         public IInvertibleBloomFilter<TEntity, TId, int> CreateMatchingHighUtilizationFilter<TEntity, TId>(
-            IBloomFilterConfiguration<TEntity, TId, int, int, int> bloomFilterConfiguration,
+            IBloomFilterConfiguration<TEntity, TId, int, int> bloomFilterConfiguration,
             long capacity,
            IInvertibleBloomFilterData<TId, int, int> invertibleBloomFilterData)
             where TId : struct
         {
-            var blockSize = invertibleBloomFilterData.BlockSize;          
-            return new InvertibleReverseBloomFilter<TEntity, TId, int>(
-                capacity, 
-                blockSize, 
-                invertibleBloomFilterData.HashFunctionCount, 
-                bloomFilterConfiguration);
+            var ibf = new InvertibleReverseBloomFilter<TEntity, TId, int>(bloomFilterConfiguration);
+            ibf.Initialize(capacity, invertibleBloomFilterData.BlockSize, invertibleBloomFilterData.HashFunctionCount);
+            return ibf;
         }
 
         /// <summary>
@@ -68,7 +70,7 @@
         /// <returns></returns>
         /// <remarks>Assumption is that the utilization will be in line with the capacity, thus keeping individual counts low.</remarks>
         public IInvertibleBloomFilter<TEntity, TId, sbyte> Create<TEntity, TId>(
-            IBloomFilterConfiguration<TEntity, TId, int,int, sbyte> bloomFilterConfiguration,
+            IBloomFilterConfiguration<TEntity, TId, int, sbyte> bloomFilterConfiguration,
             long capacity,
             float? errorRate = null)
             where TId : struct
@@ -77,9 +79,12 @@
             {
                 capacity = 1;
             }
-            return errorRate.HasValue ? 
-                new InvertibleReverseBloomFilter<TEntity, TId, sbyte>(capacity, errorRate.Value, bloomFilterConfiguration) : 
-                new InvertibleReverseBloomFilter<TEntity, TId, sbyte>(capacity, bloomFilterConfiguration);
+            var ibf = new InvertibleReverseBloomFilter<TEntity, TId, sbyte>(bloomFilterConfiguration);
+            if (errorRate.HasValue)
+                ibf.Initialize(capacity, errorRate.Value);
+            else
+                ibf.Initialize(capacity);
+            return ibf;
         }
     }
 }

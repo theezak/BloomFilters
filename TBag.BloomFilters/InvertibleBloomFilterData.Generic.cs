@@ -7,13 +7,13 @@
     /// Implementation of <see cref="IInvertibleBloomFilterData{TId, TEntityHash, TCount}"/>
     /// </summary>
     /// <typeparam name="TId"></typeparam>
-    /// <typeparam name="TEntityHash"></typeparam>
+    /// <typeparam name="THash"></typeparam>
     /// <typeparam name="TCount"></typeparam>
     [DataContract, Serializable]
-    public class InvertibleBloomFilterData<TId, TEntityHash, TCount> : 
-        IInvertibleBloomFilterData<TId, TEntityHash, TCount>
+    public class InvertibleBloomFilterData<TId, THash, TCount> : 
+        IInvertibleBloomFilterData<TId, THash, TCount>
         where TCount : struct
-        where TEntityHash : struct
+        where THash : struct
         where TId : struct
     {
         /// <summary>
@@ -44,14 +44,14 @@
         /// An array of hash value sums.
         /// </summary>
         [DataMember(Order = 5)]
-        public TEntityHash[] HashSums { get; set; }   
+        public THash[] HashSums { get; set; }   
         
         /// <summary>
         /// The data for the reverse IBF
         /// </summary>
         /// <remarks>Only used by the hybrid IBF</remarks>
         [DataMember(Order = 6)]
-        public InvertibleBloomFilterData<TEntityHash, TId, TCount>  ReverseFilter { get; set; }
+        public InvertibleBloomFilterData<TId, THash, TCount>  ReverseFilter { get; set; }
 
         /// <summary>
         /// <c>true</c> when the data is for a RIBF, else <c>false</c>.

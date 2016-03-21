@@ -22,7 +22,7 @@ namespace TBag.BloomFilters.Estimators
         private readonly Func<TEntity, IEnumerable<int>> _hashFunctions;
         private readonly Func<TEntity, int> _entityHash;
         private byte _bitSize;
-        private readonly IBloomFilterConfiguration<TEntity, TId, int, int, TCount> _configuration;
+        private readonly IBloomFilterConfiguration<TEntity, TId, int, TCount> _configuration;
         private ulong _capacity;
         private int[] _slots;
 
@@ -39,7 +39,7 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="capacity">The capacity (should be a close approximation of the number of elements added)</param>
         /// <remarks>By using bitSize = 1 or bitSize = 2, the accuracy is decreased, thus the hashCount needs to be increased. However, when resemblance is not too small, for example > 0.5, bitSize = 1 can yield similar results as bitSize = 64 with only 3 times the hash count.</remarks>
         public BitMinwiseHashEstimator(
-            IBloomFilterConfiguration<TEntity, TId, int, int, TCount> configuration,
+            IBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration,
             byte bitSize,
             int hashCount,
             ulong capacity)
@@ -49,7 +49,7 @@ namespace TBag.BloomFilters.Estimators
             _hashCount = hashCount;
             _configuration = configuration;
             _hashFunctions = GenerateHashes();
-            _entityHash = e => Math.Abs(unchecked((int)((ulong)configuration.EntityHashes(e,1).First()%_capacity)));
+            _entityHash = e => Math.Abs(unchecked((int)((ulong)configuration.EntityHash(e)%_capacity)));
             _slots = GetMinHashSlots(_hashCount, _capacity);
         }
 
@@ -183,7 +183,7 @@ namespace TBag.BloomFilters.Estimators
             }
             return entity =>
             {
-                var entityHash = _configuration.EntityHashes(entity, 1).First();
+                var entityHash = _configuration.EntityHash(entity);
                 return hashFuncs.Select(f => f(entityHash));
             };
         }

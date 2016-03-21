@@ -8,10 +8,13 @@
     /// <summary>
     /// A test Bloom filter configuration.
     /// </summary>
-    internal class LargeBloomFilterConfiguration : StandardIbfConfigurationBase<TestEntity, int>
+    internal class DefaultBloomFilterConfiguration : StandardIbfConfigurationBase<TestEntity, sbyte>
     {
-        public LargeBloomFilterConfiguration() : base(new HighUtilizationCountConfiguration())
-        {}
+        public DefaultBloomFilterConfiguration() : base(new CountConfiguration())
+        {
+        }
+
+        private readonly IMurmurHash _murmurHash = new Murmur3();
 
         protected override long GetIdImpl(TestEntity entity)
         {

@@ -18,7 +18,7 @@
         /// <param name="failedDecodeCount">Number of times decoding has failed based upon the provided estimator.</param>
         /// <returns></returns>
         public IHybridEstimator<TEntity, int, TCount> Create<TEntity, TId, TCount>(
-            IBloomFilterConfiguration<TEntity,  TId, int, int, TCount> configuration,
+            IBloomFilterConfiguration<TEntity,  TId,  int, TCount> configuration,
             long setSize,
             byte failedDecodeCount = 0)
             where TCount : struct
@@ -82,7 +82,7 @@
         /// <returns>An estimator</returns>
         public IHybridEstimator<TEntity, int, TCount> CreateMatchingEstimator<TEntity, TId, TCount>(
             IHybridEstimatorData<int, TCount> data,
-            IBloomFilterConfiguration<TEntity, TId, int, int, TCount> configuration,
+            IBloomFilterConfiguration<TEntity, TId, int,  TCount> configuration,
             long setSize)
             where TCount : struct
             where TId : struct

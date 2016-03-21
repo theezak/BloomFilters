@@ -18,7 +18,7 @@ namespace TBag.BloomFilters
         /// <returns></returns>
         /// <remarks>Estimators will utilize Bloom filters with a capacity set to the estimated number of differences, but then add the whole set. This results in much higher count values than a Bloom filter with a capacity equal to the set size would deal with.</remarks>
         IInvertibleBloomFilter<TEntity, TId, int> CreateHighUtilizationFilter<TEntity, TId>(
-            IBloomFilterConfiguration<TEntity, TId,int,int, int> bloomFilterConfiguration,
+            IBloomFilterConfiguration<TEntity, TId, int, int> bloomFilterConfiguration,
             long capacity,
             float? errorRate = null)
              where TId :struct;
@@ -34,7 +34,7 @@ namespace TBag.BloomFilters
         /// <returns></returns>
         /// <remarks>Estimators will utilize Bloom filters with a capacity set to the estimated number of differences, but then add the whole set. This results in much higher count values than a Bloom filter with a capacity equal to the set size would deal with.</remarks>
         IInvertibleBloomFilter<TEntity, TId, int> CreateMatchingHighUtilizationFilter<TEntity, TId>(
-            IBloomFilterConfiguration<TEntity, TId, int, int, int> bloomFilterConfiguration,
+            IBloomFilterConfiguration<TEntity, TId, int, int> bloomFilterConfiguration,
             long capacity,
             IInvertibleBloomFilterData<TId, int, int> invertibleBloomFilterData)
             where TId : struct;
@@ -49,7 +49,7 @@ namespace TBag.BloomFilters
         /// <param name="errorRate"></param>
         /// <returns></returns>
         IInvertibleBloomFilter<TEntity, TId, sbyte> Create<TEntity, TId>(
-            IBloomFilterConfiguration<TEntity, TId, int, int, sbyte> bloomFilterConfiguration,
+            IBloomFilterConfiguration<TEntity, TId, int,  sbyte> bloomFilterConfiguration,
             long capacity,
             float? errorRate = null)
             where TId : struct;

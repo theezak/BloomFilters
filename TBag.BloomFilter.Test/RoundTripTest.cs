@@ -15,7 +15,7 @@
         [TestMethod]
         public void TestRoundTrip()
         {
-            var configuration = new LargeBloomFilterConfiguration();
+            var configuration = new KeyValueLargeBloomFilterConfiguration();
             IHybridEstimatorFactory estimatorFactory = new HybridEstimatorFactory();
             IInvertibleBloomFilterFactory bloomFilterFactory = new InvertibleBloomFilterFactory();
             var dataSet1 = DataGenerator.Generate().Take(17000).ToList();

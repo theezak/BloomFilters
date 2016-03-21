@@ -7,114 +7,98 @@
     /// <summary>
     /// An invertible Bloom filter supports removal and additions.
     /// </summary>
-    /// <typeparam name="TEntity"></typeparam>
-    /// <typeparam name="TId"></typeparam>
-    /// <typeparam name="TCount"></typeparam>
+    /// <typeparam name="TEntity">The type of the entity</typeparam>
+    /// <typeparam name="TId">The type of entity identifier</typeparam>
+    /// <typeparam name="TCount">The type of the counter</typeparam>
     /// <remarks>Only determines set differences. It does not handle key/value pairs.</remarks>
-    public class InvertibleBloomFilter<TEntity, TId,TCount> : 
-        IInvertibleBloomFilter<TEntity, TId,TCount>
+    public class InvertibleBloomFilter<TEntity, TId, TCount> :
+        IInvertibleBloomFilter<TEntity, TId, TCount>
         where TCount : struct
         where TId : struct
     {
-        #region Properties
-     
+       #region Properties
+
         /// <summary>
-        /// The configuration for theBloom filter.
+        /// The configuration for the Bloom filter.
         /// </summary>
-        protected IBloomFilterConfiguration<TEntity, TId, int, int, TCount> Configuration { get; }
+        protected IBloomFilterConfiguration<TEntity, TId, int, TCount> Configuration { get; }
 
         /// <summary>
         /// The Bloom filter data.
         /// </summary>
-        private InvertibleBloomFilterData<TId, int, TCount> _data = new InvertibleBloomFilterData<TId, int, TCount>();
+        protected InvertibleBloomFilterData<TId, int, TCount> Data { get; private set; }
         #endregion
 
         #region Constructors
         /// <summary>
-        /// Creates a new Bloom filter using the optimal size for the underlying data structure based on the desired capacity and error rate, as well as the optimal number of hash functions.
+        /// Creates a new Bloom filter 
         /// </summary>
-        /// <param name="capacity">The anticipated number of items to be added to the filter. More than this number of items can be added, but the error rate will exceed what is expected.</param>
         /// <param name="bloomFilterConfiguration">The Bloom filter configuration</param>
         public InvertibleBloomFilter(
-            long capacity, 
-            IBloomFilterConfiguration<TEntity,TId,int, int, TCount> bloomFilterConfiguration) : this(
-                capacity,
-                bloomFilterConfiguration.BestErrorRate(capacity), 
-                bloomFilterConfiguration) { }
-
-        /// <summary>
-        /// Creates a new Bloom filter, using the optimal size for the underlying data structure based on the desired capacity and error rate, as well as the optimal number of hash functions.
-        /// </summary>
-        /// <param name="capacity">The anticipated number of items to be added to the filter. More than this number of items can be added, but the error rate will exceed what is expected.</param>
-        /// <param name="errorRate">The accepable false-positive rate (e.g., 0.01F = 1%)</param>
-        /// <param name="bloomFilterConfiguration">The Bloom filter configuration</param>
-        public InvertibleBloomFilter(
-            long capacity, 
-            float errorRate, 
-            IBloomFilterConfiguration<TEntity,TId,int, int, TCount> bloomFilterConfiguration) : this(
-                capacity,
-                bloomFilterConfiguration.BestCompressedSize(capacity, errorRate),
-                bloomFilterConfiguration.BestHashFunctionCount(capacity, errorRate),
-                  bloomFilterConfiguration)
-        { }
-
-        /// <summary>
-        /// Creates a new Bloom filter.
-        /// </summary>
-        /// <param name="capacity">The capacity (typically the size ofthe set to add)</param>
-        /// <param name="m">The size of the Bloom filter</param>
-        /// <param name="k">The number of hash functions to use.</param>
-        /// <param name="bloomFilterConfiguration">The Bloom filter configuration.</param>
-        public InvertibleBloomFilter(
-            long capacity,
-            long m,
-            uint k,
-            IBloomFilterConfiguration<TEntity, TId, int, int, TCount> bloomFilterConfiguration)
+            IBloomFilterConfiguration<TEntity, TId, int, TCount> bloomFilterConfiguration)
         {
-            // validate the params are in range
-            if (m < 1) // from overflow in bestM calculation
-                throw new ArgumentOutOfRangeException(
-                    nameof(m),
-                    "The provided capacity and errorRate values would result in an array of length > long.MaxValue. Please reduce either the capacity or the error rate.");
             Configuration = bloomFilterConfiguration;
-            _data.HashFunctionCount = k;
-            _data.BlockSize = m;
-            var size = _data.BlockSize*_data.HashFunctionCount;
-            if (!bloomFilterConfiguration.Supports((ulong) capacity, (ulong) size))
-            {
-                throw new ArgumentOutOfRangeException(
-                    $"The size {size} of the Bloom filter is not large enough to hold {capacity} items.");
-            }
-            _data.Counts = new TCount[size];
-            _data.IdSums = new TId[size];
-            _data.HashSums = new int[size];
         }
 
         #endregion
 
         #region Implementation of Bloom Filter public contract
-       
+        /// <summary>
+        /// Initialize
+        /// </summary>
+        /// <param name="capacity"></param>
+        public void Initialize(long capacity)
+        {
+            Initialize(capacity, Configuration.BestErrorRate(capacity));
+        }
+
+        /// <summary>
+        /// Initialize
+        /// </summary>
+        /// <param name="capacity">Capacity</param>
+        /// <param name="errorRate">The desired error rate (between 0 and 1).</param>
+        public void Initialize(long capacity, float errorRate)
+        {
+            Initialize(
+                capacity,
+                Configuration.BestCompressedSize(capacity, errorRate),
+                Configuration.BestHashFunctionCount(capacity, errorRate));
+        }
+
+        /// <summary>
+        /// Initialize the Bloom filter
+        /// </summary>
+        /// <param name="capacity">Capacity</param>
+        /// <param name="m">Size per hash function</param>
+        /// <param name="k">Number of hash functions.</param>
+        public virtual void Initialize(long capacity, long m, uint k)
+        {
+            // validate the params are in range
+            if (!Configuration.Supports(capacity, (long)(m * k)))
+            {
+                throw new ArgumentOutOfRangeException(
+                    $"The size {(long)(m * k)} of the Bloom filter is not large enough to hold {capacity} items.");
+            }
+            Data = Configuration.DataFactory.Create<TId, int, TCount>(m, k);
+        }
+
         /// <summary>
         /// Add an item to the Bloom filter.
         /// </summary>
         /// <param name="item"></param>
         public virtual void Add(TEntity item)
         {
-            var id = Configuration.GetId(item);
-            var hashValue = Configuration.EntityHashes(item, 1).First();
-            foreach (var position in Probe(id))
-            {
-                _data.Add(Configuration, id, hashValue, position);
-            }
+            ValidateData();
+            Add(Configuration.GetId(item), Configuration.EntityHash(item));
         }
 
         /// <summary>
         /// Extract the Bloom filter in a serializable format.
         /// </summary>
         /// <returns></returns>
-        public InvertibleBloomFilterData<TId,int, TCount> Extract()
+        public virtual InvertibleBloomFilterData<TId, int, TCount> Extract()
         {
-            return _data;
+            return Data;
         }
 
         /// <summary>
@@ -131,7 +115,7 @@
                 throw new ArgumentException(
                     "Invertible Bloom filter data is invalid.",
                     nameof(data));
-            _data = data.ConvertToBloomFilterData();
+            Data = data.ConvertToBloomFilterData();
         }
 
         /// <summary>
@@ -140,12 +124,18 @@
         /// <param name="item"></param>
         public virtual void Remove(TEntity item)
         {
-            var id = Configuration.GetId(item);
-            var hashValue = Configuration.EntityHashes(item, 1).First();
-            foreach (var position in Probe(id))
-            {
-                _data.Remove(Configuration, id, hashValue, position);
-            }
+            RemoveKey(Configuration.GetId(item), Configuration.EntityHash(item));
+        }
+
+        /// <summary>
+        /// Remove the given item from the Bloom filter.
+        /// </summary>
+        /// <param name="key">Key of the item to remove</param>
+        public virtual void RemoveKey(TId key)
+        {
+            ValidateData();
+            //using that IdHash equals EntityHash for a regular IBF
+            RemoveKey(key, Configuration.IdHash(key));
         }
 
         /// <summary>
@@ -156,23 +146,7 @@
         /// <remarks>Contains is purely based upon the identifier. An idea is however to utilize the empty hash array for an id hash to double check deletions.</remarks>
         public virtual bool Contains(TEntity item)
         {
-            var id = Configuration.GetId(item);
-            var hashValue = Configuration.EntityHashes(item, 1).First();
-            var countIdentity = Configuration.CountIdentity();
-            foreach (var position in Probe(id))
-            {
-                if (Configuration.IsPure(_data, position) &&
-                    (!Configuration.IdEqualityComparer.Equals(_data.IdSums[position], id) ||
-                        !Configuration.EntityHashEqualityComparer.Equals(_data.HashSums[position], hashValue)))
-                {
-                    return false;
-                }
-                if (Configuration.CountEqualityComparer.Equals(_data.Counts[position], countIdentity))
-                {
-                    return false;
-                }
-            }
-            return true;
+            return ContainsKey(Configuration.GetId(item), Configuration.EntityHash(item));
         }
 
         /// <summary>
@@ -180,22 +154,12 @@
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
+        /// <remarks>Will not work unless EntityHash is the HashIdentity.</remarks>
         public virtual bool ContainsKey(TId key)
         {
-            var countIdentity = Configuration.CountIdentity();
-            foreach (var position in Probe(key))
-            {
-                if (Configuration.IsPure(_data, position) &&
-                    !Configuration.IdEqualityComparer.Equals(_data.IdSums[position], key))
-                {
-                    return false;
-                }
-                if (Configuration.CountEqualityComparer.Equals(_data.Counts[position], countIdentity))
-                {
-                    return false;
-                }
-            }
-            return true;
+            ValidateData();
+            //using that IdHash equals EntityHash for a regular IBF
+            return ContainsKey(key, Configuration.IdHash(key));
         }
 
         /// <summary>
@@ -207,8 +171,8 @@
         /// <param name="modifiedEntities">Entities in both filters, but with a different value</param>
         /// <returns><c>true</c> when the decode was successful, otherwise <c>false</c></returns>
         public bool SubtractAndDecode(IInvertibleBloomFilter<TEntity, TId, TCount> filter,
-            HashSet<TId> listA, 
-            HashSet<TId> listB, 
+            HashSet<TId> listA,
+            HashSet<TId> listB,
             HashSet<TId> modifiedEntities)
         {
             return SubtractAndDecode(filter.Extract(), listA, listB, modifiedEntities);
@@ -227,22 +191,70 @@
             HashSet<TId> listB,
             HashSet<TId> modifiedEntities)
         {
-            return _data.SubtractAndDecode(filter, Configuration, listA, listB, modifiedEntities);
+            ValidateData();
+            return Data.SubtractAndDecode(filter, Configuration, listA, listB, modifiedEntities);
         }
 
         #endregion
 
+       
         #region Methods
         /// <summary>
-        /// Generate the sequence of cell locations to hash the given key to.
+        /// Add the identifier and hash.
         /// </summary>
         /// <param name="key"></param>
-        /// <returns></returns>
-        private IEnumerable<long> Probe(TId key)
+        /// <param name="hash"></param>
+        private void Add(TId key, int hash)
         {
-            return Configuration
-                .IdHashes(key, _data.HashFunctionCount)
-                .Select(p => Math.Abs(p % _data.Counts.LongLength));
+            foreach (var position in Configuration.Probe(Data, key, hash))
+            {
+                Data.Add(Configuration, key, hash, position);
+            }
+        }
+        /// <summary>
+        /// Given the key and probe hash, determine if the filter contains the key.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="probeHash"></param>
+        /// <returns></returns>
+       private bool ContainsKey(TId key, int probeHash)
+        {
+            var countIdentity = Configuration.CountConfiguration.CountIdentity();
+            foreach (var position in Configuration.Probe(Data, key, probeHash))
+            {
+                if (Configuration.IsPure(Data, position) &&
+                     (!Configuration.IdEqualityComparer.Equals(Data.IdSums[position], key) ||
+                         !Configuration.HashEqualityComparer.Equals(Data.HashSums[position], probeHash)))
+                {
+                    return false;
+                }
+                if (Configuration.CountConfiguration.EqualityComparer.Equals(Data.Counts[position], countIdentity))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Remove the given key
+        /// </summary>
+        /// <param name="key">The key to remove</param>
+        /// <param name="probeHash">The probe hash</param>
+        private void RemoveKey(TId key, int probeHash)
+        {
+            foreach (var position in Configuration.Probe(Data, key, probeHash))
+            {
+                Data.Remove(Configuration, key, probeHash, position);
+            }
+        }
+
+        protected void ValidateData()
+        {
+            if (Data==null)
+            {
+                throw new InvalidOperationException("The invertible Bloom filter was not initialized or rehydrated.");
+            }
         }
         #endregion
     }

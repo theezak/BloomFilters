@@ -19,7 +19,7 @@
             var data = DataGenerator.Generate().Take(100000).ToList();
             var data2 = DataGenerator.Generate().Take(100000).ToList();
             data.Modify(10000);
-            var configuration = new DefaultBloomFilterConfiguration();
+            var configuration = new KeyValueBloomFilterConfiguration();
             var estimator = new BitMinwiseHashEstimator<TestEntity, long, sbyte>(
                configuration,
                2,
