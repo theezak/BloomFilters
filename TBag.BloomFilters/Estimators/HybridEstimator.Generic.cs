@@ -64,10 +64,11 @@
         public override void Add(TEntity item)
         {
             var idHash = Configuration.IdHash(Configuration.GetId(item));
-            var idx = NumTrailingBinaryZeros(idHash);
+            var entityHash = Configuration.EntityHash(item);
+            var idx = NumTrailingBinaryZeros(unchecked((int)(idHash+3* entityHash)));
             if (idx < MaxStrata)
             {
-                Add(idHash, Configuration.EntityHash(item), idx);
+                Add(idHash, entityHash, idx);
             }
             else
             {
