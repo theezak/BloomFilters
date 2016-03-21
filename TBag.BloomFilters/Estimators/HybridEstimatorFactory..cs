@@ -27,7 +27,7 @@
             byte strata = 7;
             var capacity = 80L;
             byte bitSize = 2;
-            var minwiseHashCount = 20;
+            var minwiseHashCount = 10;
             if (failedDecodeCount == 1)
             {
                 capacity = 160L;
@@ -38,7 +38,7 @@
                 capacity = capacity * (failedDecodeCount+1);
                 bitSize = 3;
                 strata = 13;
-                minwiseHashCount = 40;
+                minwiseHashCount = 20;
             }           
             if (setSize > 25000L)
             {
@@ -53,7 +53,7 @@
             if (setSize > 50000L)
             {
                 strata = 13;
-                minwiseHashCount = 40;
+                minwiseHashCount = 25;
             }
             var result = new HybridEstimator<TEntity, TId, TCount>(
                 capacity,

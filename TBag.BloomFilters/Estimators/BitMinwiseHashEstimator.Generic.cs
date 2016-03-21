@@ -19,7 +19,7 @@ namespace TBag.BloomFilters.Estimators
         #region Fields
 
         private int _hashCount;
-        private readonly Func<TEntity, IEnumerable<int>> _hashFunctions;
+        private readonly Func<int, IEnumerable<int>> _hashFunctions;
         private readonly Func<TEntity, int> _entityHash;
         private byte _bitSize;
         private readonly IBloomFilterConfiguration<TEntity, TId, int, TCount> _configuration;
@@ -49,7 +49,7 @@ namespace TBag.BloomFilters.Estimators
             _hashCount = hashCount;
             _configuration = configuration;
             _hashFunctions = GenerateHashes();
-            _entityHash = e => Math.Abs(unchecked((int)((ulong)configuration.EntityHash(e)%_capacity)));
+            _entityHash = e => unchecked((int)(((ulong)(configuration.EntityHash(e)+configuration.IdHash(configuration.GetId(e))))));
             _slots = GetMinHashSlots(_hashCount, _capacity);
         }
 
@@ -168,10 +168,10 @@ namespace TBag.BloomFilters.Estimators
         /// Bit minwise estimator requires this specific hash function.
         /// </summary>
         /// <returns></returns>
-        private Func<TEntity, IEnumerable<int>> GenerateHashes()
+        private Func<int, IEnumerable<int>> GenerateHashes()
         {
             const int universeSize = int.MaxValue;
-            var bound = (uint) universeSize;
+            var bound = (uint)universeSize;
             var r = new Random(11);
             var hashFuncs = new Func<int, int>[_hashCount];
             for (var i = 0; i < _hashCount; i++)
@@ -181,11 +181,7 @@ namespace TBag.BloomFilters.Estimators
                 var c = unchecked((uint)r.Next(universeSize));
                 hashFuncs[i] = hash => QHash(hash, a, b, c, bound);
             }
-            return entity =>
-            {
-                var entityHash = _configuration.EntityHash(entity);
-                return hashFuncs.Select(f => f(entityHash));
-            };
+            return hash => hashFuncs.Select(f => f(hash));
         }
 
         /// <summary>
@@ -194,9 +190,10 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="element"></param>
         private void ComputeMinHash(TEntity element)
         {
-            var idhash = (ulong)_entityHash(element);
-            var entityHashes = _hashFunctions(element).ToArray();
+            var entityHash =_entityHash(element);
+            var entityHashes = _hashFunctions(entityHash).ToArray();
             ulong idx = 0;
+            var idhash = (ulong)Math.Abs(unchecked((long)((ulong)entityHash % _capacity)));
             for (var i = 0L; i < entityHashes.LongLength; i++)
             {
                  if (entityHashes[i] < _slots[idx+idhash])
