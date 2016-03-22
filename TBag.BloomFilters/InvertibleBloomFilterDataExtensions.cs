@@ -234,6 +234,11 @@
             var countIdentity = configuration.CountConfiguration.CountIdentity();
             for (var position = 0L; position < filter.Counts.LongLength; position++)
             {
+                if (configuration.CountConfiguration.IsPureCount(filter.Counts[position]))
+                {
+                    //was skipped on purpose.
+                    continue;
+                }
                 if (!configuration.IdEqualityComparer.Equals(idIdentity, filter.IdSums[position]) ||                   
                     !configuration.HashEqualityComparer.Equals(entityHashIdentity, filter.HashSums[position]) ||
                     !configuration.CountConfiguration.EqualityComparer.Equals(filter.Counts[position], countIdentity))
