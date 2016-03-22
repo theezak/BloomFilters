@@ -118,7 +118,7 @@ namespace TBag.BloomFilters.Estimators
         {
             var idHash = Configuration.IdHash(Configuration.GetId(item));
             var entityHash = Configuration.EntityHash(item);
-            Add(idHash, entityHash, NumTrailingBinaryZeros(idHash, entityHash));
+            Add(idHash, entityHash, GetStrata(idHash, entityHash));
         }
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace TBag.BloomFilters.Estimators
         {
             var idHash = Configuration.IdHash(Configuration.GetId(item));
             var entityHash = Configuration.EntityHash(item);
-            Remove(idHash, entityHash, NumTrailingBinaryZeros(idHash, entityHash));
+            Remove(idHash, entityHash, GetStrata(idHash, entityHash));
         }
 
         /// <summary>
@@ -160,16 +160,17 @@ namespace TBag.BloomFilters.Estimators
 
         #region Methods
         /// <summary>
-        /// Determine the number of trailing zeros in the bit representation of <paramref name="n"/>.
+        /// Determine the number of trailing zeros in the bit representation of <paramref name="idHash"/>.
         /// </summary>
-        /// <param name="n">The number</param>
-        /// <returns>number of trailing zeros.</returns>
-        protected static int NumTrailingBinaryZeros(int n, int entityHash)
+        /// <param name="idHash">The idHash</param>
+        /// <param name="entityHash">The entity hash</param>
+        /// <returns>number of trailing zeros. Determines the strata to add an item to.</returns>
+        protected static int GetStrata(int idHash, int entityHash)
         {
-            n = unchecked((int)(n + 3 * entityHash));
+            idHash = unchecked((int)(idHash + 3 * entityHash));
             var mask = 1;
             for (var i = 0; i < MaxTrailingZeros; i++, mask <<= 1)
-                if ((n & mask) != 0)
+                if ((idHash & mask) != 0)
                     return i;
             return MaxTrailingZeros;
         }

@@ -64,7 +64,7 @@
         {
             var idHash = Configuration.IdHash(Configuration.GetId(item));
             var entityHash = Configuration.EntityHash(item);
-            var idx = NumTrailingBinaryZeros(idHash, entityHash);
+            var idx = GetStrata(idHash, entityHash);
             if (idx < MaxStrata)
             {
                 Add(idHash, entityHash, idx);
