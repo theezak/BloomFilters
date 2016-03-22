@@ -42,7 +42,8 @@
             var minwiseDecode = 2 * (long)(decodeFactor * (estimator.BitMinwiseEstimator.Capacity - 
                      estimator.BitMinwiseEstimator.Similarity(otherEstimatorData.BitMinwiseEstimator) * 
                         estimator.BitMinwiseEstimator.Capacity));
-            return strataDecode + minwiseDecode;
+            //use upperbound on set difference.
+            return Math.Min(strataDecode.Value + minwiseDecode, estimator.CountEstimate + otherEstimatorData.CountEstimate);
         }
     }
 }

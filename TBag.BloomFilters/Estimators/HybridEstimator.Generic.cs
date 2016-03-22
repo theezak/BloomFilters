@@ -64,14 +64,14 @@
         {
             var idHash = Configuration.IdHash(Configuration.GetId(item));
             var entityHash = Configuration.EntityHash(item);
-            var idx = NumTrailingBinaryZeros(unchecked((int)(idHash+3* entityHash)));
+            var idx = NumTrailingBinaryZeros(idHash, entityHash);
             if (idx < MaxStrata)
             {
                 Add(idHash, entityHash, idx);
             }
             else
             {
-                _minwiseEstimator.Add(new KeyValuePair<int, int>(idHash, Configuration.EntityHash(item)));
+                _minwiseEstimator.Add(new KeyValuePair<int, int>(idHash, entityHash));
             }
         }
 

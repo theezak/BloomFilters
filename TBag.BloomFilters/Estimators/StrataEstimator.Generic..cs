@@ -118,7 +118,7 @@ namespace TBag.BloomFilters.Estimators
         {
             var idHash = Configuration.IdHash(Configuration.GetId(item));
             var entityHash = Configuration.EntityHash(item);
-            Add(idHash, entityHash, NumTrailingBinaryZeros(idHash));
+            Add(idHash, entityHash, NumTrailingBinaryZeros(idHash, entityHash));
         }
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace TBag.BloomFilters.Estimators
         {
             var idHash = Configuration.IdHash(Configuration.GetId(item));
             var entityHash = Configuration.EntityHash(item);
-            Remove(idHash, entityHash, NumTrailingBinaryZeros(idHash));
+            Remove(idHash, entityHash, NumTrailingBinaryZeros(idHash, entityHash));
         }
 
         /// <summary>
@@ -164,8 +164,9 @@ namespace TBag.BloomFilters.Estimators
         /// </summary>
         /// <param name="n">The number</param>
         /// <returns>number of trailing zeros.</returns>
-        protected static int NumTrailingBinaryZeros(int n)
+        protected static int NumTrailingBinaryZeros(int n, int entityHash)
         {
+            n = unchecked((int)(n + 3 * entityHash));
             var mask = 1;
             for (var i = 0; i < MaxTrailingZeros; i++, mask <<= 1)
                 if ((n & mask) != 0)
