@@ -1,20 +1,21 @@
-﻿namespace TBag.BloomFilter.Test
+﻿using System.Collections.Generic;
+using System.Runtime.Remoting.Messaging;
+
+namespace TBag.BloomFilter.Test
 {
-    using System;
-    using System.Text;
-    using BloomFilters;
+   using BloomFilters;
     using HashAlgorithms;
 
     /// <summary>
     /// A test Bloom filter configuration.
     /// </summary>
-    internal class DefaultBloomFilterConfiguration : StandardIbfConfigurationBase<TestEntity, sbyte>
+    internal class DefaultBloomFilterConfiguration : IbfConfigurationBase<TestEntity, sbyte>
     {
+
         public DefaultBloomFilterConfiguration() : base(new CountConfiguration())
         {
         }
 
-        private readonly IMurmurHash _murmurHash = new Murmur3();
 
         protected override long GetIdImpl(TestEntity entity)
         {

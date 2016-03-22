@@ -1,7 +1,5 @@
 ﻿namespace TBag.BloomFilters
 {
-    using Estimators;
-
     /// <summary>
     /// Place holder for a factory to create Bloom filters based upon strata estimators.
     /// </summary>
@@ -15,7 +13,7 @@
         /// <param name="bloomFilterConfiguration">The Bloom filter configuration</param>
         /// <param name="capacity">The capacity</param>
         /// <param name="errorRate">The desired error rate (between 0 and 1)</param>
-        /// <returns></returns>
+        /// <returns>The created Bloom filter.</returns>
         public IInvertibleBloomFilter<TEntity, TId, int> CreateHighUtilizationFilter<TEntity, TId>(
             IBloomFilterConfiguration<TEntity,TId,int, int> bloomFilterConfiguration,
             long capacity,
@@ -46,7 +44,7 @@
         /// <param name="bloomFilterConfiguration">The Bloom filter configuration</param>
         /// <param name="capacity">The capacity for the filter</param>
         /// <param name="invertibleBloomFilterData">The data to match with this filter.</param>
-        /// <returns></returns>
+        /// <returns>The created Bloom filter</returns>
         /// <remarks>For the scenario where you need to match a received filter with the set you own, so you can find the differences.</remarks>
         public IInvertibleBloomFilter<TEntity, TId, int> CreateMatchingHighUtilizationFilter<TEntity, TId>(
             IBloomFilterConfiguration<TEntity, TId, int, int> bloomFilterConfiguration,
@@ -67,7 +65,7 @@
         /// <param name="bloomFilterConfiguration">The Bloom filter configuration</param>
         /// <param name="capacity">The capacity</param>
         /// <param name="errorRate">The desired error rate (between 0 and 1)</param>
-        /// <returns></returns>
+        /// <returns>The created Bloom filter</returns>
         /// <remarks>Assumption is that the utilization will be in line with the capacity, thus keeping individual counts low.</remarks>
         public IInvertibleBloomFilter<TEntity, TId, sbyte> Create<TEntity, TId>(
             IBloomFilterConfiguration<TEntity, TId, int, sbyte> bloomFilterConfiguration,

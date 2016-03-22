@@ -55,7 +55,9 @@
     <Compile Include="DefaultBloomFilterConfiguration.cs" />
     <Compile Include="HybridEstimatorTest.cs" />
     <Compile Include="KeyValueBloomFilterConfiguration.cs" />
+    <Compile Include="IbfKeyValueLargeBloomFilterConfiguration.cs" />
     <Compile Include="KeyValueLargeBloomFilterConfiguration.cs" />
+    <Compile Include="KeyValuePairBloomFilterConfiguration.cs" />
     <Compile Include="LargeBloomFilterConfiguration.cs" />
     <Compile Include="MathExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

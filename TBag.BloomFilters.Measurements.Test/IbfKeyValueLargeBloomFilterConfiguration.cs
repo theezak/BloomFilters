@@ -1,4 +1,4 @@
-﻿namespace TBag.BloomFilter.Test
+﻿namespace TBag.BloomFilters.Measurements.Test
 {
     using System;
     using System.Text;
@@ -8,14 +8,12 @@
     /// <summary>
     /// A test Bloom filter configuration.
     /// </summary>
-    internal class KeyValueBloomFilterConfiguration : ReverseIbfConfigurationBase<TestEntity, sbyte>
+    internal class IbfKeyValueLargeBloomFilterConfiguration : ReverseIbfConfigurationBase<TestEntity, int>
     {
         private readonly IMurmurHash _murmurHash = new Murmur3();
 
-        public KeyValueBloomFilterConfiguration() : base(new CountConfiguration())
-        {
-        }
-
+        public IbfKeyValueLargeBloomFilterConfiguration() : base(new HighUtilizationCountConfiguration())
+        {}
 
         protected override long GetIdImpl(TestEntity entity)
         {
@@ -24,7 +22,7 @@
 
         protected override int GetEntityHashImpl(TestEntity entity)
         {
-            return BitConverter.ToInt32(_murmurHash.Hash(Encoding.UTF32.GetBytes(entity.Value )) , 0);
+            return BitConverter.ToInt32(_murmurHash.Hash(Encoding.UTF32.GetBytes(entity.Value)), 0);
         }
     }
 }

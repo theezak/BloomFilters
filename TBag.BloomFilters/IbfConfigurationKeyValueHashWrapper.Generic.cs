@@ -2,31 +2,32 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using HashAlgorithms;
-
+  
     /// <summary>
     /// Bloom filter configuration for a value Bloom filter.
     /// </summary>
-    /// <typeparam name="TEntity"></typeparam>
-    /// <typeparam name="TId"></typeparam>
-    /// <typeparam name="TCount"></typeparam>
+    /// <typeparam name="TEntity">The entity type</typeparam>
+    /// <typeparam name="TId">The entity identifier type</typeparam>
+    /// <typeparam name="TCount">The type of the occurence count.</typeparam>
+    /// <typeparam name="THash">The type of the hash value.</typeparam>
     /// <remarks>The value Bloom filter is reversed, utilizing the value hash as the identifier, and the identifier as the value hash.</remarks>
-    internal class IbfConfigurationKeyValueWrapper<TEntity, TId, THash, TCount> :
+    internal class IbfConfigurationKeyValueHashWrapper<TEntity, TId, THash, TCount> :
           KeyValuePairIbfConfigurationBase<TId, THash, TCount>
            where TCount : struct
             where TId : struct
         where THash : struct
     {
+        #region Fields
         private readonly IBloomFilterConfiguration<TEntity, TId, THash, TCount> _wrappedConfiguration;
-        private readonly IMurmurHash _murmurHash = new Murmur3();
-        private readonly IXxHash _xxHash = new XxHash();
         private Func<IInvertibleBloomFilterData<TId, THash, TCount>, long, bool> _isPure;
+        #endregion
+
+        #region Constructor
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public IbfConfigurationKeyValueWrapper(
+        public IbfConfigurationKeyValueHashWrapper(
             IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration) : 
             base(false)
         {
@@ -34,9 +35,9 @@
             //hashSum no longer derived from idSum.
             _isPure = (d, position) => _wrappedConfiguration.CountConfiguration.IsPureCount(d.Counts[position]);
         }
+        #endregion
 
         #region Configuration implementation      
-        
 
         public override Func<TId, TId, TId> IdXor
         {
@@ -91,7 +92,7 @@
             }
         }
 
-        public override Func<THash, THash, uint, IEnumerable<THash>> Hashes
+        public override Func<THash, uint, IEnumerable<THash>> Hashes
         {
             get
             {

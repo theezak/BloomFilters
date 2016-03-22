@@ -1,12 +1,10 @@
-﻿using System.Collections.Generic;
-
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters
 {
     /// <summary>
     /// interface for invertible Bloom filter data.
     /// </summary>
-    /// <typeparam name="TId"></typeparam>  
-    /// <typeparam name="THash"></typeparam>
+    /// <typeparam name="TId">The entity identifier type</typeparam>  
+    /// <typeparam name="THash">The hash type</typeparam>
     /// <typeparam name="TCount">The type for the count</typeparam>
     public interface IInvertibleBloomFilterData<TId,THash,TCount>
         where TCount : struct

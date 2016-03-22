@@ -15,7 +15,7 @@
         /// <summary>
         /// Function to determine a sequence (of given length) for a given identifier.
         /// </summary>
-        public virtual Func<THash, THash, uint, IEnumerable<THash>> Hashes { get; set; }
+        public virtual Func<THash, uint, IEnumerable<THash>> Hashes { get; set; }
 
         /// <summary>
         /// Identifier hash
@@ -33,7 +33,6 @@
         public virtual EqualityComparer<TId> IdEqualityComparer
         { get; set; }
 
-
         /// <summary>
         /// The identity value for <typeparamref name="TId"/> (for example 0 when the identifier is a number).
         /// </summary>
@@ -44,6 +43,12 @@
         /// </summary>
         public virtual Func<TId, TId, TId> IdXor { get; set; }
 
+        /// <summary>
+        /// Function to determine the best number of hash functions.
+        /// </summary>
+        /// <param name="capacity">The capacity</param>
+        /// <param name="errorRate">The desired error rate (between 0 and 1).</param>
+        /// <returns></returns>
         public uint BestHashFunctionCount(long capacity, float errorRate)
         {
             //at least 3 hash functions.
@@ -52,23 +57,34 @@
                 (uint)Math.Ceiling(Math.Abs(Math.Log(2.0D) * (1.0D * BestSize(capacity, errorRate) / capacity))));
         }
 
+        /// <summary>
+        /// Determine the best, compressed, size for the Bloom filter.
+        /// </summary>
+        /// <param name="capacity">The capacity</param>
+        /// <param name="errorRate">The desired error rate (between 0 and 1).</param>
+        /// <returns></returns>
         public virtual long BestCompressedSize(long capacity, float errorRate)
         {
             //compress the size of the Bloom filter, by ln2.
             return (long)(BestSize(capacity, errorRate) * Math.Log(2.0D));
         }
 
+        /// <summary>
+        /// Determine the best, uncompressed, size for the Bloom filter.
+        /// </summary>
+        /// <param name="capacity">The capacity</param>
+        /// <param name="errorRate">The desired error rate (between 0 and 1).</param>
+        /// <returns></returns>
         public virtual long BestSize(long capacity, float errorRate)
         {
             return (long)Math.Abs(capacity * Math.Log(errorRate) / Math.Pow(2, Math.Log(2.0D)));
         }
-
       
         /// <summary>
         /// This determines an error rate assuming that at higher capacity a higher error rate is acceptable as a trade off for space. Provide your own error rate if this does not work for you.
         /// </summary>
-        /// <param name="capacity"></param>
-        /// <returns></returns>
+        /// <param name="capacity">The capacity for the Bloom filter.</param>
+        /// <returns>An error rate (between 0 and 1)</returns>
         /// <remarks>Error rates above 50% are filtered out.</remarks>
         public virtual float BestErrorRate(long capacity)
         {

@@ -35,7 +35,6 @@
                 return estimator.CountEstimate;
             var decodeFactor = Math.Max(estimator.StrataEstimator?.DecodeCountFactor ?? 1.0D,
                 otherEstimatorData.StrataEstimator?.DecodeCountFactor ?? 1.0D);
-            var maxDifference = otherEstimatorData.CountEstimate + estimator.CountEstimate;
             var strataDecode = estimator
                 .StrataEstimator
                 .Decode(otherEstimatorData.StrataEstimator, configuration, destructive);

@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters
 {
+    using System;
+  
+    /// <summary>
+    /// Implementation of <see cref="IInvertibleBloomFilterDataFactory"/>.
+    /// </summary>
     public class InvertibleBloomFilterDataFactory : IInvertibleBloomFilterDataFactory
     {
         /// <summary>
@@ -16,7 +15,7 @@ namespace TBag.BloomFilters
         /// <typeparam name="TCount">Type of the counter</typeparam>
         /// <param name="m">Size per hash function</param>
         /// <param name="k">The number of hash functions.</param>
-        /// <returns></returns>
+        /// <returns>The Bloom filter data</returns>
         public InvertibleBloomFilterData<TId, THash, TCount> Create<TId, THash, TCount>(long m, uint k)
             where TId : struct
             where TCount : struct

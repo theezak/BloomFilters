@@ -15,8 +15,8 @@
         /// <typeparam name="TId">The type of entity identifier</typeparam>
         /// <typeparam name="TEntityHash">The type of the entity hash.</typeparam>
         /// <typeparam name="TCount">The type of the occurence counter for the invertible Bloom filter.</typeparam>
-        /// <param name="filter"></param>
-        /// <param name="otherFilter"></param>
+        /// <param name="filter">Bloom filter data</param>
+        /// <param name="otherFilter">The Bloom filter data to compare against</param>
         /// <returns></returns>
         public static bool IsCompatibleWith<TId, TEntityHash, TCount>(
             this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter,
@@ -41,7 +41,7 @@
         /// <typeparam name="TId">The type of entity identifier</typeparam>
         /// <typeparam name="TEntityHash">The type of the entity hash.</typeparam>
         /// <typeparam name="TCount">The type of the occurence counter for the invertible Bloom filter.</typeparam>
-        /// <param name="filter"></param>
+        /// <param name="filter">The Bloom filter data to validate.</param>
         /// <returns></returns>
         public static bool IsValid<TId, TEntityHash, TCount>(this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filter)
             where TCount : struct
@@ -60,26 +60,24 @@
         /// <summary>
         /// Subtract the Bloom filter data.
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <typeparam name="TId"></typeparam>
-        /// <typeparam name="TCount"></typeparam>
-        /// <typeparam name="THash"></typeparam>
-        /// <param name="filterData"></param>
-        /// <param name="subtractedFilterData"></param>
-        /// <param name="configuration"></param>
+        /// <typeparam name="TEntity">The entity type</typeparam>
+        /// <typeparam name="TId">The entity identifier type</typeparam>
+        /// <typeparam name="TCount">The occurence count type</typeparam>
+        /// <typeparam name="THash">The hash type.</typeparam>
+        /// <param name="filterData">The filter data</param>
+        /// <param name="subtractedFilterData">The Bloom filter data to subtract</param>
+        /// <param name="configuration">The Bloom filter configuration</param>
         /// <param name="listA">Items in <paramref name="filterData"/>, but not in <paramref name="subtractedFilterData"/></param>
         /// <param name="listB">Items in <paramref name="subtractedFilterData"/>, but not in <paramref name="filterData"/></param>
-        /// <param name="modifiedEntities">items in both filters, but with a different value.</param>
         /// <param name="pureList">Optional list of pure items.</param>
-        /// <param name="destructive"></param>
-        /// <returns></returns>
+        /// <param name="destructive">When <c>true</c> the <paramref name="filterData"/> will no longer be valid after the subtract operation, otherwise <c>false</c></param>
+        /// <returns>The resulting Bloom filter data</returns>
         internal static IInvertibleBloomFilterData<TId, THash, TCount> Subtract<TEntity, TId, THash, TCount>(
             this IInvertibleBloomFilterData<TId, THash, TCount> filterData,
             IInvertibleBloomFilterData<TId, THash, TCount> subtractedFilterData,
             IBloomFilterConfiguration<TEntity, TId,  THash, TCount> configuration,
             HashSet<TId> listA,
             HashSet<TId> listB,
-            HashSet<TId> modifiedEntities = null,
             Stack<long> pureList = null,
             bool destructive = false
             )
@@ -92,8 +90,7 @@
             var result = destructive ?
                 filterData :
                 filterData.Duplicate();
-            var countsIdentity = configuration.CountConfiguration.CountIdentity();
-            var idIdentity = configuration.IdIdentity();
+             var idIdentity = configuration.IdIdentity();
             var hashIdentity = configuration.HashIdentity();
             for (var i = 0L; i < filterData.Counts.LongLength; i++)
             {
@@ -123,7 +120,6 @@
             return result;
         }
 
-
         /// <summary>
         /// Decode the filter.
         /// </summary>
@@ -136,7 +132,7 @@
         /// <param name="listB">Items not in the original set, but in the subtracted set.</param>
         /// <param name="modifiedEntities">items in both sets, but with a different value.</param>
         /// <param name="pureList">Optional list of pure items</param>
-        /// <returns></returns>
+        /// <returns><c>true</c> when the decode was successful, else <c>false</c>.</returns>
         internal static bool Decode<TEntity, TId, TCount>(
             this IInvertibleBloomFilterData<TId, int, TCount> filter,
             IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
@@ -167,7 +163,7 @@
                 var count = filter.Counts[pureIdx];
                 var negCount = countComparer.Compare(count, countsIdentity) < 0;
                 var isModified = false;
-                foreach (var position in configuration.Probe(filter, id, hashSum))
+                foreach (var position in configuration.Probe(filter, hashSum))
                  {
                     var wasZero = configuration.CountConfiguration.EqualityComparer.Equals(filter.Counts[position], countsIdentity);
                     if (configuration.IsPure(filter, position) &&
@@ -221,11 +217,11 @@
         /// </summary>
         /// <typeparam name="TEntity">The entity type</typeparam>
         /// <typeparam name="TId">The identifier type</typeparam>
-         /// <typeparam name="THash">The type of the hash</typeparam>
+        /// <typeparam name="THash">The type of the hash</typeparam>
         /// <typeparam name="TCount">The type of the occurence counter</typeparam>
         /// <param name="filter">The IBF data</param>
         /// <param name="configuration">The Bloom filter configuration</param>
-        /// <returns></returns>
+        /// <returns><c>true</c> when the decode was successful, else <c>false</c>.</returns>
         internal static bool IsCompleteDecode<TEntity, TId, THash, TCount>(
             this IInvertibleBloomFilterData<TId, THash, TCount> filter,
             IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration)
@@ -253,7 +249,7 @@
         /// <typeparam name="TEntityHash">The entity hash type</typeparam>
         /// <typeparam name="TCount">The occurence count type</typeparam>
         /// <param name="data">The data to duplicate.</param>
-        /// <returns></returns>
+        /// <returns>Bloom filter data configured the same as <paramref name="data"/>, but with empty arrays.</returns>
         /// <remarks>Explicitly does not duplicate the reverse IBF data.</remarks>
         internal static InvertibleBloomFilterData<TId,TEntityHash,TCount> Duplicate<TId,TEntityHash,TCount>(
             this IInvertibleBloomFilterData<TId,TEntityHash,TCount> data)
@@ -342,7 +338,7 @@
         /// <param name="listB">Items in <paramref name="subtractedFilter"/>, but not in <paramref name="filter"/></param>
         /// <param name="modifiedEntities">items in both filters, but with a different value.</param>
         /// <param name="destructive">Optional parameter, when <c>true</c> the filter <paramref name="filter"/> will be modified, and thus rendered useless, by the decoding.</param>
-        /// <returns></returns>
+        /// <returns><c>true</c> when the decode was successful, else <c>false</c>.</returns>
         public static bool SubtractAndDecode<TEntity, TId, TCount>(
             this IInvertibleBloomFilterData<TId, int, TCount> filter,
             IInvertibleBloomFilterData<TId, int, TCount> subtractedFilter,
@@ -356,31 +352,27 @@
         {
             if (!filter.IsCompatibleWith(subtractedFilter))
                 throw new ArgumentException(
-                    "The subtracted Bloom filter data is not compatible with the Bloom filter.", 
+                    "The subtracted Bloom filter data is not compatible with the Bloom filter.",
                     nameof(subtractedFilter));
             var valueRes = true;
-            var idRes = true;
             var pureList = new Stack<long>();
-             var hasReverseFilter = filter.ReverseFilter != null && 
-                subtractedFilter.ReverseFilter != null;
-          
-                //add a dummy mod set when there is a reverse filter, because a regular filter is pretty bad at recognizing modified entites.
-                var modSet = hasReverseFilter ? null : modifiedEntities;
-                idRes = filter
-                    .Subtract(subtractedFilter, configuration, listA, listB, modSet, pureList, destructive)
-                    .Decode(configuration, listA, listB, modSet, pureList);
-            
-           if (hasReverseFilter)
+            var hasReverseFilter = filter.ReverseFilter != null &&
+                                   subtractedFilter.ReverseFilter != null;
+            //add a dummy mod set when there is a reverse filter, because a regular filter is pretty bad at recognizing modified entites.
+            var idRes = filter
+                .Subtract(subtractedFilter, configuration, listA, listB, pureList, destructive)
+                .Decode(configuration, listA, listB, hasReverseFilter ? null : modifiedEntities, pureList);
+            if (hasReverseFilter)
             {
-                 valueRes = filter
+                valueRes = filter
                     .ReverseFilter
                     .SubtractAndDecode(
-                    subtractedFilter.ReverseFilter,
-                    configuration.ValueFilterConfiguration,
-                   listA,
-                  listB,
-                    modifiedEntities,
-                    destructive);
+                        subtractedFilter.ReverseFilter,
+                        configuration.ValueFilterConfiguration,
+                        listA,
+                        listB,
+                        modifiedEntities,
+                        destructive);
             }
             return idRes && valueRes;
         }
@@ -413,9 +405,15 @@
             };
         }
 
+        /// <summary>
+        /// Generate a range of type <see cref="long"/>.
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
         private static IEnumerable<long> Range(long start, long end)
         {
-            for (long i = start; i < end; i++)
+            for (var i = start; i < end; i++)
                 yield return i;
         }
 

@@ -11,7 +11,7 @@
         /// <summary>
         /// Add an item to the estimator
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">The entity to add</param>
         void Add(TEntity item);
 
         /// <summary>
@@ -23,7 +23,7 @@
         /// <summary>
         /// Determine the similarity between the hash estimator and the provided hash estimator data.
         /// </summary>
-        /// <param name="estimatorData"></param>
+        /// <param name="estimatorData">The estimator data to compare to.</param>
         /// <returns>Similarity (percentage similar, zero is completely different, one is completely the same)</returns>
         /// <remarks>Zero is no similarity, one is completely similar.</remarks>
         double Similarity(IBitMinwiseHashEstimatorData estimatorData);
@@ -31,7 +31,7 @@
         /// <summary>
         /// Determine the similarity with the provided hash estimator.
         /// </summary>
-        /// <param name="estimator"></param>
+        /// <param name="estimator">The estimator to compare to.</param>
         /// <returns>Similarity (percentage similar, zero is completely different, one is completely the same)</returns>
         /// <remarks>Zero is no similarity, one is completely similar.</remarks>
         double Similarity(IBitMinwiseHashEstimator<TEntity, TId, TCount> estimator);

@@ -1,10 +1,11 @@
-﻿
-
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters
 {
     using System.Collections.Generic;
     using System.Linq;
   
+    /// <summary>
+    /// Extensions for hashsets.
+    /// </summary>
     internal static class HashSetExtensions
     {
         /// <summary>

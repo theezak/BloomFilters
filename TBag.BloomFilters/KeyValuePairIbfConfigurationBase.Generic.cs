@@ -2,21 +2,22 @@
 {
     using System;
     using System.Collections.Generic;
-    using HashAlgorithms;
-    using System.Linq;
-
+   
     /// <summary>
     /// A default Bloom filter configuration, well suited for  key/value inveritble Bloom filters that are utilized according to their capacity.
     /// </summary>
-    public abstract class KeyValuePairIbfConfigurationBase<TId, THash, TCount> : 
+   internal abstract class KeyValuePairIbfConfigurationBase<TId, THash, TCount> : 
         BloomFilterConfigurationBase<KeyValuePair<TId,THash>, TId, THash, TCount>
         where TId : struct
         where THash : struct
         where TCount : struct
     {
+        #region Fields
         private Func<KeyValuePair<TId, THash>, TId> _getId;
         private Func<KeyValuePair<TId, THash>, THash> _entityHash;
+        #endregion
 
+        #region Constructor
         /// <summary>
         /// Constructor
         /// </summary>
@@ -26,7 +27,9 @@
             _getId = kv => kv.Key;
             _entityHash = kv => kv.Value;
         }
+        #endregion
 
+        #region Implementation of Configuration
         public override Func<KeyValuePair<TId, THash>, TId> GetId
         {
             get
@@ -52,6 +55,7 @@
                 _entityHash = value;
             }
         }
+        #endregion
     }
 }
 

@@ -8,7 +8,7 @@
     /// <summary>
     /// A test Bloom filter configuration.
     /// </summary>
-    internal class KeyValueBloomFilterConfiguration : KeyValueIbfConfigurationBase<TestEntity, sbyte>
+    internal class KeyValueBloomFilterConfiguration : ReverseIbfConfigurationBase<TestEntity, sbyte>
     {
         private readonly IMurmurHash _murmurHash = new Murmur3();
 

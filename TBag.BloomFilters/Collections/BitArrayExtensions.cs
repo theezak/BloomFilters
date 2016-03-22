@@ -8,8 +8,8 @@
         // <summary>
         // serialize a bitarray.
         // </summary>
-        //<param name="bits"></param>
-        // <returns></returns>
+        //<param name="bits">The bit array to convert</param>
+        // <returns>The bit array converted to an array of bytes.</returns>
         internal static byte[] ToBytes(this BitArray bits)
         {
             var numBytes = bits.Count / 8;

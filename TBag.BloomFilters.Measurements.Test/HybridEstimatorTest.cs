@@ -12,13 +12,6 @@
     [TestClass]
     public class HybridEstimatorTest
     {
-        public HybridEstimatorTest()
-        {
-            //
-            // TODO: Add constructor logic here
-            //
-        }
-
         /// <summary>
         /// Generate performance data for the hybrid estimator.
         /// </summary>
@@ -41,7 +34,7 @@
                                 FileMode.Create)))
                     {
                         writer.WriteLine(
-                            "duration,dataSize,strata,capacity,modCount,estimatedModCount,countDiff,countDiffSd");
+                            "duration,dataSize,strata,capacity,modCount,estimatedModCount,countDiff,countDiffSd,decodeSuccessRate");
                         foreach (var capacity in capacities)
                         {
                             foreach (var strata in stratas)
@@ -49,6 +42,7 @@
                                 var timeSpanAggregate = new TimeSpan[50];
                                 var countAggregate = new int[50];
                                 var modCountResultAggregate = new int[50];
+                                var decodeResult = new int[50];
 
                                 for (var run = 0; run < 50; run++)
                                 {
@@ -71,7 +65,8 @@
                                     var measuredModCount = estimator1.Decode(estimator2);
                                     timeSpanAggregate[run] = DateTime.UtcNow.Subtract(startTime);
                                     countAggregate[run] = modCount;
-                                    modCountResultAggregate[run] = (int) measuredModCount;
+                                    modCountResultAggregate[run] = (int)(measuredModCount??0L);
+                                    decodeResult[run] = measuredModCount.HasValue ? 1 : 0;
 
                                 }
                                 var timeAvg = new TimeSpan((long) timeSpanAggregate.Select(t => t.Ticks).Average());
@@ -81,7 +76,7 @@
                                     modCountResultAggregate.Select((r, i) => r - countAggregate[i]).ToArray();
                                 var differenceSd = Math.Sqrt(differenceResult.Variance());
                                 writer.WriteLine(
-                                    $"{timeAvg.TotalMilliseconds},{dataSize},{strata},{capacity},{countAvg},{modCountResult},{(long) differenceResult.Average()},{differenceSd}");
+                                    $"{timeAvg.TotalMilliseconds},{dataSize},{strata},{capacity},{countAvg},{modCountResult},{(long) differenceResult.Average()},{differenceSd},{1.0D * decodeResult.Sum() / 50}");
                             }
                         }
 

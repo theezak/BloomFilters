@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.PerformanceData;
-
-namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Estimators
 {
     using System;
     using System.Collections.Generic;
@@ -29,7 +27,7 @@ namespace TBag.BloomFilters.Estimators
             where TCount : struct
         {
             if (data == null || otherEstimatorData == null) return null;
-            var strataConfig = configuration.ConvertToEntityHashId();
+            var strataConfig = configuration.ConvertToEstimatorConfiguration();
             var decodeFactor = Math.Max(data.DecodeCountFactor, otherEstimatorData.DecodeCountFactor);
             var hasDecoded = false;
             var setA = new HashSet<int>();

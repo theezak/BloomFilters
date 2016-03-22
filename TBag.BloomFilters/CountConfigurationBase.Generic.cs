@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
 
-    public abstract class CountConfiguration<TCount> : ICountConfiguration<TCount>
+    public abstract class CountConfigurationBase<TCount> : ICountConfiguration<TCount>
         where TCount : struct
     {
         /// <summary>

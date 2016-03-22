@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters
+﻿using System;
+
+namespace TBag.BloomFilters
 {
     using System.Collections.Generic;
 
@@ -15,21 +17,27 @@
         /// <summary>
         /// Add an entity to the Bloom filter.
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">The entity to add</param>
+        /// <exception cref="InvalidOperationException">When the Bloom filter configuration is not valid.</exception>
         void Add(T item);
 
         /// <summary>
         /// Determine if the item is in the Bloom filter.
         /// </summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
+        /// <param name="item">The entity</param>
+        /// <returns><c>true</c> when the Bloom filter contains the item, else <c>false</c></returns>
+        /// <remarks>False-positives are possible</remarks>
+        /// <exception cref="InvalidOperationException">When the Bloom filter configuration is not valid.</exception>
         bool Contains(T item);
 
         /// <summary>
         /// Determine if the given key is in the Bloom filter.
         /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
+        /// <param name="key">The key</param>
+        /// <returns><c>true</c> when the Bloom filter contains the given key, else <c>false</c></returns>
+        /// <exception cref="NotSupportedException">When the Bloom filter does no support look-up by key</exception>
+        /// <exception cref="InvalidOperationException">When the Bloom filter configuration is not valid.</exception>
+        /// <remarks>False-positives are possible</remarks>
         bool ContainsKey(TId key);
 
         /// <summary>
@@ -48,44 +56,48 @@
         /// <summary>
         /// Extract the Bloom filter data in a serializable format.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The Bloom filter data</returns>
         InvertibleBloomFilterData<TId, int, TCount> Extract();
 
         /// <summary>
         /// Rehydrate the Bloom filter data.
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">The data to restore</param>
+        /// <exception cref="ArgumentException">When the data is not valid.</exception>       
         void Rehydrate(IInvertibleBloomFilterData<TId, int, TCount> data);
 
         /// <summary>
         /// Remove the entity from the Bloom filter.
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">The entity to remove</param>
+        /// <exception cref="InvalidOperationException">When the Bloom filter configuration is not valid.</exception>
         void Remove(T item);
 
         /// <summary>
         /// Remove by key
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="key">The key to remove</param>
+        /// <exception cref="NotSupportedException">When the Bloom filter does no support removal by key</exception>
+        /// <exception cref="InvalidOperationException">When the Bloom filter configuration is not valid.</exception>
         void RemoveKey(TId key);
 
         /// <summary>
         /// Initialize
         /// </summary>
-        /// <param name="capacity"></param>
+        /// <param name="capacity">The capacity (number of elements stored in the Bloom filter)</param>
         void Initialize(long capacity);
 
         /// <summary>
         /// Initialize
         /// </summary>
-        /// <param name="capacity"></param>
-        /// <param name="errorRate"></param>
+        /// <param name="capacity">The capacity (number of elements stored in the Bloom filter)</param>
+        /// <param name="errorRate">The error rate (between 0 and 1)</param>
         void Initialize(long capacity, float errorRate);
 
         /// <summary>
         /// Initialize
         /// </summary>
-        /// <param name="capacity">The capacity</param>
+        /// <param name="capacity">The capacity (number of elements stored in the Bloom filter)</param>
         /// <param name="m">Size per hash function</param>
         /// <param name="k">Hash function count</param>
         void Initialize(long capacity, long m, uint k);

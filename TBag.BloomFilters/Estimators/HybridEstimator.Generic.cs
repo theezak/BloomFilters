@@ -41,16 +41,15 @@
                 configuration,
                 maxStrata)        
         {
-            _capacity = capacity;
-            var max = Math.Pow(2, MaxTrailingZeros);
+            _capacity = capacity;           
              _setSize = setSize;
             //TODO: clean up math. This is very close though to what actually ends up in the estimator.
-            var inStrata = max - Math.Pow(2, MaxTrailingZeros - maxStrata);           
+            var max = Math.Pow(2, MaxTrailingZeros);
             _minwiseEstimator = new BitMinwiseHashEstimator<KeyValuePair<int,int>, int, TCount>(
-                Configuration.ConvertToEntityHashId(), 
+                Configuration.ConvertToEstimatorConfiguration(), 
                 bitSize, 
                 minWiseHashCount, 
-                Math.Max((uint)(_setSize * (1 - inStrata / max)), 1));
+                Math.Max((uint)(_setSize * (1 - (max - Math.Pow(2, MaxTrailingZeros - maxStrata)) / max)), 1));
             DecodeCountFactor = _capacity >= 20 ? 1.45D : 1.0D;
         }
         #endregion
@@ -59,7 +58,7 @@
         /// <summary>
         /// Add an item to the estimator.
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">The entity to add</param>
         /// <remarks>based upon the strata, the value is either added to an IBF or to the b-bit minwise estimator.</remarks>
         public override void Add(TEntity item)
         {
@@ -90,6 +89,37 @@
             base.Remove(item);
         }
 
+        /// <summary>
+        /// Decode the given hybrid estimator.
+        /// </summary>
+        /// <param name="estimator">The estimator for the other set.</param>
+        /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
+        /// <returns>An estimate of the number of differences between the two sets that the estimators are based upon.</returns>
+        public long? Decode(IHybridEstimator<TEntity, int, TCount> estimator,
+            bool destructive = false)
+         {
+             if (estimator == null) return _capacity;
+            return Decode(estimator.Extract(), destructive);
+        }
+
+        /// <summary>
+        /// Decode the given hybrid estimator data.
+        /// </summary>
+        /// <param name="estimator">The estimator for the other set.</param>
+        /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
+        /// <returns>An estimate of the number of differences between the two sets that the estimators are based upon.</returns>
+        public long? Decode(IHybridEstimatorData<int, TCount> estimator,
+            bool destructive = false)
+        {
+            if (estimator == null) return _setSize;
+            return ((IHybridEstimator<TEntity, int, TCount>) this)
+                .Extract()
+                .Decode(estimator, Configuration);
+        }
+
+        #endregion
+
+        #region Implementation of IHybridEstimator{Entity, int, TCount}
         /// <summary>
         /// Extract the hybrid estimator in a serializable format.
         /// </summary>
@@ -126,7 +156,7 @@
         /// <summary>
         /// Rehydrate the hybrid estimator from full data.
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">The data to restore</param>
         void IHybridEstimator<TEntity, int, TCount>.Rehydrate(IHybridEstimatorFullData<int, TCount> data)
         {
             if (data == null) return;
@@ -136,36 +166,6 @@
             _setSize = data.CountEstimate;
             Rehydrate(data.StrataEstimator);
         }
-
-        /// <summary>
-        /// Decode the given hybrid estimator.
-        /// </summary>
-        /// <param name="estimator">The estimator for the other set.</param>
-        /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
-        /// <returns>An estimate of the number of differences between the two sets that the estimators are based upon.</returns>
-
-        public long? Decode(IHybridEstimator<TEntity, int, TCount> estimator,
-            bool destructive = false)
-         {
-             if (estimator == null) return _capacity;
-            return Decode(estimator.Extract(), destructive);
-        }
-
-        /// <summary>
-        /// Decode the given hybrid estimator data.
-        /// </summary>
-        /// <param name="estimator">The estimator for the other set.</param>
-        /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
-        /// <returns>An estimate of the number of differences between the two sets that the estimators are based upon.</returns>
-        public long? Decode(IHybridEstimatorData<int, TCount> estimator,
-            bool destructive = false)
-        {
-            if (estimator == null) return _setSize;
-            return ((IHybridEstimator<TEntity, int, TCount>) this)
-                .Extract()
-                .Decode(estimator, Configuration);
-        }
-
         #endregion
     }
 }

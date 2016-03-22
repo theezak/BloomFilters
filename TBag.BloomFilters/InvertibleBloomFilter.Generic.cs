@@ -2,8 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-
+ 
     /// <summary>
     /// An invertible Bloom filter supports removal and additions.
     /// </summary>
@@ -16,8 +15,12 @@
         where TCount : struct
         where TId : struct
     {
-       #region Properties
-
+          #region Properties
+        /// <summary>
+        /// When <c>true</c> the configuration will be validated, else <c>false</c>.
+        /// </summary>
+        protected bool ValidateConfiguration { get; set; }
+      
         /// <summary>
         /// The configuration for the Bloom filter.
         /// </summary>
@@ -30,14 +33,18 @@
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Creates a new Bloom filter 
         /// </summary>
         /// <param name="bloomFilterConfiguration">The Bloom filter configuration</param>
+        /// <param name="validateConfiguration">When <c>true</c> the configuration is validated on the first operation, else <c>false</c>.</param>
         public InvertibleBloomFilter(
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> bloomFilterConfiguration)
+            IBloomFilterConfiguration<TEntity, TId, int, TCount> bloomFilterConfiguration,
+            bool validateConfiguration = true)
         {
             Configuration = bloomFilterConfiguration;
+            ValidateConfiguration = validateConfiguration;
         }
 
         #endregion
@@ -46,7 +53,7 @@
         /// <summary>
         /// Initialize
         /// </summary>
-        /// <param name="capacity"></param>
+        /// <param name="capacity">The capacity</param>
         public void Initialize(long capacity)
         {
             Initialize(capacity, Configuration.BestErrorRate(capacity));
@@ -74,18 +81,18 @@
         public virtual void Initialize(long capacity, long m, uint k)
         {
             // validate the params are in range
-            if (!Configuration.Supports(capacity, (long)(m * k)))
+            if (!Configuration.Supports(capacity, m * k))
             {
                 throw new ArgumentOutOfRangeException(
-                    $"The size {(long)(m * k)} of the Bloom filter is not large enough to hold {capacity} items.");
+                    $"The size {m * k} of the Bloom filter is not large enough to hold {capacity} items.");
             }
-            Data = Configuration.DataFactory.Create<TId, int, TCount>(m, k);
+            Data = Configuration.DataFactory.Create<TId, int, TCount>(m, k);            
         }
 
         /// <summary>
         /// Add an item to the Bloom filter.
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">The entity to add.</param>
         public virtual void Add(TEntity item)
         {
             ValidateData();
@@ -104,7 +111,7 @@
         /// <summary>
         /// Set the data for this Bloom filter.
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">The data to restore</param>
         public virtual void Rehydrate(IInvertibleBloomFilterData<TId, int, TCount> data)
         {
             if (data == null)
@@ -121,7 +128,7 @@
         /// <summary>
         /// Remove the given item from the Bloom filter.
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">The entity to remove</param>
         public virtual void Remove(TEntity item)
         {
             RemoveKey(Configuration.GetId(item), Configuration.EntityHash(item));
@@ -141,7 +148,7 @@
         /// <summary>
         /// Checks for the existance of the item in the filter for a given probability.
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">The item to check.</param>
         /// <returns></returns>
         /// <remarks>Contains is purely based upon the identifier. An idea is however to utilize the empty hash array for an id hash to double check deletions.</remarks>
         public virtual bool Contains(TEntity item)
@@ -152,7 +159,7 @@
         /// <summary>
         /// Determine if the Bloom filter contains the given key.
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="key">The key to check</param>
         /// <returns></returns>
         /// <remarks>Will not work unless EntityHash is the HashIdentity.</remarks>
         public virtual bool ContainsKey(TId key)
@@ -199,32 +206,42 @@
 
        
         #region Methods
+
         /// <summary>
         /// Add the identifier and hash.
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="hash"></param>
-        private void Add(TId key, int hash)
+        /// <param name="key">The key to add</param>
+         /// <param name="entityHash">The entity hash</param>
+        protected virtual void Add(TId key, int entityHash)
         {
-            foreach (var position in Configuration.Probe(Data, key, hash))
+            if (ValidateConfiguration)
             {
-                Data.Add(Configuration, key, hash, position);
+                IsValidConfiguration(Configuration.IdHash(key), entityHash);
+            }
+            foreach (var position in Configuration.Probe(Data, entityHash))
+            {
+                Data.Add(Configuration, key, entityHash, position);
             }
         }
+
         /// <summary>
         /// Given the key and probe hash, determine if the filter contains the key.
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="probeHash"></param>
+        /// <param name="key">The key to add</param>
+        /// <param name="hash">The entity hash</param>
         /// <returns></returns>
-       private bool ContainsKey(TId key, int probeHash)
+       protected virtual bool ContainsKey(TId key, int hash)
         {
+            if (ValidateConfiguration)
+            {
+                IsValidConfiguration(Configuration.IdHash(key), hash);
+            }
             var countIdentity = Configuration.CountConfiguration.CountIdentity();
-            foreach (var position in Configuration.Probe(Data, key, probeHash))
+            foreach (var position in Configuration.Probe(Data,  hash))
             {
                 if (Configuration.IsPure(Data, position) &&
                      (!Configuration.IdEqualityComparer.Equals(Data.IdSums[position], key) ||
-                         !Configuration.HashEqualityComparer.Equals(Data.HashSums[position], probeHash)))
+                         !Configuration.HashEqualityComparer.Equals(Data.HashSums[position], hash)))
                 {
                     return false;
                 }
@@ -240,22 +257,43 @@
         /// Remove the given key
         /// </summary>
         /// <param name="key">The key to remove</param>
-        /// <param name="probeHash">The probe hash</param>
-        private void RemoveKey(TId key, int probeHash)
+        /// <param name="hash">The entity hash</param>
+       protected virtual void RemoveKey(TId key, int hash)
         {
-            foreach (var position in Configuration.Probe(Data, key, probeHash))
+            if (ValidateConfiguration)
             {
-                Data.Remove(Configuration, key, probeHash, position);
+                IsValidConfiguration(Configuration.IdHash(key), hash);
+            }
+            foreach (var position in Configuration.Probe(Data,hash))
+            {
+                Data.Remove(Configuration, key, hash, position);
             }
         }
 
+        /// <summary>
+        /// Validate the data.
+        /// </summary>
         protected void ValidateData()
         {
             if (Data==null)
             {
                 throw new InvalidOperationException("The invertible Bloom filter was not initialized or rehydrated.");
-            }
+            }            
         }
+
+        /// <summary>
+        /// Determine if the configuration is valid.
+        /// </summary>
+        /// <param name="idHash"></param>
+        /// <param name="entityHash"></param>
+        /// <remarks>For regular IBFs the entity hash and identifier hash have to be equal.</remarks>
+        protected virtual void IsValidConfiguration(int idHash, int entityHash)
+        {
+            if (idHash != entityHash)
+                throw new InvalidOperationException("The configuration of the IBF does not satisfy that the IdHash and EntityHash are equal. For key-value pairs, please use a reverse IBF or hybrid IBF.");
+            ValidateConfiguration = false;
+        }
+
         #endregion
     }
 }

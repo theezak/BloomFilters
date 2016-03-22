@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters
 {
     using System;
     using System.Collections.Generic;
@@ -9,12 +7,12 @@ namespace TBag.BloomFilters
     /// <summary>
     /// A standard Bloom filter configuration, well suited for Bloom filters that are utilized according to their capacity and store keys rather than key/value pairs.
     /// </summary>
-    public abstract class StandardIbfConfigurationBase<TEntity, TCount> : 
+    public abstract class IbfConfigurationBase<TEntity, TCount> : 
         BloomFilterConfigurationBase<TEntity, long, int, TCount>
         where TCount : struct
     {
+        #region Fields
         private readonly IMurmurHash _murmurHash = new Murmur3();
-        private readonly IXxHash _xxHash = new XxHash();
         private Func<TEntity, long> _getId;
         private Func<TEntity, int> _entityHash;
         private Func<long, long, long> _idXor;
@@ -24,21 +22,22 @@ namespace TBag.BloomFilters
         private Func<IInvertibleBloomFilterData<long, int, TCount>, long, bool> _isPure;
         private EqualityComparer<long> _idEqualityComparer;
          private EqualityComparer<int> _hashEqualityComparer;
-        private Func<int, int, uint, IEnumerable<int>> _hashes;
+        private Func<int, uint, IEnumerable<int>> _hashes;
         private ICountConfiguration<TCount> _countConfiguration;
         private Func<long, int> _idHash;
-        private IBloomFilterConfiguration<KeyValuePair<long, int>, long, int, TCount> _valueFilterConfiguration;
+        #endregion
 
+        #region Constructor
         /// <summary>
         /// Constructor
         /// </summary>
-        protected StandardIbfConfigurationBase(ICountConfiguration<TCount> configuration, bool createValueFilter = true) : 
+        protected IbfConfigurationBase(ICountConfiguration<TCount> configuration, bool createValueFilter = true) : 
             base(createValueFilter)
         {
             _countConfiguration = configuration;
             _getId = GetIdImpl;
             _idHash = id => BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(id)), 0);
-            _hashes = (id, hash, hashCount) =>  ComputeHash(id, hash, hashCount, 1);
+            _hashes = (hash, hashCount) =>  ComputeHash(hash, BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(hash), 912345678), 0), hashCount, 1);
             //the hashSum value is an identity hash.
             _entityHash = e => IdHash(GetId(e));
             _isPure = (d, p) => CountConfiguration.IsPureCount(d.Counts[p]) && HashEqualityComparer.Equals(d.HashSums[p], IdHash(d.IdSums[p]));
@@ -49,14 +48,18 @@ namespace TBag.BloomFilters
             _idEqualityComparer = EqualityComparer<long>.Default;
             _hashEqualityComparer = EqualityComparer<int>.Default;
         }
+        #endregion
 
+        #region Abstract Methods
         /// <summary>
         /// Get the identifier for a given entity
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
         protected abstract long GetIdImpl(TEntity entity);
+        #endregion
 
+        #region Methods
         /// <summary>
         /// Performs Dillinger and Manolios double hashing. 
         /// </summary>
@@ -76,25 +79,15 @@ namespace TBag.BloomFilters
                 yield return unchecked((int)(primaryHash + j * secondaryHash));
             }
         }
+        #endregion
 
         #region Configuration implementation
 
         public override Func<long, int> IdHash
         {
-            get
-            {
-                return _idHash;
-            }
+            get { return _idHash; }
 
-            set
-            {
-                _idHash = value;
-            }
-        }
-        public override IBloomFilterConfiguration<KeyValuePair<long, int>, long, int, TCount> ValueFilterConfiguration
-        {
-           get { return _valueFilterConfiguration; }
-            set { _valueFilterConfiguration = value; }
+            set { _idHash = value; }
         }
 
         public override ICountConfiguration<TCount> CountConfiguration
@@ -126,7 +119,7 @@ namespace TBag.BloomFilters
             set { _entityHash = value; }
         }
 
-        public override Func<int, int, uint, IEnumerable<int>> Hashes
+        public override Func<int, uint, IEnumerable<int>> Hashes
         {
             get { return _hashes; }
             set { _hashes = value; }
@@ -150,15 +143,11 @@ namespace TBag.BloomFilters
             set { _hashXor = value; }
         }
 
-       
-
         public override EqualityComparer<long> IdEqualityComparer
         {
             get { return _idEqualityComparer; }
             set { _idEqualityComparer = value; }
-        }
-
-       
+        }       
 
         public override Func<long> IdIdentity
         {

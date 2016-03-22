@@ -12,7 +12,7 @@ namespace TBag.BloomFilters.Estimators
     /// <typeparam name="TEntity">The entity type</typeparam>
     /// <typeparam name="TId">The entity identifier type</typeparam>
     /// <typeparam name="TCount">The type of occurence count.</typeparam>
-    public class BitMinwiseHashEstimator<TEntity, TId, TCount> : IBitMinwiseHashEstimator<TEntity, TId, TCount>
+    public class BitMinwiseHashEstimator<TEntity, TId, TCount> : IBitMinwiseHashEstimator<TEntity, TId, TCount> 
         where TCount : struct
         where TId : struct
     {
@@ -22,7 +22,6 @@ namespace TBag.BloomFilters.Estimators
         private readonly Func<int, IEnumerable<int>> _hashFunctions;
         private readonly Func<TEntity, int> _entityHash;
         private byte _bitSize;
-        private readonly IBloomFilterConfiguration<TEntity, TId, int, TCount> _configuration;
         private ulong _capacity;
         private int[] _slots;
 
@@ -47,9 +46,8 @@ namespace TBag.BloomFilters.Estimators
             _bitSize = bitSize;
             _capacity = capacity;
             _hashCount = hashCount;
-            _configuration = configuration;
             _hashFunctions = GenerateHashes();
-            _entityHash = e => unchecked((int)(((ulong)(configuration.EntityHash(e)+configuration.IdHash(configuration.GetId(e))))));
+            _entityHash = e => unchecked((int)((ulong)(configuration.EntityHash(e)+configuration.IdHash(configuration.GetId(e)))));
             _slots = GetMinHashSlots(_hashCount, _capacity);
         }
 
@@ -59,7 +57,7 @@ namespace TBag.BloomFilters.Estimators
         /// <summary>
         /// Determine similarity.
         /// </summary>
-        /// <param name="estimator"></param>
+        /// <param name="estimator">The estimator to compare against.</param>
         /// <returns>Similarity (percentage similar, zero is completely different, one is completely the same)</returns>
         /// <remarks>Zero is no similarity, one is completely similar.</remarks>
         public double Similarity(IBitMinwiseHashEstimator<TEntity, TId, TCount> estimator)
@@ -72,7 +70,7 @@ namespace TBag.BloomFilters.Estimators
         /// <summary>
         /// Determine the similarity between this estimator and the provided estimator data,
         /// </summary>
-        /// <param name="estimatorData"></param>
+        /// <param name="estimatorData">The estimator data to compare against.</param>
         /// <returns></returns>
         public double Similarity(IBitMinwiseHashEstimatorData estimatorData)
         {
@@ -84,7 +82,7 @@ namespace TBag.BloomFilters.Estimators
         /// <summary>
         /// Add the item to estimator.
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">The entity to add</param>
         public void Add(TEntity item)
         {
             Debug.Assert(item != null);
@@ -137,6 +135,7 @@ namespace TBag.BloomFilters.Estimators
         #endregion
 
         #region Methods
+
         /// <summary>
         /// Convert the slots to a bit array that only includes the specificied number of bits per slot.
         /// </summary>

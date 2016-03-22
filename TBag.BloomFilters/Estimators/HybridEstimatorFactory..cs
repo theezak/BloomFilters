@@ -25,7 +25,7 @@
             where TId : struct
         {
             byte strata = 7;
-            var capacity = 80L;
+            var capacity = 60L;
             byte bitSize = 2;
             var minwiseHashCount = 10;
             if (failedDecodeCount == 1)
@@ -39,16 +39,11 @@
                 bitSize = 3;
                 strata = 13;
                 minwiseHashCount = 20;
-            }           
-            if (setSize > 25000L)
+            }
+            if (setSize > 25000L && failedDecodeCount <= 1)
             {
                 strata = 9;
                 capacity *= 3L;
-                if (capacity > 400 &&
-                    failedDecodeCount > 1)
-                {
-                    strata = 13;
-                }
             }
             if (setSize > 50000L)
             {

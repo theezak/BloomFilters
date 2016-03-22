@@ -18,15 +18,15 @@
             var configuration = new KeyValueLargeBloomFilterConfiguration();
             IHybridEstimatorFactory estimatorFactory = new HybridEstimatorFactory();
             IInvertibleBloomFilterFactory bloomFilterFactory = new InvertibleBloomFilterFactory();
-            var dataSet1 = DataGenerator.Generate().Take(17000).ToList();
+            var dataSet1 = DataGenerator.Generate().Take(10000).ToList();
             //create the actors.
             var actor1 = new Actor(
                 dataSet1,
                 estimatorFactory,
                 bloomFilterFactory,
                 configuration);
-            var dataSet2 = DataGenerator.Generate().Take(17000).ToList();
-            dataSet2.Modify(2000);
+            var dataSet2 = DataGenerator.Generate().Take(10000).ToList();
+            dataSet2.Modify(50);
             var actor2 = new Actor(
                 dataSet2,
                 estimatorFactory,

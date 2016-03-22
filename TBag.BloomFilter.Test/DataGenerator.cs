@@ -16,7 +16,7 @@ namespace TBag.BloomFilter.Test
             var mers = new MersenneTwister();
             while (id < long.MaxValue)
             {
-                yield return new TestEntity { Id = id, Value = (long.MaxValue - id).ToString() };
+                yield return new TestEntity {Id = id, Value = "TheSame"};//(long.MaxValue - id).ToString() };
                 id++;
             }
         }

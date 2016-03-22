@@ -36,7 +36,7 @@
         /// <summary>
         /// Function to create a sequence of given length of hashes.
         /// </summary>
-        Func<THash, THash, uint, IEnumerable<THash>> Hashes { get; set; }
+        Func<THash, uint, IEnumerable<THash>> Hashes { get; set; }
 
         /// <summary>
         /// Determine if the location in the given data is pure.
@@ -48,6 +48,7 @@
         /// </summary>
         Func<TEntity, THash> EntityHash { get; set; }
 
+        /// <summary>
         /// Function to create an identifier hash for a given entity.
         /// </summary>
         Func<TId, THash> IdHash { get; set; }
@@ -82,6 +83,9 @@
         /// </summary>
         EqualityComparer<TId> IdEqualityComparer { get; set; }
 
+        /// <summary>
+        /// Data factory
+        /// </summary>
         IInvertibleBloomFilterDataFactory DataFactory { get; }
 
         /// <summary>

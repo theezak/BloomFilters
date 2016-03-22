@@ -173,21 +173,23 @@ namespace TBag.BloomFilters.Estimators
             return MaxTrailingZeros;
         }
 
-        /// <summary>
-        /// Remove an item from the given strata estimator 
-        /// </summary>
-        /// <param name="item">Item to remove</param>
-        /// <param name="idx">Index of the strata estimator</param>
+       /// <summary>
+       /// Remove a given key and value from the position
+       /// </summary>
+       /// <param name="key">The key</param>
+       /// <param name="value">The value</param>
+       /// <param name="idx">The position</param>
         protected void Remove(int key, int value, long idx)
         {
             StrataFilters[idx]?.Remove(new KeyValuePair<int, int>(key, value));
         }
 
-        /// <summary>
-        /// Add an item to the given strata estimator
-        /// </summary>
-        /// <param name="item">Item to add</param>
-        /// <param name="idx">Index of the strata estimator</param>
+     /// <summary>
+     /// Add a given key and value to the provided position
+     /// </summary>
+     /// <param name="key">The key</param>
+     /// <param name="valueHash">The value</param>
+     /// <param name="idx">The position</param>
         protected void Add(int key, int valueHash, long idx)
         {
             StrataFilters[idx]?.Add(new KeyValuePair<int, int>(key, valueHash));
@@ -206,7 +208,7 @@ namespace TBag.BloomFilters.Estimators
                     continue;
                 }
                 StrataFilters[idx] = new InvertibleBloomFilter<KeyValuePair<int,int>, int, TCount>(
-                    Configuration.ConvertToEntityHashId());
+                    Configuration.ConvertToEstimatorConfiguration());
                 StrataFilters[idx].Initialize(_capacity, 0.001F);
             }
         }

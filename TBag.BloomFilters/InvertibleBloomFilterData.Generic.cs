@@ -6,9 +6,9 @@
     /// <summary>
     /// Implementation of <see cref="IInvertibleBloomFilterData{TId, TEntityHash, TCount}"/>
     /// </summary>
-    /// <typeparam name="TId"></typeparam>
-    /// <typeparam name="THash"></typeparam>
-    /// <typeparam name="TCount"></typeparam>
+    /// <typeparam name="TId">Type of the entity identifier</typeparam>
+    /// <typeparam name="THash">Type of the hash</typeparam>
+    /// <typeparam name="TCount">Type of the occurence count</typeparam>
     [DataContract, Serializable]
     public class InvertibleBloomFilterData<TId, THash, TCount> : 
         IInvertibleBloomFilterData<TId, THash, TCount>
