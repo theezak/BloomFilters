@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters
+﻿using System.Linq;
+
+namespace TBag.BloomFilters
 {
     using System;
     using System.Collections.Generic;
@@ -68,13 +70,21 @@
         /// <param name="hashFunctionCount"></param>
         /// <param name="seed"></param>
         /// <returns></returns>
-        private static IEnumerable<int> ComputeHash(
+        private static int[] ComputeHash(
             int primaryHash,
             int secondaryHash,
             uint hashFunctionCount,
             int seed = 0)
         {
-            for (long j = seed; j < hashFunctionCount+seed; j++)
+            return HashGenerator(primaryHash, secondaryHash, seed).Distinct().Take((int)hashFunctionCount).ToArray();
+        }
+
+        private static IEnumerable<int> HashGenerator(
+             int primaryHash,
+             int secondaryHash,            
+             int seed = 0)
+        {          
+            for (long j = seed; j < long.MaxValue; j++)
             {
                 yield return unchecked((int)(primaryHash + j * secondaryHash));
             }

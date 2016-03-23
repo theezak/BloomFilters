@@ -12,6 +12,7 @@
         // <returns>The bit array converted to an array of bytes.</returns>
         internal static byte[] ToBytes(this BitArray bits)
         {
+            if (bits == null) return null;
             var numBytes = bits.Count / 8;
             if (bits.Count % 8 != 0) numBytes++;
            var bytes = new byte[numBytes];

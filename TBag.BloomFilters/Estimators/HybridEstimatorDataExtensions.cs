@@ -37,7 +37,7 @@
                 otherEstimatorData.StrataEstimator?.DecodeCountFactor ?? 1.0D);
             var strataDecode = estimator
                 .StrataEstimator
-                .Decode(otherEstimatorData.StrataEstimator, configuration, destructive);
+                .Decode(otherEstimatorData.StrataEstimator, configuration, estimator.StrataCount, destructive);
             if (!strataDecode.HasValue) return null;
             var minwiseDecode = 2 * (long)(decodeFactor * (estimator.BitMinwiseEstimator.Capacity - 
                      estimator.BitMinwiseEstimator.Similarity(otherEstimatorData.BitMinwiseEstimator) * 

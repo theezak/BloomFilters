@@ -98,6 +98,7 @@
         /// <param name="data">The data to restore</param>
         public override void Rehydrate(IInvertibleBloomFilterData<TId, int, TCount> data)
         {
+            if (data == null) return;
             if (data?.ReverseFilter == null)
                 throw new ArgumentException("Data and value filter data are required for a hybrid estimator.", nameof(data));
             base.Rehydrate(data);

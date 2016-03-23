@@ -23,7 +23,7 @@ namespace TBag.BloomFilters.Estimators
         private readonly Func<TEntity, int> _entityHash;
         private byte _bitSize;
         private ulong _capacity;
-        private int[] _slots;
+        private Lazy<int[]> _slots ;
 
         #endregion
 
@@ -48,7 +48,7 @@ namespace TBag.BloomFilters.Estimators
             _hashCount = hashCount;
             _hashFunctions = GenerateHashes();
             _entityHash = e => unchecked((int)((ulong)(configuration.EntityHash(e)+configuration.IdHash(configuration.GetId(e)))));
-            _slots = GetMinHashSlots(_hashCount, _capacity);
+            _slots = new Lazy<int[]>(()=> GetMinHashSlots(_hashCount, _capacity));
         }
 
         #endregion
@@ -116,7 +116,7 @@ namespace TBag.BloomFilters.Estimators
                 BitSize = _bitSize,
                 Capacity = _capacity,
                 HashCount = _hashCount,
-                Values = _slots
+                Values = !_slots.IsValueCreated ? null : _slots.Value
             };
         }
 
@@ -127,11 +127,14 @@ namespace TBag.BloomFilters.Estimators
         public void Rehydrate(IBitMinwiseHashEstimatorFullData data)
         {
             if (data == null) return;
-            _slots = data.Values;
             _capacity = data.Capacity;
-           _hashCount = data.HashCount;
+            _hashCount = data.HashCount;
             _bitSize = data.BitSize;
+            _slots = data.Values == null
+                ? new Lazy<int[]>(() => GetMinHashSlots(_hashCount, _capacity))
+                : new Lazy<int[]>(() => data.Values);
         }
+
         #endregion
 
         #region Methods
@@ -142,13 +145,16 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="slots">The hashed values.</param>
         /// <param name="bitSize">The bit size to be used per slot.</param>
         /// <returns></returns>
-        private static BitArray Convert(int[] slots, byte bitSize)
+        private static BitArray Convert(Lazy<int[]> slots, byte bitSize)
         {
-            var hashValues = new BitArray((int)(bitSize * slots.LongLength));
+            if (!slots.IsValueCreated || bitSize <= 0) return null;
+            var hashValues = new BitArray((int)(bitSize * slots.Value.LongLength));
+            var allDefault = true;
             var idx = 0;
-            for (var i = 0; i < slots.LongLength; i++)
+            for (var i = 0; i < slots.Value.LongLength; i++)
             {
-                var byteValue = BitConverter.GetBytes(slots[i]);
+                allDefault = allDefault && slots.Value[i] == int.MaxValue;
+                var byteValue = BitConverter.GetBytes(slots.Value[i]);
                 var byteValueIdx = 0;
                 for (var b = 0; b < bitSize; b++)
                 {
@@ -160,6 +166,7 @@ namespace TBag.BloomFilters.Estimators
                 }
                 idx += bitSize;
             }
+            if (allDefault) return null;
             return hashValues;
         }
 
@@ -195,9 +202,9 @@ namespace TBag.BloomFilters.Estimators
             var idhash = (ulong)Math.Abs(unchecked((long)((ulong)entityHash % _capacity)));
             for (var i = 0L; i < entityHashes.LongLength; i++)
             {
-                 if (entityHashes[i] < _slots[idx+idhash])
+                 if (entityHashes[i] < _slots.Value[idx+idhash])
                 {
-                    _slots[idx + idhash] = entityHashes[i];
+                    _slots.Value[idx + idhash] = entityHashes[i];
                 }
                 idx += _capacity;
             }

@@ -12,6 +12,7 @@ namespace TBag.BloomFilters.Estimators
     /// </summary>
     /// <typeparam name="TEntity">The entity type</typeparam>
     /// <typeparam name="TCount">The type of occurence count.</typeparam>
+    /// <typeparam name="TId">The entity identifier type</typeparam>
     /// <remarks>For higher strata's, MinWise gives a better accuracy/size balance. Also recognizes that for key/value pairs, the estimator should utilize the full entity hash (which includes identifier and entity value), rather than just the identifier hash.</remarks>
     public class StrataEstimator<TEntity, TId, TCount> : IStrataEstimator<TEntity, int, TCount>
         where TCount : struct
@@ -23,16 +24,17 @@ namespace TBag.BloomFilters.Estimators
         #endregion
 
         #region Properties
+
         /// <summary>
         /// The maximum strata.
         /// </summary>
-        protected byte MaxStrata { get; set; }
+        protected byte MaxStrata { get; set; } = MaxTrailingZeros;
 
         /// <summary>
         /// Strata filters.
         /// </summary>
-        protected InvertibleBloomFilter<KeyValuePair<int,int>, int, TCount>[] StrataFilters { get; } =
-           new InvertibleBloomFilter<KeyValuePair<int, int>, int, TCount>[MaxTrailingZeros];
+        protected Lazy<InvertibleBloomFilter<KeyValuePair<int,int>, int, TCount>>[] StrataFilters { get; } =
+           new Lazy<InvertibleBloomFilter<KeyValuePair<int, int>, int, TCount>>[MaxTrailingZeros];
 
         /// <summary>
         /// Configuration
@@ -45,30 +47,27 @@ namespace TBag.BloomFilters.Estimators
         public double DecodeCountFactor { get; set; }
         #endregion
 
-        #region Constructor
+        #region Constructor       
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="capacity"></param>
-        /// <param name="configuration"></param>
-        public StrataEstimator(
-            long capacity, 
-            IBloomFilterConfiguration<TEntity,TId,int,TCount> configuration) : this(capacity, configuration, MaxTrailingZeros)
-        { }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="capacity"></param>
-        /// <param name="configuration"></param>
-        /// <param name="maxStrata"></param>
+        /// <param name="capacity">The capacity (size of the set to be added)</param>
+        /// <param name="configuration">The Bloom filter configuration</param>
+        /// <param name="maxStrata">Optional maximum strata</param>
              protected StrataEstimator(
             long capacity,
             IBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration,
-            byte maxStrata)
+            byte? maxStrata = null)
         {
             _capacity = capacity;
-            MaxStrata = maxStrata;
+            if (maxStrata.HasValue)
+            {
+                if (maxStrata <= 0 || maxStrata > MaxTrailingZeros)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(maxStrata), $"Maximimum strata value {maxStrata.Value} is not in the valid range [1, {MaxTrailingZeros}].");
+                }
+                MaxStrata = maxStrata.Value;
+            }
             Configuration = configuration;
             DecodeCountFactor = _capacity >= 20 ? 1.39D : 1.0D;
             CreateFilters();
@@ -86,7 +85,7 @@ namespace TBag.BloomFilters.Estimators
             {
                 Capacity = _capacity,
                 DecodeCountFactor = DecodeCountFactor,
-                BloomFilters = StrataFilters.Select(s => s?.Extract()).ToArray()
+                BloomFilters = StrataFilters.Select(s => !(s?.IsValueCreated??false) ? null : s.Value.Extract()).ToArray()
             };
         }
 
@@ -99,15 +98,7 @@ namespace TBag.BloomFilters.Estimators
             if (data == null) return;
             _capacity = data.Capacity;
             DecodeCountFactor = data.DecodeCountFactor;
-            if (data.BloomFilters == null) return;
-            for (int i = 0; i < StrataFilters.Length; i++)
-            {
-                if (data.BloomFilters.Length > i &&
-                    data.BloomFilters[i] == null)
-                {
-                    StrataFilters[i]?.Rehydrate(data.BloomFilters[i]);
-                }
-            }
+            CreateFilters(data.BloomFilters);
         }
 
         /// <summary>
@@ -142,7 +133,7 @@ namespace TBag.BloomFilters.Estimators
             bool destructive = false)
         {
             return Extract()
-                .Decode(estimator, Configuration, destructive);
+                .Decode(estimator, Configuration, MaxStrata, destructive);
         }
 
         /// <summary>
@@ -183,7 +174,7 @@ namespace TBag.BloomFilters.Estimators
        /// <param name="idx">The position</param>
         protected void Remove(int key, int value, long idx)
         {
-            StrataFilters[idx]?.Remove(new KeyValuePair<int, int>(key, value));
+            StrataFilters[idx]?.Value.Remove(new KeyValuePair<int, int>(key, value));
         }
 
      /// <summary>
@@ -194,14 +185,16 @@ namespace TBag.BloomFilters.Estimators
      /// <param name="idx">The position</param>
         protected void Add(int key, int valueHash, long idx)
         {
-            StrataFilters[idx]?.Add(new KeyValuePair<int, int>(key, valueHash));
+            StrataFilters[idx]?.Value.Add(new KeyValuePair<int, int>(key, valueHash));
         }
 
-        /// <summary>
-        /// Create new filters
-        /// </summary>
-        private void CreateFilters()
+      /// <summary>
+      /// Create filters
+      /// </summary>
+      /// <param name="rehydratedFilters">Filter data to rehydrate.</param>
+        private void CreateFilters(IInvertibleBloomFilterData<int, int, TCount>[] rehydratedFilters = null)
         {
+            var configuration = Configuration.ConvertToEstimatorConfiguration();
             for (var idx = 0; idx < StrataFilters.Length; idx++)
             {
                 if (idx >= MaxStrata)
@@ -209,11 +202,18 @@ namespace TBag.BloomFilters.Estimators
                     StrataFilters[idx] = null;
                     continue;
                 }
-                StrataFilters[idx] = new InvertibleBloomFilter<KeyValuePair<int,int>, int, TCount>(
-                    Configuration.ConvertToEstimatorConfiguration());
-                StrataFilters[idx].Initialize(_capacity, 0.001F);
+                 var data = rehydratedFilters==null || rehydratedFilters.Length <= idx ? null : rehydratedFilters[idx];
+                //lazily create Strata filters.
+                StrataFilters[idx] = new Lazy<InvertibleBloomFilter<KeyValuePair<int, int>, int, TCount>>(() =>
+                {
+                    var res = new InvertibleBloomFilter<KeyValuePair<int, int>, int, TCount>(configuration);
+                    res.Initialize(_capacity, 0.001F);
+                    res.Rehydrate(data);
+                    return res;
+                });
             }
         }
+
         #endregion
     }
 }

@@ -114,8 +114,7 @@
         /// <param name="data">The data to restore</param>
         public virtual void Rehydrate(IInvertibleBloomFilterData<TId, int, TCount> data)
         {
-            if (data == null)
-                throw new ArgumentNullException(nameof(data));
+            if (data == null) return;
             if (data.IsReverse)
                 throw new ArgumentException("Invertible Bloom filter does not accept reverse data. Please use an invertible reverse Bloom filter.", nameof(data));
             if (!data.IsValid())

@@ -1,7 +1,10 @@
-﻿namespace TBag.BloomFilters.Estimators
+﻿using System;
+
+namespace TBag.BloomFilters.Estimators
 {
     using System.Collections;
     using System.Linq;
+    using System.Diagnostics.Contracts;
 
     /// <summary>
     /// Extension methods for bit minwise hash estimator data
@@ -22,17 +25,30 @@
                 otherEstimatorData == null ||
                 estimator.BitSize != otherEstimatorData.BitSize ||
                 estimator.HashCount != otherEstimatorData.HashCount) return 0.0D;
+            if (estimator.Values == null && otherEstimatorData.Values == null) return 1.0D;           
+            Contract.Assume(estimator.Values != null && otherEstimatorData.Values != null);
             return ComputeSimilarityFromSignatures(
-                new BitArray(estimator.Values)
-                {
-                    Length = (int)estimator.Capacity * estimator.BitSize * estimator.HashCount
-                },
-                new BitArray(otherEstimatorData.Values)
-                {
-                    Length = (int)otherEstimatorData.Capacity * otherEstimatorData.BitSize * otherEstimatorData.HashCount
-                },
+                CreateBitArray(estimator),
+                CreateBitArray(otherEstimatorData),
                 estimator.HashCount,
                 estimator.BitSize);
+        }
+
+        private static BitArray CreateBitArray(IBitMinwiseHashEstimatorData estimator)
+        {
+            if (estimator==null)
+                throw new ArgumentNullException(nameof(estimator));
+            var estimatorBitArray = estimator.Values == null
+                ? new BitArray((int) estimator.Capacity*estimator.BitSize*estimator.HashCount)
+                : new BitArray(estimator.Values)
+                {
+                    Length = (int) estimator.Capacity*estimator.BitSize*estimator.HashCount
+                };
+            if (estimator.Values == null)
+            {
+                estimatorBitArray.SetAll(true);
+            }
+            return estimatorBitArray;
         }
 
         /// <summary>

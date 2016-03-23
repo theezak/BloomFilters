@@ -46,6 +46,7 @@
         /// <param name="data">The data to restore</param>
         public override void Rehydrate(IInvertibleBloomFilterData<TId, int, TCount> data)
         {
+            if (data == null) return;
             if (!data.IsReverse)
             {
                 throw new ArgumentException("Reverse IBF can only rehydrate reverse IBF data.", nameof(data));

@@ -355,6 +355,23 @@
             where TId : struct
             where TCount : struct
         {
+            if (filter == null && subtractedFilter == null) return true;
+            if (filter == null)
+            {
+                //handle null filters as elegant as possible at this point.
+                filter = configuration.DataFactory.Create<TId, int, TCount>(subtractedFilter.BlockSize, subtractedFilter.HashFunctionCount);
+                destructive = true;
+            }
+            if (subtractedFilter == null)
+            {
+                //swap the filters and the sets so we can still apply the destructive setting to temporarily created filter data 
+                subtractedFilter = filter;
+                filter = configuration.DataFactory.Create<TId, int, TCount>(filter.BlockSize, filter.HashFunctionCount);
+                var swap = listA;
+                listA = listB;
+                listB = swap;
+                destructive = true;
+            }
             if (!filter.IsCompatibleWith(subtractedFilter))
                 throw new ArgumentException(
                     "The subtracted Bloom filter data is not compatible with the Bloom filter.",
