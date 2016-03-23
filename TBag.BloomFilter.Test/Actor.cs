@@ -105,7 +105,7 @@
                 filter.Add(item);
             }
             var result = new MemoryStream();
-            _protobufModel.Serialize(result, filter.Extract());
+            _protobufModel.Serialize(result, (IInvertibleBloomFilterData<long,int,int>)filter.Extract());
             result.Position = 0;
             return result;
         }
@@ -129,7 +129,7 @@
                 //send the estimator to the other actor and receive the filter from that actor.
                 var otherFilterStream = actor.RequestFilter(estimatorStream, this);
                 var otherFilter = (IInvertibleBloomFilterData<long, int, int>)
-                    _protobufModel.Deserialize(otherFilterStream, null, typeof(InvertibleBloomFilterData<long, int, int>));
+                    _protobufModel.Deserialize(otherFilterStream, null, _configuration.DataFactory.GetDataType<long,int,int>());
                 otherFilterStream.Dispose();
                 var filter = _bloomFilterFactory.CreateMatchingHighUtilizationFilter(_configuration,
                     _dataSet.LongCount(), otherFilter);

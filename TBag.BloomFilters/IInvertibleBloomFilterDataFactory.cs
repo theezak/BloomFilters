@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters
+﻿using System;
+
+namespace TBag.BloomFilters
 {
     /// <summary>
     /// Interface for the Bloom filter data factory
@@ -18,5 +20,17 @@
             where TId : struct
             where TCount : struct
             where THash : struct;
+
+        /// <summary>
+        /// Get the concrete type to serialize to/from.
+        /// </summary>
+        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="THash"></typeparam>
+        /// <typeparam name="TCount"></typeparam>
+        /// <returns></returns>
+        Type GetDataType<TId, THash, TCount>()
+            where TId : struct
+            where THash : struct
+            where TCount : struct;
     }
 }

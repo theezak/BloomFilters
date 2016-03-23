@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="Actor.cs" />
     <Compile Include="HybridDefaultBloomFilterConfiguration.cs" />
+    <Compile Include="IntCompressionTest.cs" />
     <Compile Include="KeyValueBloomFilterConfiguration.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="KeyValueLargeBloomFilterConfiguration.cs" />

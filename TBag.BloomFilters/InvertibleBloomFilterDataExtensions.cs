@@ -89,7 +89,7 @@
                 throw new ArgumentException("Subtracted invertible Bloom filters are not compatible.", nameof(subtractedFilterData));
             var result = destructive ?
                 filterData :
-                filterData.Duplicate();
+                filterData.Duplicate(configuration);
              var idIdentity = configuration.IdIdentity();
             var hashIdentity = configuration.HashIdentity();
             for (var i = 0L; i < filterData.Counts.LongLength; i++)
@@ -150,6 +150,8 @@
                     .Where(i => configuration.IsPure(filter, i))
                     .Select(i => i));
             }
+            var hashIdentity = configuration.HashIdentity();
+            var idIdentity = configuration.IdIdentity();
             var countsIdentity = configuration.CountConfiguration.CountIdentity();
             while (pureList.Any())
             {
@@ -230,7 +232,7 @@
             where THash : struct
         {
             var idIdentity = configuration.IdIdentity();
-            var entityHashIdentity = configuration.HashIdentity();
+            var hashIdentity = configuration.HashIdentity();
             var countIdentity = configuration.CountConfiguration.CountIdentity();
             for (var position = 0L; position < filter.Counts.LongLength; position++)
             {
@@ -240,7 +242,7 @@
                     continue;
                 }
                 if (!configuration.IdEqualityComparer.Equals(idIdentity, filter.IdSums[position]) ||                   
-                    !configuration.HashEqualityComparer.Equals(entityHashIdentity, filter.HashSums[position]) ||
+                    !configuration.HashEqualityComparer.Equals(hashIdentity, filter.HashSums[position]) ||
                     !configuration.CountConfiguration.EqualityComparer.Equals(filter.Counts[position], countIdentity))
                     return false;
             }
@@ -251,27 +253,22 @@
         /// Duplicate the invertible Bloom filter data
         /// </summary>
         /// <typeparam name="TId">The entity identifier type</typeparam>
-        /// <typeparam name="TEntityHash">The entity hash type</typeparam>
+        /// <typeparam name="THash">The entity hash type</typeparam>
         /// <typeparam name="TCount">The occurence count type</typeparam>
         /// <param name="data">The data to duplicate.</param>
         /// <returns>Bloom filter data configured the same as <paramref name="data"/>, but with empty arrays.</returns>
         /// <remarks>Explicitly does not duplicate the reverse IBF data.</remarks>
-        internal static InvertibleBloomFilterData<TId,TEntityHash,TCount> Duplicate<TId,TEntityHash,TCount>(
-            this IInvertibleBloomFilterData<TId,TEntityHash,TCount> data)
+        internal static InvertibleBloomFilterData<TId,THash,TCount> Duplicate<TEntity, TId,THash,TCount>(
+            this IInvertibleBloomFilterData<TId,THash,TCount> data,
+            IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration)
             where TCount : struct
             where TId : struct
-            where TEntityHash : struct
+            where THash : struct
         {
             if (data == null) return null;
-            return new InvertibleBloomFilterData<TId, TEntityHash, TCount>
-            {
-                BlockSize = data.BlockSize,
-                Counts = new TCount[data.Counts.LongLength],
-                HashFunctionCount = data.HashFunctionCount,
-                HashSums = new TEntityHash[data.HashSums.LongLength],
-                IdSums = new TId[data.IdSums.LongLength],
-                IsReverse = data.IsReverse
-            };
+            var result = configuration.DataFactory.Create<TId, THash, TCount>(data.BlockSize, data.HashFunctionCount);
+            result.IsReverse = data.IsReverse;
+            return result;
         }
 
         /// <summary>
@@ -407,8 +404,9 @@
         /// <typeparam name="TCount">The occurence count type</typeparam>
         /// <param name="filterData">The IBF data</param>
         /// <returns></returns>
-        internal static InvertibleBloomFilterData<TId, TEntityHash, TCount> ConvertToBloomFilterData<TId, TEntityHash, TCount>(
-            this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filterData)
+        internal static InvertibleBloomFilterData<TId, TEntityHash, TCount> ConvertToBloomFilterData<TEntity, TId, TEntityHash, TCount>(
+            this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filterData,
+            IBloomFilterConfiguration<TEntity, TId, TEntityHash, TCount> configuration)
             where TId : struct
             where TEntityHash : struct
             where TCount : struct
@@ -416,15 +414,12 @@
             if (filterData == null) return null;
             var result = filterData as InvertibleBloomFilterData<TId, TEntityHash, TCount>;
             if (result != null) return result;
-            return new InvertibleBloomFilterData<TId, TEntityHash, TCount>
-            {
-                BlockSize = filterData.BlockSize,
-                Counts = filterData.Counts,
-                HashFunctionCount = filterData.HashFunctionCount,
-                HashSums = filterData.HashSums,
-                IdSums = filterData.IdSums,
-                ReverseFilter = filterData.ReverseFilter?.ConvertToBloomFilterData()
-            };
+            result = configuration.DataFactory.Create<TId, TEntityHash, TCount>(filterData.BlockSize, filterData.HashFunctionCount);
+            result.Counts = filterData.Counts;
+            result.HashSums = filterData.HashSums;
+            result.IdSums = filterData.IdSums;
+            result.ReverseFilter = filterData.ReverseFilter?.ConvertToBloomFilterData(configuration);
+            return result;
         }
 
         /// <summary>

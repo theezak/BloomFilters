@@ -34,5 +34,14 @@
                 HashSums = new THash[m * k]
             };
         }
+
+        public Type GetDataType<TId, THash, TCount>()
+            where TId : struct
+            where THash : struct
+            where TCount : struct
+        {
+            return typeof(InvertibleBloomFilterData<TId, THash, TCount>);
+        }
+
     }
 }

@@ -208,7 +208,7 @@ namespace TBag.BloomFilters.Estimators
                 {
                     var res = new InvertibleBloomFilter<KeyValuePair<int, int>, int, TCount>(configuration);
                     res.Initialize(_capacity, 0.001F);
-                    res.Rehydrate(data);
+                     res.Rehydrate(data);
                     return res;
                 });
             }

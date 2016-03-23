@@ -26,7 +26,6 @@ namespace TBag.BloomFilters.Estimators
                 estimator.BitSize != otherEstimatorData.BitSize ||
                 estimator.HashCount != otherEstimatorData.HashCount) return 0.0D;
             if (estimator.Values == null && otherEstimatorData.Values == null) return 1.0D;           
-            Contract.Assume(estimator.Values != null && otherEstimatorData.Values != null);
             return ComputeSimilarityFromSignatures(
                 CreateBitArray(estimator),
                 CreateBitArray(otherEstimatorData),

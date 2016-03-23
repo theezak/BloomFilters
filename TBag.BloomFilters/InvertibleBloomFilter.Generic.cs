@@ -121,7 +121,7 @@
                 throw new ArgumentException(
                     "Invertible Bloom filter data is invalid.",
                     nameof(data));
-            Data = data.ConvertToBloomFilterData();
+            Data = data.ConvertToBloomFilterData(Configuration);
         }
 
         /// <summary>
@@ -236,6 +236,8 @@
                 IsValidConfiguration(Configuration.IdHash(key), hash);
             }
             var countIdentity = Configuration.CountConfiguration.CountIdentity();
+            var idIdentity = Configuration.IdIdentity();
+            var hashIdentity = Configuration.HashIdentity();
             foreach (var position in Configuration.Probe(Data,  hash))
             {
                 if (Configuration.IsPure(Data, position) &&

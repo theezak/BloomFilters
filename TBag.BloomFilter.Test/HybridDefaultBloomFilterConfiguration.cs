@@ -15,8 +15,7 @@ namespace TBag.BloomFilter.Test
     internal class HybridDefaultBloomFilterConfiguration : HybridIbfConfiguration<TestEntity, sbyte>
     {
         private readonly IMurmurHash _murmurHash = new Murmur3();
-         private Func<TestEntity, int> _entityHash;
-
+     
         /// <summary>
         /// Constructor
         /// </summary>
