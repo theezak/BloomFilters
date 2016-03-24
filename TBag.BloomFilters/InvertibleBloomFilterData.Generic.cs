@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters
+﻿using ProtoBuf;
+
+namespace TBag.BloomFilters
 {
     using System;
     using System.Runtime.Serialization;
@@ -16,7 +18,8 @@
         where THash : struct
         where TId : struct
     {
-        /// <summary>
+
+         /// <summary>
         /// The number of cells for a single hash function.
         /// </summary>
         [DataMember(Order=1)]

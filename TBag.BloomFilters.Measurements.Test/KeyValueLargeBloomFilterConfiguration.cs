@@ -20,6 +20,17 @@
             return entity?.Id ?? 0L;
         }
 
+        /// <summary>
+        /// Determine if an IBF, given this configuration and the given <paramref name="capacity"/>, will support a set of the given size.
+        /// </summary>
+        /// <param name="capacity"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public override bool Supports(long capacity, long size)
+        {
+            return (int.MaxValue - 30) * size > capacity;
+        }
+
         protected override int GetEntityHashImpl(TestEntity entity)
         {
             return BitConverter.ToInt32(_murmurHash.Hash(Encoding.UTF32.GetBytes(entity.Value)), 0);

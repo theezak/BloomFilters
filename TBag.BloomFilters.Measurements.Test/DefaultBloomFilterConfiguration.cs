@@ -25,6 +25,17 @@ namespace TBag.BloomFilters.Measurements.Test
             return entity?.Id ?? 0L;
         }
 
+        /// <summary>
+        /// Determine if an IBF, given this configuration and the given <paramref name="capacity"/>, will support a set of the given size.
+        /// </summary>
+        /// <param name="capacity"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public override bool Supports(long capacity, long size)
+        {
+            return (sbyte.MaxValue - 15) * size > capacity;
+        }
+
         public override IBloomFilterConfiguration<KeyValuePair<long, int>, long, int, sbyte> ValueFilterConfiguration
         {
             get { return _valueFilterConfiguration; }

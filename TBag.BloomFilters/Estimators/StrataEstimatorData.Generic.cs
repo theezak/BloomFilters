@@ -26,10 +26,23 @@
         public double DecodeCountFactor { get; set; }
 
         /// <summary>
-        /// The Bloom filters that are part of the strata estimator.
+        /// The number of stratas.
         /// </summary>
         [DataMember(Order = 3)]
+        public byte StrataCount { get; set; }
+
+        /// <summary>
+        /// The Bloom filters that are part of the strata estimator.
+        /// </summary>
+        [DataMember(Order = 4)]
         public InvertibleBloomFilterData<TId,int,TCount>[] BloomFilters { get; set; }
+
+        /// <summary>
+        /// The strata indexes for the Bloom filters.
+        /// </summary>
+        /// <remarks>used as a work around for serializers that ignore null values.</remarks>
+        [DataMember(Order = 5)]
+        public byte[] BloomFilterStrataIndexes { get; set; }
 
         #region Implementation of IStrataEstimatorData{TId,TCount}
         /// <summary>

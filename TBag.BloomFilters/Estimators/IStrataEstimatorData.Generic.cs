@@ -15,6 +15,17 @@
         IInvertibleBloomFilterData<TId,int,TCount>[] BloomFilters { get;  }
 
         /// <summary>
+        /// The strata indexes for the Bloom filters.
+        /// </summary>
+        /// <remarks>used as a work around for serializers that ignore null values.</remarks>
+        byte[] BloomFilterStrataIndexes { get; set; }
+
+        /// <summary>
+        /// The number of stratas.
+        /// </summary>
+        byte StrataCount { get; set; }
+
+        /// <summary>
         /// The capacity for the estimator.
         /// </summary>
         long Capacity { get; set; }

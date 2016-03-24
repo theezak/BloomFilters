@@ -25,30 +25,26 @@
             where TId : struct
         {
             byte strata = 7;
-            var capacity = 60L;
+            var capacity = (long)(75 * Math.Max(1.0D, Math.Log10(setSize)));
             byte bitSize = 2;
-            var minwiseHashCount = 10;
+            var minwiseHashCount = 8;
+            if (setSize > 8000L)
+            {
+                strata = 9;
+                minwiseHashCount = 10;
+            }
+            else if (setSize > 16000L)
+            {
+                strata = 13;
+                minwiseHashCount = 15;
+            }
             if (failedDecodeCount == 1)
             {
-                capacity = 160L;
-                strata = 9;
+                strata = (byte)(setSize > 10000L ? 13 : 9);
             }
-            if (failedDecodeCount > 1)
-            {
-                capacity = capacity * (failedDecodeCount+1);
-                bitSize = 3;
-                strata = 13;
-                minwiseHashCount = 20;
-            }
-            if (setSize > 25000L && failedDecodeCount <= 1)
+            if (failedDecodeCount > 1 && strata < 9)
             {
                 strata = 9;
-                capacity *= 3L;
-            }
-            if (setSize > 50000L)
-            {
-                strata = 13;
-                minwiseHashCount = 25;
             }
             var result = new HybridEstimator<TEntity, TId, TCount>(
                 capacity,

@@ -12,7 +12,7 @@
     public class HybridEstimatorData<TId,TCount> : IHybridEstimatorData<TId, TCount> 
         where TCount : struct
         where TId : struct
-    {
+    {       
         /// <summary>
         /// Estimated number of elements in the set.
         /// </summary>

@@ -3,6 +3,7 @@ using System.Diagnostics.Contracts;
 
 namespace TBag.BloomFilters.Estimators
 {
+    using HashAlgorithms;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -21,6 +22,7 @@ namespace TBag.BloomFilters.Estimators
         #region Fields
         private  long _capacity;
          protected const byte MaxTrailingZeros = sizeof(int)*8;
+        private IMurmurHash _murmur = new Murmur3();
         #endregion
 
         #region Properties
@@ -85,7 +87,9 @@ namespace TBag.BloomFilters.Estimators
             {
                 Capacity = _capacity,
                 DecodeCountFactor = DecodeCountFactor,
-                BloomFilters = StrataFilters.Select(s => !(s?.IsValueCreated??false) ? null : s.Value.Extract()).ToArray()
+                StrataCount =  MaxStrata,
+                BloomFilters = StrataFilters.Where(s=>s?.IsValueCreated??false).Select(s => s.Value.Extract()).ToArray(),
+                BloomFilterStrataIndexes = StrataFilters.Select((s,i) => new { Index = (byte)i, Include = s?.IsValueCreated??false }).Where(i=>i.Include).Select(i=>i.Index).ToArray()
             };
         }
 
@@ -97,8 +101,9 @@ namespace TBag.BloomFilters.Estimators
         {
             if (data == null) return;
             _capacity = data.Capacity;
+            MaxStrata = data.StrataCount;
             DecodeCountFactor = data.DecodeCountFactor;
-            CreateFilters(data.BloomFilters);
+            CreateFilters(data);
         }
 
         /// <summary>
@@ -156,9 +161,9 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="idHash">The idHash</param>
         /// <param name="entityHash">The entity hash</param>
         /// <returns>number of trailing zeros. Determines the strata to add an item to.</returns>
-        protected static int GetStrata(int idHash, int entityHash)
+        protected int GetStrata(int idHash, int entityHash)
         {
-            idHash = unchecked((int)(idHash + 3 * entityHash));
+            idHash = BitConverter.ToInt32(_murmur.Hash(BitConverter.GetBytes(idHash), unchecked((uint)entityHash)), 0);
             var mask = 1;
             for (var i = 0; i < MaxTrailingZeros; i++, mask <<= 1)
                 if ((idHash & mask) != 0)
@@ -184,17 +189,17 @@ namespace TBag.BloomFilters.Estimators
      /// <param name="valueHash">The value</param>
      /// <param name="idx">The position</param>
         protected void Add(int key, int valueHash, long idx)
-        {
+        {        
             StrataFilters[idx]?.Value.Add(new KeyValuePair<int, int>(key, valueHash));
         }
 
       /// <summary>
       /// Create filters
       /// </summary>
-      /// <param name="rehydratedFilters">Filter data to rehydrate.</param>
-        private void CreateFilters(IInvertibleBloomFilterData<int, int, TCount>[] rehydratedFilters = null)
+      /// <param name="estimatorData">Filter data to rehydrate.</param>
+        private void CreateFilters(IStrataEstimatorData<int, TCount> estimatorData = null)
         {
-            var configuration = Configuration.ConvertToEstimatorConfiguration();
+              var configuration = Configuration.ConvertToEstimatorConfiguration();
             for (var idx = 0; idx < StrataFilters.Length; idx++)
             {
                 if (idx >= MaxStrata)
@@ -202,13 +207,13 @@ namespace TBag.BloomFilters.Estimators
                     StrataFilters[idx] = null;
                     continue;
                 }
-                 var data = rehydratedFilters==null || rehydratedFilters.Length <= idx ? null : rehydratedFilters[idx];
+                var filterData = estimatorData.GetFilterForStrata(idx);
                 //lazily create Strata filters.
                 StrataFilters[idx] = new Lazy<InvertibleBloomFilter<KeyValuePair<int, int>, int, TCount>>(() =>
                 {
                     var res = new InvertibleBloomFilter<KeyValuePair<int, int>, int, TCount>(configuration);
                     res.Initialize(_capacity, 0.001F);
-                     res.Rehydrate(data);
+                     res.Rehydrate(filterData);
                     return res;
                 });
             }

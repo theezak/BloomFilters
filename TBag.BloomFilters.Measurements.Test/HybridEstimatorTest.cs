@@ -19,10 +19,10 @@
         public void HybridEstimatorPerformanceMeasurement()
         {
             var configuration = new LargeBloomFilterConfiguration();
-            var testSizes = new [] {1000, 10000, 100000, 500000};
-            var errorSizes = new [] {0, 1, 5, 10, 20, 50, 75, 100};
-            var capacities = new long[] {15, 250, 2000};
-            var stratas = new byte[] {3, 7, 13, 19, 25, 32};
+            var testSizes = new [] { 5000, 10000, 100000, 500000};
+            var errorSizes = new [] { 1, 5, 10, 20, 50, 75, 100};
+            var capacities = new long[] { 80, 250, 1000};
+            var stratas = new byte[] { 3, 7, 9, 13, 19, 25, 32};
             foreach (var dataSize in testSizes)
             {
 
