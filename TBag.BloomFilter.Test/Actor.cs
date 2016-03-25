@@ -105,7 +105,7 @@
                 filter.Add(item);
             }
             var result = new MemoryStream();
-            _protobufModel.Serialize(result, (IInvertibleBloomFilterData<long,int,int>)filter.Extract());
+            _protobufModel.Serialize(result, filter.Extract());
             result.Position = 0;
             return result;
         }
@@ -141,7 +141,7 @@
                 var onlyInThisSet = new HashSet<long>();
                 var onlyInOtherSet = new HashSet<long>();
                 var modified = new HashSet<long>();
-                var succes = filter.SubtractAndDecode(otherFilter, onlyInThisSet, onlyInOtherSet, modified);
+                var succes = filter.SubtractAndDecode(onlyInThisSet, onlyInOtherSet, modified, otherFilter);
                 //note: even when not successfully decoded for sure, the sets will contain info.
                 return new Tuple<HashSet<long>, HashSet<long>, HashSet<long>>(onlyInThisSet, onlyInOtherSet, modified);
             }

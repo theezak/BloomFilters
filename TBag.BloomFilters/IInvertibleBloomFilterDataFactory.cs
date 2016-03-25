@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters
 {
+    using System;
+
     /// <summary>
     /// Interface for the Bloom filter data factory
     /// </summary>
@@ -32,5 +32,6 @@ namespace TBag.BloomFilters
             where TId : struct
             where THash : struct
             where TCount : struct;
+
     }
 }

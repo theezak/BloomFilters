@@ -45,6 +45,11 @@
         /// <summary>
         /// The Bloom filter data for the value hash (optional).
         /// </summary>
-        InvertibleBloomFilterData<TId, THash, TCount> ReverseFilter { get; set; }
+        InvertibleBloomFilterData<TId, THash, TCount>[] SubFilters { get; set; }
+
+        /// <summary>
+        /// Sub filter indexes.
+        /// </summary>
+        int[] SubFilterIndexes { get; set; }
     }
 }

@@ -13,6 +13,14 @@
        where THash : struct
     {
         /// <summary>
+        /// Constructor
+        /// </summary>
+        protected BloomFilterIdConfigurationBase()
+        {
+            MinimumHashFunctionCount = 3;
+        }
+
+        /// <summary>
         /// Function to determine a sequence (of given length) for a given identifier.
         /// </summary>
         public virtual Func<THash, uint, IEnumerable<THash>> Hashes { get; set; }
@@ -44,6 +52,11 @@
         public virtual Func<TId, TId, TId> IdXor { get; set; }
 
         /// <summary>
+        /// The minimum number of hash functions used.
+        /// </summary>
+        public uint MinimumHashFunctionCount { get; set; }
+
+        /// <summary>
         /// Function to determine the best number of hash functions.
         /// </summary>
         /// <param name="capacity">The capacity</param>
@@ -51,9 +64,9 @@
         /// <returns></returns>
         public uint BestHashFunctionCount(long capacity, float errorRate)
         {
-            //at least 3 hash functions.
+            //at least 2 hash functions.
             return Math.Max(
-                3,
+                MinimumHashFunctionCount,
                 (uint)Math.Ceiling(Math.Abs(Math.Log(2.0D) * (1.0D * BestSize(capacity, errorRate) / capacity))));
         }
 

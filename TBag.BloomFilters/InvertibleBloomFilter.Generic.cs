@@ -2,7 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
- 
+    using System.Linq;
+
     /// <summary>
     /// An invertible Bloom filter supports removal and additions.
     /// </summary>
@@ -114,7 +115,7 @@
         /// <param name="data">The data to restore</param>
         public virtual void Rehydrate(IInvertibleBloomFilterData<TId, int, TCount> data)
         {
-            if (data == null) return;
+            if (data== null) return;
             if (data.IsReverse)
                 throw new ArgumentException("Invertible Bloom filter does not accept reverse data. Please use an invertible reverse Bloom filter.", nameof(data));
             if (!data.IsValid())
@@ -181,28 +182,28 @@
             HashSet<TId> listB,
             HashSet<TId> modifiedEntities)
         {
-            return SubtractAndDecode(filter.Extract(), listA, listB, modifiedEntities);
+            return SubtractAndDecode(listA, listB, modifiedEntities, filter.Extract());
         }
 
         /// <summary>
         /// Subtract and then decode.
         /// </summary>
-        /// <param name="filter">Bloom filter to subtract</param>
-        /// <param name="listA">Items in this filter, but not in <paramref name="filter"/></param>
-        /// <param name="listB">Items not in this filter, but in <paramref name="filter"/></param>
+        /// <param name="filterData">Bloom filter to subtract</param>
+        /// <param name="listA">Items in this filter, but not in <paramref name="filterData"/></param>
+        /// <param name="listB">Items not in this filter, but in <paramref name="filterData"/></param>
         /// <param name="modifiedEntities">Entities in both filters, but with a different value</param>
         /// <returns><c>true</c> when the decode was successful, otherwise <c>false</c></returns>
-        public virtual bool SubtractAndDecode(IInvertibleBloomFilterData<TId, int, TCount> filter,
+        public virtual bool SubtractAndDecode(
             HashSet<TId> listA,
             HashSet<TId> listB,
-            HashSet<TId> modifiedEntities)
+            HashSet<TId> modifiedEntities,
+            IInvertibleBloomFilterData<TId, int, TCount> filterData)
         {
             ValidateData();
-            return Data.SubtractAndDecode(filter, Configuration, listA, listB, modifiedEntities);
+            return Data.SubtractAndDecode(filterData, Configuration, listA, listB, modifiedEntities);
         }
 
         #endregion
-
        
         #region Methods
 
@@ -236,8 +237,6 @@
                 IsValidConfiguration(Configuration.IdHash(key), hash);
             }
             var countIdentity = Configuration.CountConfiguration.CountIdentity();
-            var idIdentity = Configuration.IdIdentity();
-            var hashIdentity = Configuration.HashIdentity();
             foreach (var position in Configuration.Probe(Data,  hash))
             {
                 if (Configuration.IsPure(Data, position) &&

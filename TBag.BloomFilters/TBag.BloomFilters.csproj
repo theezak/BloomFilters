@@ -65,6 +65,7 @@
     <Compile Include="IInvertibleBloomFilterDataFactory.cs" />
     <Compile Include="InvertibleBloomFilterData.Generic.cs" />
     <Compile Include="InvertibleBloomFilterDataFactory.cs" />
+    <Compile Include="InvertibleReverseSplitBloomFilter.Generic.cs" />
     <Compile Include="ReverseIbfConfigurationBase.Generic.cs" />
     <Compile Include="PairIbfConfigurationBase.Generic.cs" />
     <Compile Include="IbfConfigurationBase.Generic.cs" />

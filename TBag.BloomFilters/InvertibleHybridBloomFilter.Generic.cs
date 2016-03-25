@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters
+﻿using System.Linq;
+
+namespace TBag.BloomFilters
 {
     using System;
     using System.Collections.Generic;
@@ -89,7 +91,7 @@
         {
             base.Initialize(capacity, m, k);
             _reverseBloomFilter.Initialize(capacity, m, k);
-            Data.ReverseFilter = _reverseBloomFilter.Extract();
+            Data.SubFilters =new [] { _reverseBloomFilter.Extract() };
         }
 
         /// <summary>
@@ -98,11 +100,11 @@
         /// <param name="data">The data to restore</param>
         public override void Rehydrate(IInvertibleBloomFilterData<TId, int, TCount> data)
         {
-            if (data == null) return;
-            if (data?.ReverseFilter == null)
+            if (data?.SubFilters == null) return;
+            if (data.SubFilters.Length != 1)
                 throw new ArgumentException("Data and value filter data are required for a hybrid estimator.", nameof(data));
             base.Rehydrate(data);
-            _reverseBloomFilter.Rehydrate(data.ReverseFilter);
+            _reverseBloomFilter.Rehydrate(data.SubFilters[0]);
         }
         #endregion
     }

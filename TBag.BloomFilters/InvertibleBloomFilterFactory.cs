@@ -24,7 +24,7 @@
             {
                 capacity = 1;
             }
-            var ibf =  new InvertibleReverseBloomFilter<TEntity, TId, int>(bloomFilterConfiguration);
+            var ibf =  new InvertibleReverseSplitBloomFilter<TEntity, TId, int>(bloomFilterConfiguration);
            if (errorRate.HasValue)
             {
                 ibf.Initialize(capacity, errorRate.Value);
@@ -52,8 +52,12 @@
            IInvertibleBloomFilterData<TId, int, int> invertibleBloomFilterData)
             where TId : struct
         {
-            var ibf = new InvertibleReverseBloomFilter<TEntity, TId, int>(bloomFilterConfiguration);
-            ibf.Initialize(capacity, invertibleBloomFilterData.BlockSize, invertibleBloomFilterData.HashFunctionCount);
+            var ibf = invertibleBloomFilterData.IsReverse 
+                ? (invertibleBloomFilterData.IdSums == null 
+                ? (IInvertibleBloomFilter<TEntity,TId,int>)new InvertibleReverseSplitBloomFilter<TEntity, TId, int>(bloomFilterConfiguration, invertibleBloomFilterData.BlockSize)
+                :new InvertibleReverseBloomFilter<TEntity, TId, int>(bloomFilterConfiguration))
+                : new InvertibleBloomFilter<TEntity, TId, int>(bloomFilterConfiguration);
+            ibf.Initialize(capacity, invertibleBloomFilterData.GetFilterSize(), invertibleBloomFilterData.HashFunctionCount);
             return ibf;
         }
 
@@ -77,7 +81,7 @@
             {
                 capacity = 1;
             }
-            var ibf = new InvertibleReverseBloomFilter<TEntity, TId, sbyte>(bloomFilterConfiguration);
+            var ibf = new InvertibleReverseSplitBloomFilter<TEntity, TId, sbyte>(bloomFilterConfiguration);
             if (errorRate.HasValue)
                 ibf.Initialize(capacity, errorRate.Value);
             else

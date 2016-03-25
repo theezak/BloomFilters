@@ -1,8 +1,7 @@
-﻿using System;
-
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters
 {
     using System.Collections.Generic;
+    using System;
 
     /// <summary>
     /// Interface for an invertible Bloom filter.
@@ -43,15 +42,16 @@ namespace TBag.BloomFilters
         /// <summary>
         /// Subtract and then decode.
         /// </summary>
-        /// <param name="filter">Bloom filter to subtract</param>
-        /// <param name="listA">Items in this filter, but not in <paramref name="filter"/></param>
-        /// <param name="listB">Items not in this filter, but in <paramref name="filter"/></param>
+        /// <param name="filterData">Bloom filter data to subtract</param>
+        /// <param name="listA">Items in this filter, but not in <paramref name="filterData"/></param>
+        /// <param name="listB">Items not in this filter, but in <paramref name="filterData"/></param>
         /// <param name="modifiedEntities">Entities in both filters, but with a different value</param>
         /// <returns><c>true</c> when the decode was successful, otherwise <c>false</c></returns>
-        bool SubtractAndDecode(IInvertibleBloomFilterData<TId, int, TCount> filter,
+        bool SubtractAndDecode(
             HashSet<TId> listA, 
             HashSet<TId> listB, 
-            HashSet<TId> modifiedEntities);
+            HashSet<TId> modifiedEntities,
+            IInvertibleBloomFilterData<TId, int, TCount> filterData);
 
         /// <summary>
         /// Extract the Bloom filter data in a serializable format.

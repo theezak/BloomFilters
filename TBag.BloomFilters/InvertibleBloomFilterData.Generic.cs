@@ -44,46 +44,10 @@ namespace TBag.BloomFilters
         [DataMember(Order = 4)]
         public THash[] HashSums { get; set; }
 
-        //[DataMember(Order = 5)]
-        //public byte[] CompressedCounts
-        //{
-        //    get
-        //    {
-        //        if (typeof(TCount) == typeof(int))
-        //        {
-        //            var compressed = (_counts as int[]).Compress();
-        //            isSerializing = true;
-        //            return compressed;
-        //        }
-        //        return null;
-        //    }
-        //    set
-        //    {
-               
-        //        if (typeof(TCount) == typeof(int))
-        //        {
-        //            isSerializing = false;
-        //            _counts = value.Decompress() as TCount[];
-        //        }
-        //    }
-        //}
-
-        [DataMember(Order = 5)]
+       [DataMember(Order = 5)]
         public TCount[] Counts
         {
             get; set;
-            //get {
-            //    if (isSerializing)
-            //    {
-            //        //horrible hack.
-            //        isSerializing = false;
-            //        return null;
-            //    }
-            //    return _counts;
-            //}
-            //set { _counts = value;
-            //    isSerializing = false;
-            //}
         }
         
         /// <summary>
@@ -91,12 +55,22 @@ namespace TBag.BloomFilters
         /// </summary>
         /// <remarks>Only used by the hybrid IBF</remarks>
         [DataMember(Order = 6)]
-        public InvertibleBloomFilterData<TId, THash, TCount>  ReverseFilter { get; set; }
+        public InvertibleBloomFilterData<TId, THash, TCount>[]  SubFilters { get; set; }
 
         /// <summary>
         /// <c>true</c> when the data is for a RIBF, else <c>false</c>.
         /// </summary>
         [DataMember(Order = 7)]
         public bool IsReverse { get; set; }
+
+        /// <summary>
+        /// Indexes for the sub filters
+        /// </summary>
+        /// <remarks>Needed to compensate for sub filter null values being dropped by some serializers.</remarks>
+        [DataMember(Order =8)]
+        public int[] SubFilterIndexes
+        {
+            get; set;
+        }
     }
 }

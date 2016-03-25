@@ -1,6 +1,7 @@
 ﻿namespace TBag.BloomFilters
 {
     using System;
+    using System.Linq;
 
     /// <summary>
     /// An invertible Bloom filter that stores key-value pairs.
@@ -47,7 +48,7 @@
         public override void Rehydrate(IInvertibleBloomFilterData<TId, int, TCount> data)
         {
             if (data == null) return;
-            if (!data.IsReverse)
+              if (!data.IsReverse)
             {
                 throw new ArgumentException("Reverse IBF can only rehydrate reverse IBF data.", nameof(data));
             }

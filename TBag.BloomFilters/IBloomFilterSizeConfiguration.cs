@@ -36,5 +36,10 @@
         /// <returns></returns>
         /// <remarks>This is based upon a heuristic, in general you are best off to provide a specific error rate.</remarks>
         float BestErrorRate(long capacity);
+
+        /// <summary>
+        /// The minimum number of hash function counts to use.
+        /// </summary>
+        uint MinimumHashFunctionCount { get; set; }
     }
 }
