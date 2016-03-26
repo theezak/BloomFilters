@@ -17,7 +17,7 @@
         where TCount : struct
         where TId : struct
     {
-        private IBloomFilterConfiguration<KeyValuePair<TId, THash>, TId, THash, TCount> _valueBloomFilterConfiguration;
+        private IBloomFilterConfiguration<KeyValuePair<TId, THash>, TId, THash, TCount> _subFilterConfiguration;
 
         /// <summary>
         /// Constructor
@@ -27,7 +27,7 @@
         {
             if (createFilter)
             {
-                _valueBloomFilterConfiguration = this.ConvertToKeyValueHash();
+                _subFilterConfiguration = this.ConvertToKeyValueHash();
             }
         }
 
@@ -89,10 +89,10 @@
         /// The value filter configuration 
         /// </summary>
         /// <remarks>Only used for hybrid IBFs.</remarks>
-        public virtual IBloomFilterConfiguration<KeyValuePair<TId, THash>, TId, THash, TCount> ValueFilterConfiguration
+        public virtual IBloomFilterConfiguration<KeyValuePair<TId, THash>, TId, THash, TCount> SubFilterConfiguration
         {
-            get { return _valueBloomFilterConfiguration; }
-            set { _valueBloomFilterConfiguration = value; }
+            get { return _subFilterConfiguration; }
+            set { _subFilterConfiguration = value; }
         }
       
         /// <summary>

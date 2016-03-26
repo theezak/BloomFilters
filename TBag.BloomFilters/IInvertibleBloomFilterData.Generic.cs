@@ -17,6 +17,11 @@
         bool IsReverse { get; set; }
 
         /// <summary>
+        /// The number of sub filters used.
+        /// </summary>
+        long SubFilterCount { get; set; }
+
+        /// <summary>
         /// The block size 
         /// </summary>
         /// <remarks>Is the length of the arrays with hashes and counts, unless the Bloom filter was split by hash function, in which case the block size times the number of hash functions equals the size of the arrays.</remarks>

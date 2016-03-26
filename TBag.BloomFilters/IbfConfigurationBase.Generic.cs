@@ -1,11 +1,10 @@
-﻿using System.Linq;
-
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters
 {
     using System;
     using System.Collections.Generic;
     using HashAlgorithms;
-    
+    using System.Linq;
+
     /// <summary>
     /// A standard Bloom filter configuration, well suited for Bloom filters that are utilized according to their capacity and store keys rather than key/value pairs.
     /// </summary>

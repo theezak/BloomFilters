@@ -19,7 +19,7 @@ namespace TBag.BloomFilter.Test
         /// <summary>
         /// Constructor
         /// </summary>
-        public HybridDefaultBloomFilterConfiguration() : base(new CountConfiguration())
+        public HybridDefaultBloomFilterConfiguration() : base(new ByteCountConfiguration())
         {
         }
 

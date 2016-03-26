@@ -17,7 +17,7 @@
         /// </summary>
         protected BloomFilterIdConfigurationBase()
         {
-            MinimumHashFunctionCount = 3;
+            MinimumHashFunctionCount = 2;
         }
 
         /// <summary>

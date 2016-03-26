@@ -12,7 +12,7 @@ namespace TBag.BloomFilter.Test
     internal class DefaultBloomFilterConfiguration : IbfConfigurationBase<TestEntity, sbyte>
     {
 
-        public DefaultBloomFilterConfiguration() : base(new CountConfiguration())
+        public DefaultBloomFilterConfiguration() : base(new ByteCountConfiguration())
         {
         }
 

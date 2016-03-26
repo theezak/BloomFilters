@@ -54,10 +54,10 @@
         {
             var ibf = invertibleBloomFilterData.IsReverse 
                 ? (invertibleBloomFilterData.IdSums == null 
-                ? (IInvertibleBloomFilter<TEntity,TId,int>)new InvertibleReverseSplitBloomFilter<TEntity, TId, int>(bloomFilterConfiguration, invertibleBloomFilterData.BlockSize)
+                ? (IInvertibleBloomFilter<TEntity,TId,int>)new InvertibleReverseSplitBloomFilter<TEntity, TId, int>(bloomFilterConfiguration, invertibleBloomFilterData.SubFilterCount)
                 :new InvertibleReverseBloomFilter<TEntity, TId, int>(bloomFilterConfiguration))
                 : new InvertibleBloomFilter<TEntity, TId, int>(bloomFilterConfiguration);
-            ibf.Initialize(capacity, invertibleBloomFilterData.GetFilterSize(), invertibleBloomFilterData.HashFunctionCount);
+            ibf.Initialize(capacity, invertibleBloomFilterData.GetFilterBlockSize(), invertibleBloomFilterData.HashFunctionCount);
             return ibf;
         }
 

@@ -31,7 +31,7 @@
         /// Configuration for the Bloom filter that hashes values.
         /// </summary>
         /// <remarks>Only used by a hybrid IBF that utilizes both an IBF and a reverse IBF (this being the data for the reverse IBF)</remarks>
-        IBloomFilterConfiguration<KeyValuePair<TId,THash>, TId, THash, TCount> ValueFilterConfiguration { get;  }
+        IBloomFilterConfiguration<KeyValuePair<TId,THash>, TId, THash, TCount> SubFilterConfiguration { get;  }
 
         /// <summary>
         /// Function to create a sequence of given length of hashes.

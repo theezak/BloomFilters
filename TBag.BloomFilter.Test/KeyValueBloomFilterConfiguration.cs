@@ -12,7 +12,7 @@
     {
         private readonly IMurmurHash _murmurHash = new Murmur3();
 
-        public KeyValueBloomFilterConfiguration() : base(new CountConfiguration())
+        public KeyValueBloomFilterConfiguration() : base(new ByteCountConfiguration())
         {
         }
 

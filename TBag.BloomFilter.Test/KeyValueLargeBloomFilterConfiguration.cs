@@ -12,7 +12,7 @@
     {
         private readonly IMurmurHash _murmurHash = new Murmur3();
 
-        public KeyValueLargeBloomFilterConfiguration() : base(new HighUtilizationCountConfiguration())
+        public KeyValueLargeBloomFilterConfiguration() : base(new IntCountConfiguration())
         {}
 
         protected override long GetIdImpl(TestEntity entity)

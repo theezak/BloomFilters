@@ -10,7 +10,7 @@
     /// </summary>
     internal class LargeBloomFilterConfiguration : IbfConfigurationBase<TestEntity, int>
     {
-        public LargeBloomFilterConfiguration() : base(new HighUtilizationCountConfiguration())
+        public LargeBloomFilterConfiguration() : base(new IntCountConfiguration())
         {}
 
         protected override long GetIdImpl(TestEntity entity)

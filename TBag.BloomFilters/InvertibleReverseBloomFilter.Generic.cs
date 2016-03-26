@@ -37,7 +37,7 @@
         /// <param name="k">The number of the hash function</param>
         public override void Initialize(long capacity, long m, uint k)
         {
-            base.Initialize(capacity, m, k);
+            base.Initialize(capacity, m, k);       
             Data.IsReverse = true;
         }
 

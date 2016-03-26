@@ -11,11 +11,11 @@ namespace TBag.BloomFilters.Measurements.Test
     internal class DefaultBloomFilterConfiguration : IbfConfigurationBase<TestEntity, sbyte>
     {
         private IBloomFilterConfiguration<KeyValuePair<long, int>, long, int, sbyte> _valueFilterConfiguration;
-        public DefaultBloomFilterConfiguration() : base(new CountConfiguration(), false)
+        public DefaultBloomFilterConfiguration() : base(new ByteCountConfiguration(), false)
         {
             //allows the reverse filter to only use PureCount or the pure function, while this configuration
             //considers both the hash value and the PureCount.
-            _valueFilterConfiguration = new KeyValuePairBloomFilterConfiguration(new CountConfiguration(), false);
+            _valueFilterConfiguration = new KeyValuePairBloomFilterConfiguration(new ByteCountConfiguration(), false);
         }
 
         private readonly IMurmurHash _murmurHash = new Murmur3();
@@ -36,7 +36,7 @@ namespace TBag.BloomFilters.Measurements.Test
             return (sbyte.MaxValue - 15) * size > capacity;
         }
 
-        public override IBloomFilterConfiguration<KeyValuePair<long, int>, long, int, sbyte> ValueFilterConfiguration
+        public override IBloomFilterConfiguration<KeyValuePair<long, int>, long, int, sbyte> SubFilterConfiguration
         {
             get { return _valueFilterConfiguration; }
             set { _valueFilterConfiguration = value; }

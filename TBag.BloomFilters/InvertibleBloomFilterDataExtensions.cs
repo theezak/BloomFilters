@@ -29,6 +29,7 @@
             if (!filter.IsValid() || !otherFilter.IsValid()) return false;
             return filter.BlockSize == otherFilter.BlockSize &&
                 filter.IsReverse == otherFilter.IsReverse &&
+                filter.SubFilterCount == otherFilter.SubFilterCount &
                filter.HashFunctionCount == otherFilter.HashFunctionCount &&
                filter.Counts?.LongLength == otherFilter.Counts?.LongLength &&
                filter.HashSums?.LongLength == otherFilter.HashSums?.LongLength &&
@@ -105,7 +106,7 @@
                 throw new ArgumentException("Subtracted invertible Bloom filters are not compatible.", nameof(subtractedFilterData));
             var result = destructive ?
                 filterData :
-                filterData.Duplicate(configuration);
+                filterData.CreateDummy(configuration);
              var idIdentity = configuration.IdIdentity();
             var hashIdentity = configuration.HashIdentity();
             for (var i = 0L; i < filterData.Counts.LongLength; i++)
@@ -162,12 +163,10 @@
             var countComparer = Comparer<TCount>.Default;
             if (pureList == null)
             {
-                pureList = new Stack<long>(Range(0L, filter.Counts.LongLength)
+                pureList = new Stack<long>(LongEnumerable.Range(0L, filter.Counts.LongLength)
                     .Where(i => configuration.IsPure(filter, i))
                     .Select(i => i));
             }
-            var hashIdentity = configuration.HashIdentity();
-            var idIdentity = configuration.IdIdentity();
             var countsIdentity = configuration.CountConfiguration.CountIdentity();
             while (pureList.Any())
             {
@@ -254,7 +253,7 @@
             {
                 if (configuration.CountConfiguration.IsPureCount(filter.Counts[position]))
                 {
-                    //was skipped on purpose.
+                    //item is pure and was skipped on purpose.
                     continue;
                 }
                 if (!configuration.IdEqualityComparer.Equals(idIdentity, filter.IdSums[position]) ||                   
@@ -271,10 +270,12 @@
         /// <typeparam name="TId">The entity identifier type</typeparam>
         /// <typeparam name="THash">The entity hash type</typeparam>
         /// <typeparam name="TCount">The occurence count type</typeparam>
+        /// <typeparam name="TEntity"></typeparam>
         /// <param name="data">The data to duplicate.</param>
+        /// <param name="configuration">The Bloom filter configuration</param>
         /// <returns>Bloom filter data configured the same as <paramref name="data"/>, but with empty arrays.</returns>
         /// <remarks>Explicitly does not duplicate the reverse IBF data.</remarks>
-        internal static InvertibleBloomFilterData<TId,THash,TCount> Duplicate<TEntity, TId,THash,TCount>(
+        private static InvertibleBloomFilterData<TId,THash,TCount> CreateDummy<TEntity, TId,THash,TCount>(
             this IInvertibleBloomFilterData<TId,THash,TCount> data,
             IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration)
             where TCount : struct
@@ -284,6 +285,7 @@
             if (data == null) return null;
             var result = configuration.DataFactory.Create<TId, THash, TCount>(data.BlockSize, data.HashFunctionCount);
             result.IsReverse = data.IsReverse;
+            result.SubFilterCount = data.SubFilterCount;
             return result;
         }
 
@@ -372,14 +374,14 @@
             if (filter == null)
             {
                 //handle null filters as elegant as possible at this point.
-                filter = subtractedFilter.Duplicate(configuration);
+                filter = subtractedFilter.CreateDummy(configuration);
                 destructive = true;
             }
             if (subtractedFilter == null)
             {
                 //swap the filters and the sets so we can still apply the destructive setting to temporarily created filter data 
                 subtractedFilter = filter;
-                filter = subtractedFilter.Duplicate(configuration);
+                filter = subtractedFilter.CreateDummy(configuration);
                 var swap = listA;
                 listA = listB;
                 listB = swap;
@@ -391,21 +393,20 @@
                     nameof(subtractedFilter));
             var valueRes = true;
             var pureList = new Stack<long>();
-            var hasReverseFilter = (filter.SubFilters?.Any()?? false) ||
-                                   (subtractedFilter.SubFilters?.Any()?? false);
+            var hasReverseFilter = filter.SubFilterCount > 0 || subtractedFilter.SubFilterCount > 0;
             //add a dummy mod set when there is a reverse filter, because a regular filter is pretty bad at recognizing modified entites.
-            var idRes = filter.Counts==null && filter.IsReverse? true : filter
+            var idRes = filter.Counts==null && filter.IsReverse || filter
                 .Subtract(subtractedFilter, configuration, listA, listB, pureList, destructive)
                 .Decode(configuration, listA, listB, hasReverseFilter ? null : modifiedEntities, pureList);
             if (hasReverseFilter)
             {
-                if (!filter.IsReverse)
+                if (!filter.IsReverse || filter.SubFilterCount == 1)
                 {
                     valueRes = filter
-                        .SubFilters[0]
+                        .GetSubFilter(0)
                         .SubtractAndDecode(
-                            subtractedFilter.SubFilters[0],
-                            configuration.ValueFilterConfiguration,
+                            subtractedFilter.GetSubFilter(0),
+                            configuration.SubFilterConfiguration,
                             listA,
                             listB,
                             modifiedEntities,
@@ -413,42 +414,69 @@
                 }
                 else
                 {
-                    var res = new Tuple<HashSet<TId>, HashSet<TId>, HashSet<TId>, bool>[filter.BlockSize];
-                    Enumerable.Range(0, (int)Math.Max(filter.BlockSize, subtractedFilter.BlockSize))
-                        .AsParallel()
-                        .ForAll(i =>
-                        {
-                            var h1 = new HashSet<TId>();
-                            var h2 = new HashSet<TId>();
-                            var h3 = new HashSet<TId>();
-                            res[i] = new Tuple<HashSet<TId>, HashSet<TId>, HashSet<TId>, bool>(h1, h2, h3, filter.GetSubFilter(i)
-                            .SubtractAndDecode(
-                                subtractedFilter.GetSubFilter(i),
-                                configuration.ValueFilterConfiguration,
-                                h1,
-                                h2,
-                                h3,
-                                destructive));
-                        });
-                    valueRes = res.All(r => r.Item4);
-                    foreach(var r in res)
-                    {
-                        foreach(var item in r.Item1)
-                        {
-                            listA.Add(item);
-                        }
-                        foreach (var item in r.Item2)
-                        {
-                            listB.Add(item);
-                        }
-                        foreach (var item in r.Item3)
-                        {
-                            modifiedEntities.Add(item);
-                        }
-                    }
+                    valueRes = ParallelSubFilterDecode(filter, subtractedFilter, configuration, listA, listB, modifiedEntities, destructive);
                 }
             }
             return idRes && valueRes;
+        }
+
+        /// <summary>
+        /// Decode sub filters in parallel.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="TCount"></typeparam>
+        /// <param name="filter"></param>
+        /// <param name="subtractedFilter"></param>
+        /// <param name="configuration"></param>
+        /// <param name="listA"></param>
+        /// <param name="listB"></param>
+        /// <param name="modifiedEntities"></param>
+        /// <param name="destructive"></param>
+        /// <returns></returns>
+        private static bool ParallelSubFilterDecode<TEntity, TId, TCount>(
+            IInvertibleBloomFilterData<TId, int, TCount> filter,
+            IInvertibleBloomFilterData<TId, int, TCount> subtractedFilter, 
+            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration, 
+            HashSet<TId> listA, 
+            HashSet<TId> listB,
+            HashSet<TId> modifiedEntities, 
+            bool destructive) where TId : struct where TCount : struct
+        {
+            var subFilterCount = Math.Max(filter.SubFilterCount, subtractedFilter.SubFilterCount);
+            var res = new Tuple<HashSet<TId>, HashSet<TId>, HashSet<TId>, bool>[subFilterCount];
+            LongEnumerable.Range(0L, subFilterCount)
+                .AsParallel()
+                .ForAll(i =>
+                {
+                    var h1 = new HashSet<TId>();
+                    var h2 = new HashSet<TId>();
+                    var h3 = new HashSet<TId>();
+                    res[i] = new Tuple<HashSet<TId>, HashSet<TId>, HashSet<TId>, bool>(h1, h2, h3, filter.GetSubFilter(i)
+                        .SubtractAndDecode(
+                            subtractedFilter.GetSubFilter(i),
+                            configuration.SubFilterConfiguration,
+                            h1,
+                            h2,
+                            h3,
+                            destructive));
+                });
+           foreach (var r in res)
+            {
+                foreach (var item in r.Item1)
+                {
+                    listA.Add(item);
+                }
+                foreach (var item in r.Item2)
+                {
+                    listB.Add(item);
+                }
+                foreach (var item in r.Item3)
+                {
+                    modifiedEntities.Add(item);
+                }
+            }
+            return res.All(r => r.Item4);
         }
 
         /// <summary>
@@ -469,35 +497,27 @@
             if (filterData == null) return null;
             var result = filterData as InvertibleBloomFilterData<TId, TEntityHash, TCount>;
             if (result != null) return result;
-            result = configuration.DataFactory.Create<TId, TEntityHash, TCount>(filterData.BlockSize, filterData.HashFunctionCount);
-            result.Counts = filterData.Counts;
-            result.HashSums = filterData.HashSums;
-            result.IdSums = filterData.IdSums;
-            result.IsReverse = filterData.IsReverse;
-            result.SubFilterIndexes = filterData.SubFilterIndexes;
-            result.SubFilters = filterData.SubFilters;
-            return result;
-        }
-
-        /// <summary>
-        /// Generate a range of type <see cref="long"/>.
-        /// </summary>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        /// <returns></returns>
-        private static IEnumerable<long> Range(long start, long end)
-        {
-            for (var i = start; i < end; i++)
-                yield return i;
+            return new InvertibleBloomFilterData<TId, TEntityHash, TCount>
+            {
+                HashFunctionCount = filterData.HashFunctionCount,
+                BlockSize = filterData.BlockSize,
+                Counts = filterData.Counts,
+                HashSums = filterData.HashSums,
+                IdSums = filterData.IdSums,
+                IsReverse = filterData.IsReverse,
+                SubFilterIndexes = filterData.SubFilterIndexes,
+                SubFilters = filterData.SubFilters,
+                SubFilterCount = filterData.SubFilterCount
+            };
         }
 
         /// <summary>
         /// Get the sub filter at the given index.
         /// </summary>
-        /// <typeparam name="TId"></typeparam>
-        /// <typeparam name="TCount"></typeparam>
-        /// <param name="data"></param>
-        /// <param name="index"></param>
+        /// <typeparam name="TId">The type of the entity identifier</typeparam>
+        /// <typeparam name="TCount">The type of the counter</typeparam>
+        /// <param name="data">The Bloom filter data</param>
+        /// <param name="index">The index for the sub filter.</param>
         /// <returns></returns>
         internal static IInvertibleBloomFilterData<TId,int,TCount> GetSubFilter<TId, TCount>(this IInvertibleBloomFilterData<TId, int, TCount> data, long index)
             where TId : struct
@@ -522,12 +542,19 @@
             return null;
         }
 
-        internal static long GetFilterSize<TId, TCount>(this IInvertibleBloomFilterData<TId, int, TCount> data)
+        /// <summary>
+        /// Get the size ofthe filter.
+        /// </summary>
+        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="TCount"></typeparam>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        internal static long GetFilterBlockSize<TId, TCount>(this IInvertibleBloomFilterData<TId, int, TCount> data)
            where TId : struct
            where TCount : struct
         {
             if (data == null) return 0L;
-            if (data.IsReverse && (data.SubFilters?.Length??0) > 0)
+            if (data.IsReverse && data.SubFilters.Length > 0)
             {
                 return data.SubFilters[0].BlockSize;
             }

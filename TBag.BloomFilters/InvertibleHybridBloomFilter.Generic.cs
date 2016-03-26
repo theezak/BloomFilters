@@ -30,6 +30,7 @@ namespace TBag.BloomFilters
         {
             _reverseBloomFilter = new InvertibleReverseBloomFilter<KeyValuePair<TId, int>, TId, TCount>(
                 bloomFilterConfiguration.ConvertToKeyValueHash());
+            Data.SubFilterCount = 1;
             ValidateConfiguration = false;
         }
         #endregion
