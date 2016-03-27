@@ -39,9 +39,8 @@
                 .StrataEstimator
                 .Decode(otherEstimatorData.StrataEstimator, configuration, estimator.StrataCount, destructive);
             if (!strataDecode.HasValue) return null;
-            var minwiseDecode = 2 * (long)(decodeFactor * (estimator.BitMinwiseEstimator.Capacity - 
-                     estimator.BitMinwiseEstimator.Similarity(otherEstimatorData.BitMinwiseEstimator) * 
-                        estimator.BitMinwiseEstimator.Capacity));
+            var similarity = estimator.BitMinwiseEstimator.Similarity(otherEstimatorData.BitMinwiseEstimator);
+           var minwiseDecode = (long)(decodeFactor*((1-similarity)/(1+similarity)) * (estimator.BitMinwiseEstimator.Capacity + otherEstimatorData.BitMinwiseEstimator.Capacity));
             //use upperbound on set difference.
             return Math.Min(strataDecode.Value + minwiseDecode, estimator.CountEstimate + otherEstimatorData.CountEstimate);
         }
