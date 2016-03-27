@@ -29,9 +29,9 @@
             {
                 HashFunctionCount = k,
                 BlockSize = m,
-                Counts = new TCount[m * k],
-                IdSums = new TId[m * k],
-                HashSums = new THash[m * k]
+                Counts = new TCount[m],
+                IdSums = new TId[m],
+                HashSums = new THash[m ]
             };
         }
 

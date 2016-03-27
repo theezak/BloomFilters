@@ -69,8 +69,8 @@
                 filter.IdSums == null ||
                 filter.HashSums == null)) return false;
             if (filter.Counts?.LongLength != filter.HashSums?.LongLength ||
-                filter.Counts?.LongLength != filter.IdSums?.LongLength) return false;
-            if (filter.BlockSize * filter.HashFunctionCount != (filter.Counts?.LongLength??(filter.BlockSize * filter.HashFunctionCount))) return false;
+                filter.Counts?.LongLength != filter.IdSums?.LongLength ||
+               filter.BlockSize != (filter.Counts?.LongLength??filter.BlockSize)) return false;
             return true;
         }
 
@@ -554,7 +554,7 @@
            where TCount : struct
         {
             if (data == null) return 0L;
-            if (data.IsReverse && data.SubFilters.Length > 0)
+            if (data.IsReverse && data.SubFilters?.Length > 0)
             {
                 return data.SubFilters[0].BlockSize;
             }

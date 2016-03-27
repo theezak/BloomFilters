@@ -16,9 +16,9 @@ namespace TBag.BloomFilter.Test
         [TestMethod]
         public void InvertibleBloomFilterFalsePositiveTest()
         {
-            var addSize = 100000;
+            var addSize = 1000;
             var testData = DataGenerator.Generate().Take(addSize).ToArray();
-            var errorRate = 0.02F;
+            var errorRate = 0.001F;
             var size = testData.Length;
             var configuration = new DefaultBloomFilterConfiguration();
             var bloomFilter = new InvertibleBloomFilter<TestEntity, long, sbyte>(configuration);
@@ -32,17 +32,17 @@ namespace TBag.BloomFilter.Test
             notFoundCount = testData.Count(itm => !bloomFilter.ContainsKey(itm.Id));
             Assert.IsTrue(notFoundCount == 0, "False negative error rate violated on ContainsKey");
             notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.Contains(itm));
-            Assert.IsTrue(notFoundCount <= errorRate * size, "False positive error rate violated");
+            Assert.IsTrue(notFoundCount <= 2, "False positive error rate violated");
             notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.ContainsKey(itm.Id));
-            Assert.IsTrue(notFoundCount <= errorRate * size, "False positive error rate violated on ContainsKey");
+            Assert.IsTrue(notFoundCount <= 2, "False positive error rate violated on ContainsKey");
         }
 
         [TestMethod]
         public void ReverseInvertibleBloomFilterFalsePositiveTest()
         {
-            var addSize = 100000;
+            var addSize = 1000;
             var testData = DataGenerator.Generate().Take(addSize).ToArray();
-            var errorRate = 0.02F;
+            var errorRate = 0.001F;
             var size = testData.Length;
             var configuration = new KeyValueBloomFilterConfiguration();
             var bloomFilter = new InvertibleReverseBloomFilter<TestEntity, long, sbyte>(configuration);
@@ -54,7 +54,7 @@ namespace TBag.BloomFilter.Test
             var notFoundCount = testData.Count(itm => !bloomFilter.Contains(itm));
             Assert.IsTrue(notFoundCount == 0, "False negative error rate violated");
             notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.Contains(itm));
-            Assert.IsTrue(notFoundCount <= errorRate * size, "False positive error rate violated");
+            Assert.IsTrue(notFoundCount <= 6, "False positive error rate violated");
         }
 
         [TestMethod]
@@ -62,7 +62,7 @@ namespace TBag.BloomFilter.Test
         {
             var addSize = 100000;
             var testData = DataGenerator.Generate().Take(addSize).ToArray();
-            var errorRate = 0.02F;
+            var errorRate = 0.001F;
             var size = testData.Length;
             var configuration = new KeyValueBloomFilterConfiguration();
             var bloomFilter = new InvertibleHybridBloomFilter<TestEntity, long, sbyte>(configuration);
@@ -76,15 +76,15 @@ namespace TBag.BloomFilter.Test
             notFoundCount = testData.Count(itm => !bloomFilter.ContainsKey(itm.Id));
             Assert.IsTrue(notFoundCount == 0, "False negative error rate violated on ContainsKey");
             notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.Contains(itm));
-            Assert.IsTrue(notFoundCount <= errorRate * size, "False positive error rate violated");
+            Assert.IsTrue(notFoundCount <= 400, "False positive error rate violated");
             notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.ContainsKey(itm.Id));
-            Assert.IsTrue(notFoundCount <= errorRate * size, "False positive error rate violated on ContainsKey");
+            Assert.IsTrue(notFoundCount <= 400, "False positive error rate violated on ContainsKey");
         }
 
         [TestMethod]
         public void InvertibleBloomFilterSetDiffTest()
         {
-            var addSize = 10000;
+            var addSize = 1000;
             var modCount = 50;
             var dataSet1 = DataGenerator.Generate().Take(addSize).ToList();
             var dataSet2 = DataGenerator.Generate().Take(addSize).ToList();
@@ -120,20 +120,20 @@ namespace TBag.BloomFilter.Test
         [TestMethod]
         public void ReverseInvertibleBloomFilterSetDiffTest()
         {
-            var addSize = 10000;
-            var modCount = 50;
+            var addSize = 1000;
+            var modCount = 20;
             var dataSet1 = DataGenerator.Generate().Take(addSize).ToList();
             var dataSet2 = DataGenerator.Generate().Take(addSize).ToList();
             dataSet2.Modify(modCount);
             var configuration = new KeyValueBloomFilterConfiguration();
             var bloomFilter = new InvertibleReverseBloomFilter<TestEntity, long, sbyte>(configuration);
-            bloomFilter.Initialize(2 * modCount, 0.0001F);
+            bloomFilter.Initialize(2 * modCount, 0.000001F);
             foreach (var itm in dataSet1)
             {
                 bloomFilter.Add(itm);
             }
             var secondBloomFilter = new InvertibleReverseBloomFilter<TestEntity, long, sbyte>(configuration);
-            secondBloomFilter.Initialize(2 * modCount, 0.0001F);
+            secondBloomFilter.Initialize(2 * modCount, 0.000001F);
             foreach (var itm in dataSet2)
             {
                 secondBloomFilter.Add(itm);
@@ -155,20 +155,20 @@ namespace TBag.BloomFilter.Test
         [TestMethod]
         public void HybridInvertibleBloomFilterSetDiffTest()
         {
-            var addSize = 10000;
+            var addSize = 1000;
             var modCount = 50;
             var dataSet1 = DataGenerator.Generate().Take(addSize).ToList();
             var dataSet2 = DataGenerator.Generate().Take(addSize).ToList();
             dataSet2.Modify(modCount);
             var configuration = new HybridDefaultBloomFilterConfiguration();
             var bloomFilter = new InvertibleHybridBloomFilter<TestEntity, long, sbyte>(configuration);
-            bloomFilter.Initialize(2 * modCount, 0.001F);
+            bloomFilter.Initialize(2 * modCount, 0.0001F);
             foreach (var itm in dataSet1)
             {
                 bloomFilter.Add(itm);
             }
             var secondBloomFilter = new InvertibleHybridBloomFilter<TestEntity, long, sbyte>(configuration);
-            secondBloomFilter.Initialize(2 * modCount, 0.001F);
+            secondBloomFilter.Initialize(2 * modCount, 0.0001F);
             foreach (var itm in dataSet2)
             {
                 secondBloomFilter.Add(itm);

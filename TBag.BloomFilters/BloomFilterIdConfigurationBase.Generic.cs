@@ -78,8 +78,10 @@
         /// <returns></returns>
         public virtual long BestCompressedSize(long capacity, float errorRate)
         {
+            return BestSize(capacity, errorRate);
             //compress the size of the Bloom filter, by ln2.
-            return (long)(BestSize(capacity, errorRate) * Math.Log(2.0D));
+            //TODO: causes too many false positives?
+            //return (long)(BestSize(capacity, errorRate) * Math.Log(2.0D));
         }
 
         /// <summary>

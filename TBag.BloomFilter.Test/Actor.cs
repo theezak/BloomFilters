@@ -99,7 +99,7 @@
                     throw new NullReferenceException("Did not negotiate a good estimate");
                 }
             }
-             var filter = _bloomFilterFactory.CreateHighUtilizationFilter(_configuration, estimate.Value);
+             var filter = _bloomFilterFactory.Create(_configuration, estimate.Value, 0.001F, true);
             foreach (var item in _dataSet)
             {
                 filter.Add(item);

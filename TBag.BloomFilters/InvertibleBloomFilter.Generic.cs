@@ -82,10 +82,10 @@
         public virtual void Initialize(long capacity, long m, uint k)
         {
             // validate the params are in range
-            if (!Configuration.Supports(capacity, m * k))
+            if (!Configuration.Supports(capacity, m))
             {
                 throw new ArgumentOutOfRangeException(
-                    $"The size {m * k} of the Bloom filter is not large enough to hold {capacity} items.");
+                    $"The size {m} of the Bloom filter is not large enough to hold {capacity} items.");
             }
             Data = Configuration.DataFactory.Create<TId, int, TCount>(m, k);            
         }
