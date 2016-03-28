@@ -59,6 +59,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Actor.cs" />
+    <Compile Include="BloomFilterFoldTest.cs" />
     <Compile Include="HybridDefaultBloomFilterConfiguration.cs" />
     <Compile Include="IntCompressionTest.cs" />
     <Compile Include="KeyValueBloomFilterConfiguration.cs" />
