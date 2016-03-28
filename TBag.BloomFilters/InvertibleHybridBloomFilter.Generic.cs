@@ -1,9 +1,10 @@
-﻿using System.Linq;
-
+﻿
 namespace TBag.BloomFilters
 {
+    using Configurations;
     using System;
     using System.Collections.Generic;
+
     /// <summary>
     /// An invertible Bloom filter supports removal and additions.
     /// </summary>

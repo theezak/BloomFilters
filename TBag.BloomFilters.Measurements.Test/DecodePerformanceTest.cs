@@ -124,14 +124,14 @@ namespace TBag.BloomFilters.Measurements.Test
                                 var idealCapacity = Math.Max(15, onlyInSet1.Count() + onlyInSet2.Count() + modified.Count());
                                 var stopWatch = new Stopwatch();
                                 stopWatch.Start();
-                                var bloomFilter1 = new InvertibleReverseSplitBloomFilter<TestEntity, long, int>(configuration);
+                                var bloomFilter1 = new InvertibleReverseBloomFilter<TestEntity, long, int>(configuration);
                                 bloomFilter1.Initialize((int)(idealCapacity * capacityPercentage), 0.01F);
 
                                 foreach (var item in dataSet1)
                                 {
                                     bloomFilter1.Add(item);
                                 }
-                                var bloomFilter2 = new InvertibleReverseSplitBloomFilter<TestEntity, long, int>(configuration);
+                                var bloomFilter2 = new InvertibleReverseBloomFilter<TestEntity, long, int>(configuration);
                                 bloomFilter2.Initialize((int)(idealCapacity * capacityPercentage), 0.01F);
                                 foreach (var item in dataSet2)
                                 {

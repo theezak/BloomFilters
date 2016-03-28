@@ -1,3 +1,5 @@
+using TBag.BloomFilters.Configurations;
+
 namespace TBag.BloomFilters
 {
     /// <summary>

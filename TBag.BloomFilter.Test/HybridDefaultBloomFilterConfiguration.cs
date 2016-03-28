@@ -2,7 +2,8 @@
 
 namespace TBag.BloomFilter.Test
 {
-   using BloomFilters;
+    using BloomFilters;
+    using BloomFilters.Configurations;
     using HashAlgorithms;
     using System;
     using System.Collections.Generic;

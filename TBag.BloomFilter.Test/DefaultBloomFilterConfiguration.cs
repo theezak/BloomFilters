@@ -3,9 +3,8 @@ using System.Runtime.Remoting.Messaging;
 
 namespace TBag.BloomFilter.Test
 {
-   using BloomFilters;
-    using HashAlgorithms;
-
+    using BloomFilters.Configurations;
+ 
     /// <summary>
     /// A test Bloom filter configuration.
     /// </summary>

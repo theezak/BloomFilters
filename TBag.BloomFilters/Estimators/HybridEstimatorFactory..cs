@@ -1,5 +1,6 @@
 ﻿namespace TBag.BloomFilters.Estimators
 {
+    using Configurations;
     using System;
 
     /// <summary>

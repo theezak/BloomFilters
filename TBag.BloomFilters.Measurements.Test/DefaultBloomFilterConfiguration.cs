@@ -2,7 +2,7 @@
 
 namespace TBag.BloomFilters.Measurements.Test
 {
-   using BloomFilters;
+    using Configurations;
     using HashAlgorithms;
 
     /// <summary>

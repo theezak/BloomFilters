@@ -1,5 +1,7 @@
 ﻿namespace TBag.BloomFilters.Estimators
 {
+    using Configurations;
+
     /// <summary>
     /// Interface for the hybrid estimator factory.
     /// </summary>

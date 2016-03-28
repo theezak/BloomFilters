@@ -1,8 +1,9 @@
 ﻿namespace TBag.BloomFilters
 {
+    using Configurations;
     using System;
     using System.Collections.Generic;
-  
+
     /// <summary>
     /// Bloom filter configuration for a value Bloom filter.
     /// </summary>

@@ -1,8 +1,8 @@
 ﻿namespace TBag.BloomFilters
 {
+    using Configurations;
     using System;
-    using System.Linq;
-
+  
     /// <summary>
     /// An invertible Bloom filter that stores key-value pairs.
     /// </summary>

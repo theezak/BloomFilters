@@ -1,4 +1,4 @@
-﻿namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters.Configurations
 {
     using System;
     using System.Collections.Generic;

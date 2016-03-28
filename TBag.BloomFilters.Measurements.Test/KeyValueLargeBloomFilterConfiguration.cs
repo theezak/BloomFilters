@@ -2,8 +2,8 @@
 {
     using System;
     using System.Text;
-    using BloomFilters;
     using HashAlgorithms;
+    using Configurations;
 
     /// <summary>
     /// A test Bloom filter configuration.

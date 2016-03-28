@@ -1,5 +1,7 @@
 ﻿namespace TBag.BloomFilters
 {
+    using Configurations;
+
     /// <summary>
     /// Place holder for a factory to create Bloom filters based upon strata estimators.
     /// </summary>

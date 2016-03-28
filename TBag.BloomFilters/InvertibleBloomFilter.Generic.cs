@@ -1,5 +1,6 @@
 ﻿namespace TBag.BloomFilters
 {
+    using Configurations;
     using System;
     using System.Collections.Generic;
     using System.Linq;

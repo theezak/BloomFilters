@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using HashAlgorithms;
+    using Configurations;
 
     /// <summary>
     /// Derived Bloom filter configuration for an estimator

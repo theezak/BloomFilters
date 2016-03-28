@@ -7,7 +7,7 @@
     using System.Linq;
     using BloomFilters;
     using BloomFilters.Estimators;
-
+    using BloomFilters.Configurations;
     /// <summary>
     /// A full working test harness for creating an estimator, serializing the estimator and receiving the filter.
     /// </summary>

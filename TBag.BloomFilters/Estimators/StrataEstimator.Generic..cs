@@ -1,8 +1,6 @@
-﻿
-using System.Diagnostics.Contracts;
-
-namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Estimators
 {
+    using Configurations;
     using HashAlgorithms;
     using System;
     using System.Collections.Generic;
