@@ -77,5 +77,19 @@
         }
 
         #endregion
+
+        #region Methods
+        /// <summary>
+        /// Create a new instance.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        protected override IInvertibleBloomFilter<TEntity, TId, TCount> CreateNewInstance(IInvertibleBloomFilterData<TId, int, TCount> data)
+        {
+            var instance = new InvertibleReverseBloomFilter<TEntity,TId,TCount>(Configuration);
+            instance.Rehydrate(data);
+            return instance;
+        }
+        #endregion
     }
 }

@@ -234,15 +234,39 @@
             return Data.SubtractAndDecode(filterData, Configuration, listA, listB, modifiedEntities);
         }
 
+        /// <summary>
+        /// Fold the Bloom filter by the given factor.
+        /// </summary>
+        /// <param name="factor"></param>
+        /// <param name="destructive">When <c>true</c> the Bloom filter instance is replaced by the folded Bloom filter, else <c>false</c>.</param>
+        /// <exception cref="ArgumentException">The fold factor is invalid.</exception>
+        public virtual IInvertibleBloomFilter<TEntity,TId,TCount> Fold(uint factor, bool destructive = false)
+        {
+            var res = Extract().Fold(Configuration, factor);
+            if (destructive)
+            {
+                Rehydrate(res);
+                return this;
+            }
+            return CreateNewInstance(res);
+        }
+
         #endregion
-       
+
         #region Methods
+
+        protected virtual IInvertibleBloomFilter<TEntity, TId, TCount> CreateNewInstance(IInvertibleBloomFilterData<TId, int, TCount> data)
+        {
+            var bloomFilter = new InvertibleBloomFilter<TEntity, TId, TCount>(Configuration);
+            bloomFilter.Rehydrate(data);
+            return bloomFilter;
+        }
 
         /// <summary>
         /// Add the identifier and hash.
         /// </summary>
         /// <param name="key">The key to add</param>
-         /// <param name="entityHash">The entity hash</param>
+        /// <param name="entityHash">The entity hash</param>
         protected virtual void Add(TId key, int entityHash)
         {
             if (ValidateConfiguration)

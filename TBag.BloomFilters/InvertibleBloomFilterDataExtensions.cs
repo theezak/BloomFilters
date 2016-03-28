@@ -373,7 +373,49 @@
             }
             res.SubFilter = filterData
                 .SubFilter
-                .Add(configuration, otherFilterData.SubFilter, inPlace)
+                .Add(configuration.SubFilterConfiguration, otherFilterData.SubFilter, inPlace)
+                .ConvertToBloomFilterData(configuration);
+            return res;
+        }
+
+        /// <summary>
+        /// Fold the data by the given factor
+        /// </summary>
+        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="TCount"></typeparam>
+        /// <param name="data"></param>
+        /// <param name="factor"></param>
+        /// <returns></returns>
+        /// <remarks>Captures the concept of reducing the size of a Bloom filter.</remarks>
+        public static IInvertibleBloomFilterData<TId, int, TCount> Fold<TEntity,TId,TCount>(this IInvertibleBloomFilterData<TId,int, TCount> data, 
+            IBloomFilterConfiguration<TEntity,TId,int,TCount> configuration, uint factor)
+            where TId : struct
+            where TCount : struct
+        {
+            if (data == null) return null;
+            if (data.BlockSize % factor != 0)
+                throw new ArgumentException($"Bloom filter data cannot be folded by {factor}.", nameof(factor));
+            var res = configuration.DataFactory.Create<TId, int, TCount>((long)(data.BlockSize / factor), data.HashFunctionCount);
+            res.IsReverse = data.IsReverse;
+            for(var i = 0L; i < data.Counts.LongLength; i++)
+            {
+                if (i < res.BlockSize)
+                {
+                    res.Counts[i] = data.Counts[i];
+                    res.HashSums[i] = data.HashSums[i];
+                    res.IdSums[i] = data.IdSums[i];
+                }
+                else
+                {
+                    var pos = i % res.BlockSize;
+                    res.Counts[pos] = configuration.CountConfiguration.Add(res.Counts[pos], data.Counts[i]);
+                    res.HashSums[pos] = configuration.HashXor(res.HashSums[pos], data.HashSums[i]);
+                    res.IdSums[pos] = configuration.IdXor(res.IdSums[pos], data.IdSums[i]);
+               }
+            }
+            res.SubFilter = data
+                .SubFilter?
+                .Fold(configuration.SubFilterConfiguration, factor)
                 .ConvertToBloomFilterData(configuration);
             return res;
         }

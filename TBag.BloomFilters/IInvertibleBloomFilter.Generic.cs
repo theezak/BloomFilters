@@ -35,6 +35,14 @@
         void Add(IInvertibleBloomFilterData<TId, int, TCount> bloomFilterData);
 
         /// <summary>
+        /// Fold the Bloom filter
+        /// </summary>
+        /// <param name="factor">The factor to fold the Bloom filter by</param>
+        /// <param name="destructive">When <c>true</c> the Bloom filter is replaced by the folded Bloom filter, else <c>false</c>.</param>
+        /// <exception cref="ArgumentException">The Bloom filter cannot be folded by the given factor.</exception>
+        IInvertibleBloomFilter<T, TId, TCount> Fold(uint factor, bool destructive = false);
+
+        /// <summary>
         /// Determine if the item is in the Bloom filter.
         /// </summary>
         /// <param name="item">The entity</param>

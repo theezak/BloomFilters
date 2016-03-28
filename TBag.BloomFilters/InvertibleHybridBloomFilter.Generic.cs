@@ -107,5 +107,19 @@ namespace TBag.BloomFilters
             _reverseBloomFilter.Rehydrate(data.SubFilter);
         }
         #endregion
+
+        #region Methods
+        /// <summary>
+        /// Create a new instance.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        protected override IInvertibleBloomFilter<TEntity, TId, TCount> CreateNewInstance(IInvertibleBloomFilterData<TId, int, TCount> data)
+        {
+            var instance = new InvertibleHybridBloomFilter<TEntity, TId, TCount>(Configuration);
+            instance.Rehydrate(data);
+            return instance;
+        }
+        #endregion
     }
 }
