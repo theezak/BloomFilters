@@ -34,7 +34,7 @@
         {
             _wrappedConfiguration = configuration;
             //hashSum no longer derived from idSum.
-            _isPure = (d, position) => _wrappedConfiguration.CountConfiguration.IsPureCount(d.Counts[position]);
+            _isPure = (d, position) => _wrappedConfiguration.CountConfiguration.IsPure(d.Counts[position]);
         }
         #endregion
 

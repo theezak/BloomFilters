@@ -30,7 +30,7 @@
             var ibf = invertibleBloomFilterData.IsReverse 
                 ? new InvertibleReverseBloomFilter<TEntity, TId, TCount>(bloomFilterConfiguration)
                 : new InvertibleBloomFilter<TEntity, TId, TCount>(bloomFilterConfiguration);
-            ibf.Initialize(capacity, invertibleBloomFilterData.GetFilterBlockSize(), invertibleBloomFilterData.HashFunctionCount);
+            ibf.Initialize(capacity, invertibleBloomFilterData.BlockSize, invertibleBloomFilterData.HashFunctionCount);
             return ibf;
         }
 

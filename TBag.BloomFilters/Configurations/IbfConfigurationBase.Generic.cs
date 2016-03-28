@@ -41,7 +41,7 @@
             _hashes = (hash, hashCount) =>  ComputeHash(hash, BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(hash), 912345678), 0), hashCount, 1);
             //the hashSum value is an identity hash.
             _entityHash = e => IdHash(GetId(e));
-            _isPure = (d, p) => CountConfiguration.IsPureCount(d.Counts[p]) && HashEqualityComparer.Equals(d.HashSums[p], IdHash(d.IdSums[p]));
+            _isPure = (d, p) => CountConfiguration.IsPure(d.Counts[p]) && HashEqualityComparer.Equals(d.HashSums[p], IdHash(d.IdSums[p]));
             _idXor = (id1, id2) => id1 ^ id2;
             _hashIdentity = () => 0;
             _idIdentity = () => 0L;

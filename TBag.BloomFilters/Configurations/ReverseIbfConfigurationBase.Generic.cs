@@ -28,7 +28,7 @@
             //the hashSum value is different.
             _entityHash = e=> unchecked(BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(GetEntityHashImpl(e)), (uint)IdHash(GetId(e))), 0));
             //with the entity hash no longer equal to the Id hash, the definition of pure has to be modified.
-            _isPure = (d, p) => CountConfiguration.IsPureCount(d.Counts[p]);
+            _isPure = (d, p) => CountConfiguration.IsPure(d.Counts[p]);
         }
         #endregion
 

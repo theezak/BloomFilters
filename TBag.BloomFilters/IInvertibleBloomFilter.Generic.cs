@@ -21,6 +21,20 @@
         void Add(T item);
 
         /// <summary>
+        /// Add the Bloom filter.
+        /// </summary>
+        /// <param name="bloomFilter"></param>
+        /// <exception cref="ArgumentException">Bloom filter is not compatible</exception>
+        void Add(IInvertibleBloomFilter<T, TId, TCount> bloomFilter);
+
+        /// <summary>
+        /// Add the Bloom filter data
+        /// </summary>
+        /// <param name="bloomFilterData"></param>
+        /// <exception cref="ArgumentException">Bloom filter data is not compatible</exception>
+        void Add(IInvertibleBloomFilterData<TId, int, TCount> bloomFilterData);
+
+        /// <summary>
         /// Determine if the item is in the Bloom filter.
         /// </summary>
         /// <param name="item">The entity</param>

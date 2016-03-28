@@ -2,7 +2,7 @@
 {
     using System;
     using System.Runtime.Serialization;
-   
+
     /// <summary>
     /// Implementation of <see cref="IInvertibleBloomFilterData{TId, TEntityHash, TCount}"/>
     /// </summary>
@@ -10,22 +10,16 @@
     /// <typeparam name="THash">Type of the hash</typeparam>
     /// <typeparam name="TCount">Type of the occurence count</typeparam>
     [DataContract, Serializable]
-    public  class InvertibleBloomFilterData<TId, THash, TCount> : 
+    public class InvertibleBloomFilterData<TId, THash, TCount> :
         IInvertibleBloomFilterData<TId, THash, TCount>
         where TCount : struct
         where THash : struct
         where TId : struct
     {
         /// <summary>
-        /// The number of sub filters used.
-        /// </summary>
-        [DataMember(Order=1)]
-        public long SubFilterCount { get; set; }
-
-        /// <summary>
         /// The number of cells for a single hash function.
         /// </summary>
-        [DataMember(Order=2)]
+        [DataMember(Order = 2)]
         public long BlockSize { get; set; }
 
         /// <summary>
@@ -40,25 +34,25 @@
         [DataMember(Order = 4)]
         public TId[] IdSums { get; set; }
 
-        
+
         /// <summary>
         /// An array of hash value sums.
         /// </summary>
         [DataMember(Order = 5)]
         public THash[] HashSums { get; set; }
 
-       [DataMember(Order = 6)]
+        [DataMember(Order = 6)]
         public TCount[] Counts
         {
             get; set;
         }
-        
+
         /// <summary>
         /// The data for the reverse IBF
         /// </summary>
         /// <remarks>Only used by the hybrid IBF</remarks>
         [DataMember(Order = 7)]
-        public InvertibleBloomFilterData<TId, THash, TCount>[]  SubFilters { get; set; }
+        public InvertibleBloomFilterData<TId, THash, TCount> SubFilter { get; set; }
 
         /// <summary>
         /// <c>true</c> when the data is for a RIBF, else <c>false</c>.
@@ -66,14 +60,5 @@
         [DataMember(Order = 8)]
         public bool IsReverse { get; set; }
 
-        /// <summary>
-        /// Indexes for the sub filters
-        /// </summary>
-        /// <remarks>Needed to compensate for sub filter null values being dropped by some serializers.</remarks>
-        [DataMember(Order =9)]
-        public int[] SubFilterIndexes
-        {
-            get; set;
-        }
     }
 }

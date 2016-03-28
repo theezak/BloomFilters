@@ -11,27 +11,27 @@
         /// <summary>
         /// Decrease the count
         /// </summary>
-        public Func<int, int> CountDecrease { get; set; } = i => i- 1;
+        public Func<int, int> Decrease { get; set; } = i => i- 1;
 
         /// <summary>
         /// The count identity value (0)
         /// </summary>
-        public Func<int> CountIdentity { get; set; } = ()=>0;
+        public Func<int> Identity { get; set; } = ()=>0;
 
         /// <summary>
         /// Increase the count
         /// </summary>
-        public Func<int, int> CountIncrease { get; set; } = i => i + 1;
+        public Func<int, int> Increase { get; set; } = i => i + 1;
 
         /// <summary>
         /// Subtract counts
         /// </summary>
-        public Func<int, int, int> CountSubtract { get; set; } = (i1,i2)=>i1-i2;
+        public Func<int, int, int> Subtract { get; set; } = (i1,i2)=>i1-i2;
 
         /// <summary>
         /// The count unity (1)
         /// </summary>
-        public Func<int> CountUnity { get; set; } = ()=>1;
+        public Func<int> Unity { get; set; } = ()=>1;
 
         /// <summary>
         /// Count equality comparer
@@ -41,6 +41,11 @@
         /// <summary>
         /// Determine if the count is pure.
         /// </summary>
-        public Func<int, bool> IsPureCount { get; set; } = i => Math.Abs(i) == 1;
+        public Func<int, bool> IsPure { get; set; } = i => Math.Abs(i) == 1;
+
+        /// <summary>
+        /// Add two counts
+        /// </summary>
+        public Func<int, int, int> Add { get; set; } = (c1, c2) => c1 + c2;
     }
 }

@@ -52,6 +52,7 @@
         #endregion
 
         #region Implementation of Bloom Filter public contract
+        
         /// <summary>
         /// Initialize
         /// </summary>
@@ -101,6 +102,35 @@
             Add(Configuration.GetId(item), Configuration.EntityHash(item));
         }
 
+        /// <summary>
+        /// Add the Bloom filter
+        /// </summary>
+        /// <param name="bloomFilter">Bloom filter to add</param>
+        /// <exception cref="ArgumentException">Bloom filter is not compatible</exception>
+        public void Add(IInvertibleBloomFilter<TEntity, TId, TCount> bloomFilter)
+        {
+            if (bloomFilter == null) return;
+            var result = Extract().Add(Configuration, bloomFilter.Extract());
+            if (result == null)
+            {
+                throw new ArgumentException("An incompatible Bloom filter cannot be added.", nameof(bloomFilter));
+            }
+        }
+
+        /// <summary>
+        /// Add the Bloom filter data
+        /// </summary>
+        /// <param name="bloomFilterData">Bloom filter data to add</param>
+        /// <exception cref="ArgumentException">Bloom filter data is not compatible</exception>
+        public void Add(IInvertibleBloomFilterData<TId, int, TCount> bloomFilterData)
+        {
+            if (bloomFilterData == null) return;
+            var result = Extract().Add(Configuration, bloomFilterData);
+            if (result == null)
+            {
+                throw new ArgumentException("An incompatible Bloom filter cannot be added.", nameof(bloomFilterData));
+            }
+        }
         /// <summary>
         /// Extract the Bloom filter in a serializable format.
         /// </summary>
@@ -237,7 +267,7 @@
             {
                 IsValidConfiguration(Configuration.IdHash(key), hash);
             }
-            var countIdentity = Configuration.CountConfiguration.CountIdentity();
+            var countIdentity = Configuration.CountConfiguration.Identity();
             foreach (var position in Configuration.Probe(Data,  hash))
             {
                 if (Configuration.IsPure(Data, position) &&

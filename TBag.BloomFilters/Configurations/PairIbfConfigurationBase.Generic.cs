@@ -26,7 +26,7 @@
             base(configuration, createValueFilter)
         {
             _entityHash = kv => kv.Value;
-            _isPure = (d, p) => CountConfiguration.IsPureCount(d.Counts[p]);
+            _isPure = (d, p) => CountConfiguration.IsPure(d.Counts[p]);
         }
         #endregion
 

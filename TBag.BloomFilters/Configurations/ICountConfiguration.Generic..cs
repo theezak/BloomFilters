@@ -5,40 +5,44 @@
     /// <summary>
     /// Configuration for the counter.
     /// </summary>
-    /// <typeparam name="TCount"></typeparam>
+    /// <typeparam name="TCount">The type of the counter</typeparam>
     public interface ICountConfiguration<TCount>
         where TCount : struct
     {
         /// <summary>
         /// The unity for the count type.
         /// </summary>
-        Func<TCount> CountUnity { get; set; }
+        Func<TCount> Unity { get; set; }
 
         /// <summary>
         /// Determine if the count is pure.
         /// </summary>
-        Func<TCount, bool> IsPureCount { get; set; }
+        Func<TCount, bool> IsPure { get; set; }
 
         /// <summary>
         /// Decrease the count
         /// </summary>
-        Func<TCount, TCount> CountDecrease { get; set; }
+        Func<TCount, TCount> Decrease { get; set; }
 
         /// <summary>
         /// Count identity.
         /// </summary>
-        Func<TCount> CountIdentity { get; set; }
+        Func<TCount> Identity { get; set; }
 
         /// <summary>
         /// Subtract two counts.
         /// </summary>
-        Func<TCount, TCount, TCount> CountSubtract { get; set; }
+        Func<TCount, TCount, TCount> Subtract { get; set; }
 
+        /// <summary>
+        /// Add two counts
+        /// </summary>
+        Func<TCount,TCount,TCount> Add { get; set; }
 
         /// <summary>
         /// Increase the count.
         /// </summary>
-        Func<TCount, TCount> CountIncrease { get; set; }
+        Func<TCount, TCount> Increase { get; set; }
 
         /// <summary>
         /// Equality comparer for counts.

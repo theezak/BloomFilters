@@ -42,7 +42,7 @@
             //entity hash equals identifier hash/
             _entityHash = e => BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(_getId(e)), 12345678), 0);
             _idXor = (id1, id2) => id1 ^ id2;
-            _isPure = (d, p) => _wrappedConfiguration.CountConfiguration.IsPureCount(d.Counts[p]) &&
+            _isPure = (d, p) => _wrappedConfiguration.CountConfiguration.IsPure(d.Counts[p]) &&
                                 BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(d.IdSums[p]), 12345678), 0) ==
                                 d.HashSums[p];
         }   

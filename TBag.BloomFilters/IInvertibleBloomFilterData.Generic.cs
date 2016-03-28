@@ -6,7 +6,7 @@
     /// <typeparam name="TId">The entity identifier type</typeparam>  
     /// <typeparam name="THash">The hash type</typeparam>
     /// <typeparam name="TCount">The type for the count</typeparam>
-    public interface IInvertibleBloomFilterData<TId,THash,TCount>
+    public interface IInvertibleBloomFilterData<TId, THash, TCount>
         where TCount : struct
         where THash : struct
         where TId : struct
@@ -15,11 +15,6 @@
         /// <c>true</c> when the identifier and hash have been reversed, else <c>false</c>.
         /// </summary>
         bool IsReverse { get; set; }
-
-        /// <summary>
-        /// The number of sub filters used.
-        /// </summary>
-        long SubFilterCount { get; set; }
 
         /// <summary>
         /// The block size 
@@ -50,11 +45,6 @@
         /// <summary>
         /// The Bloom filter data for the value hash (optional).
         /// </summary>
-        InvertibleBloomFilterData<TId, THash, TCount>[] SubFilters { get; set; }
-
-        /// <summary>
-        /// Sub filter indexes.
-        /// </summary>
-        int[] SubFilterIndexes { get; set; }
+        InvertibleBloomFilterData<TId, THash, TCount> SubFilter { get; set; }
     }
 }
