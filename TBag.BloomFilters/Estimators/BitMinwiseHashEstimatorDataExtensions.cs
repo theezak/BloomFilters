@@ -69,6 +69,7 @@ namespace TBag.BloomFilters.Estimators
                 BitSize = estimator.BitSize,
                 Capacity =  estimator.Capacity%factor,
                 HashCount = estimator.HashCount,
+                ItemCount = estimator.ItemCount,
                 Values = estimator.Values==null?null:new int[estimator.Capacity % factor]
             };
             if (res.Values == null) return res;
@@ -116,6 +117,7 @@ namespace TBag.BloomFilters.Estimators
                     Capacity = estimator.Capacity,
                     HashCount = estimator.HashCount,
                     BitSize = estimator.BitSize,
+                    ItemCount = estimator.ItemCount,
                     Values =
                         (estimator.Values == null && otherEstimator.Values == null) ? null : new int[estimator.Capacity]
                 };
@@ -135,6 +137,7 @@ namespace TBag.BloomFilters.Estimators
                     res.Values[i] = otherEstimator.Values[i];
                 }
             }
+            res.ItemCount += otherEstimator.ItemCount;
             return res;
         }
 

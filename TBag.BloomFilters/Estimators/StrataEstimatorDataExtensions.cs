@@ -92,5 +92,32 @@
             }
             return null;
         }
+
+        /// <summary>
+        /// Fold the estimator data.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="TCount"></typeparam>
+        /// <param name="estimatorData"></param>
+        /// <param name="configuration"></param>
+        /// <param name="factor"></param>
+        /// <returns></returns>
+        /// <remarks>TODO: figure this out.</remarks>
+        //private static IStrataEstimatorData<int, TCount> Fold<TEntity,TId,TCount>(
+        //   this IStrataEstimatorData<int, TCount> estimatorData,
+        //   IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration, 
+        //   uint factor)
+        //   where TCount : struct
+        //    where TId : struct
+        //{
+        //    if (estimatorData?.BloomFilters == null) return null;
+        //    var filterConfig = configuration.ConvertToEstimatorConfiguration<TEntity, TId, TCount>();
+        //    for(var j = 0L; j < estimatorData.BloomFilters.Length; j ++)
+        //    {
+        //        estimatorData.BloomFilters[j] = estimatorData.BloomFilters[j].Fold(filterConfig, factor);
+        //    }
+        //    return estimatorData;
+        //}
     }
 }
