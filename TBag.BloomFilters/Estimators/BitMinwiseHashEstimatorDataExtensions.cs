@@ -9,7 +9,7 @@ namespace TBag.BloomFilters.Estimators
     /// <summary>
     /// Extension methods for bit minwise hash estimator data
     /// </summary>
-    public static class BitMinwiseHashEstimatorExtensions
+    public static class BitMinwiseHashEstimatorDataExtensions
     {
         /// <summary>
         /// Determine the similarity between two estimators.
@@ -33,6 +33,94 @@ namespace TBag.BloomFilters.Estimators
                 estimator.BitSize);
         }
 
+        /// <summary>
+        /// Fold the minwise estimator data.
+        /// </summary>
+        /// <param name="estimator">The estimator data</param>
+        /// <param name="factor">The folding factor</param>
+        /// <returns></returns>
+        public static IBitMinwiseHashEstimatorFullData Fold(this IBitMinwiseHashEstimatorFullData estimator, uint factor)
+        {
+            if (factor <= 0)
+                throw new ArgumentException($"Fold factor should be a positive number (given value was {factor}).");
+            if (estimator == null) return null;
+            if (estimator.Capacity % factor != 0)
+                throw new ArgumentException($"Bit minwise filter data cannot be folded by {factor}.", nameof(factor));
+            var res = new BitMinwiseHashEstimatorFullData
+            {
+                BitSize = estimator.BitSize,
+                Capacity =  estimator.Capacity%factor,
+                HashCount = estimator.HashCount,
+                Values = estimator.Values==null?null:new int[estimator.Capacity % factor]
+            };
+            if (res.Values == null) return res;
+            for (var i = 0L; i < estimator.Values.LongLength; i++)
+            {
+                if (i < res.Values.LongLength)
+                {
+                    res.Values[i] = estimator.Values[i];
+                }
+                else
+                {
+                    var pos = i%res.Values.LongLength;
+                    if (res.Values[pos] > estimator.Values[i])
+                    {
+                        res.Values[pos] = estimator.Values[i];
+                    }
+                }
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// Add two estimators.
+        /// </summary>
+        /// <param name="estimator"></param>
+        /// <param name="otherEstimator"></param>
+        /// <param name="inPlace">When <c>true</c> the data is added to the given <paramref name="estimator"/>, otherwise a new estimator is created.</param>
+        /// <returns></returns>
+        public static IBitMinwiseHashEstimatorFullData Add(
+            this IBitMinwiseHashEstimatorFullData estimator,
+            IBitMinwiseHashEstimatorFullData otherEstimator,
+            bool inPlace = false)
+        {
+            if (estimator == null ||
+                otherEstimator == null) return null;
+            if (estimator.Capacity != otherEstimator.Capacity ||
+                estimator.HashCount != otherEstimator.HashCount)
+            {
+                throw new ArgumentException("Minwise estimators with different capacity or hash count cannot be added.");
+            }
+            var res = inPlace
+                ? estimator
+                : new BitMinwiseHashEstimatorFullData
+                {
+                    Capacity = estimator.Capacity,
+                    HashCount = estimator.HashCount,
+                    BitSize = estimator.BitSize,
+                    Values =
+                        (estimator.Values == null && otherEstimator.Values == null) ? null : new int[estimator.Capacity]
+                };
+            if (estimator.Values == null && otherEstimator.Values == null)
+            {
+                return res;
+            }
+            if (!inPlace)
+            {
+                estimator.Values?.CopyTo(res.Values, 0);
+            }
+            if (otherEstimator.Values == null) return res;
+            for (var i = 0L; i < otherEstimator.Values.LongLength; i++)
+            {
+                if (res.Values[i] > otherEstimator.Values[i])
+                {
+                    res.Values[i] = otherEstimator.Values[i];
+                }
+            }
+            return res;
+        }
+
+        #region Methods
         private static BitArray CreateBitArray(IBitMinwiseHashEstimatorData estimator)
         {
             if (estimator==null)
@@ -100,6 +188,7 @@ namespace TBag.BloomFilters.Estimators
             }
              return identicalMinHashes / (1.0D * minHashValues2.Length / bitSize);
         }
+        #endregion
     }
 }
 

@@ -61,7 +61,6 @@
     <Compile Include="Actor.cs" />
     <Compile Include="BloomFilterFoldTest.cs" />
     <Compile Include="HybridDefaultBloomFilterConfiguration.cs" />
-    <Compile Include="IntCompressionTest.cs" />
     <Compile Include="KeyValueBloomFilterConfiguration.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="KeyValueLargeBloomFilterConfiguration.cs" />
@@ -73,6 +72,7 @@
     <Compile Include="InvertibleBloomFilterFillTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DefaultBloomFilterConfiguration.cs" />
+    <Compile Include="SmoothNumberTest.cs" />
     <Compile Include="StrataEstimatorTest.cs" />
     <Compile Include="TestEntity.cs" />
     <Compile Include="RoundTripTest.cs" />

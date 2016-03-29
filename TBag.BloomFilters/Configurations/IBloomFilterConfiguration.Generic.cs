@@ -95,6 +95,11 @@
         /// <param name="size">The actual set size.</param>
         /// <returns></returns>
         bool Supports(long capacity, long size);
+
+        /// <summary>
+        /// Strategy for folding Bloom filters.
+        /// </summary>
+        IFoldingStrategy FoldingStrategy { get; set; }
     }
 
 }

@@ -17,6 +17,12 @@
         where TId : struct
     {
         /// <summary>
+        /// The number of items stored in the Bloom filter
+        /// </summary>
+        [DataMember(Order=1)]
+        public long ItemCount { get; set; }
+
+        /// <summary>
         /// The number of cells for a single hash function.
         /// </summary>
         [DataMember(Order = 2)]
@@ -54,11 +60,18 @@
         [DataMember(Order = 7)]
         public InvertibleBloomFilterData<TId, THash, TCount> SubFilter { get; set; }
 
+
         /// <summary>
         /// <c>true</c> when the data is for a RIBF, else <c>false</c>.
         /// </summary>
         [DataMember(Order = 8)]
         public bool IsReverse { get; set; }
+
+        /// <summary>
+        /// The capacity
+        /// </summary>
+        [DataMember(Order=9)]
+        public long Capacity { get; set; }
 
     }
 }

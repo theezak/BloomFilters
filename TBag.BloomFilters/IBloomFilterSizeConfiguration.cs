@@ -18,8 +18,9 @@
         /// </summary>
         /// <param name="capacity">The capacity for the Bloom filter</param>
         /// <param name="errorRate">The desired error rate (value between 0 and 1)</param>
+        /// <param name="foldFactor">The desired fold factor.</param>
         /// <returns></returns>
-        long BestCompressedSize(long capacity, float errorRate);
+        long BestCompressedSize(long capacity, float errorRate, int foldFactor = 0);
 
         /// <summary>
         /// Calculate the best size (uncompressed) based upon <paramref name="capacity"/> and desired <paramref name="errorRate"/>.

@@ -90,6 +90,18 @@
             instance.Rehydrate(data);
             return instance;
         }
+
+        /// <summary>
+        /// Validate the data.
+        /// </summary>
+        protected override void ValidateData()
+        {
+            if (Data == null)
+            {
+                throw new InvalidOperationException("The invertible Bloom filter was not initialized or rehydrated.");
+            }
+        }
+
         #endregion
     }
 }

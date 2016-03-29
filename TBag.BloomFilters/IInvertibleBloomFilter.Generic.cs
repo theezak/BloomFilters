@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters
+﻿using System.Threading;
+
+namespace TBag.BloomFilters
 {
     using System.Collections.Generic;
     using System;
@@ -107,14 +109,16 @@
         /// Initialize
         /// </summary>
         /// <param name="capacity">The capacity (number of elements stored in the Bloom filter)</param>
-        void Initialize(long capacity);
+        /// <param name="foldFactor"></param>
+        void Initialize(long capacity, int foldFactor = 0);
 
         /// <summary>
         /// Initialize
         /// </summary>
         /// <param name="capacity">The capacity (number of elements stored in the Bloom filter)</param>
         /// <param name="errorRate">The error rate (between 0 and 1)</param>
-        void Initialize(long capacity, float errorRate);
+        /// <param name="foldFactor"></param>
+        void Initialize(long capacity, float errorRate, int foldFactor = 0);
 
         /// <summary>
         /// Initialize
@@ -135,6 +139,11 @@
         bool SubtractAndDecode(IInvertibleBloomFilter<T, TId, TCount> filter, HashSet<TId> listA,
             HashSet<TId> listB,
             HashSet<TId> modifiedEntities);
+
+        /// <summary>
+        /// Compress the Bloom filter
+        /// </summary>
+        IInvertibleBloomFilter<T, TId, TCount> Compress(bool inPlace = false);
 
     }
 }

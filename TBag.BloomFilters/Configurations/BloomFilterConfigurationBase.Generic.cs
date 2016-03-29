@@ -94,14 +94,40 @@
             get { return _subFilterConfiguration; }
             set { _subFilterConfiguration = value; }
         }
-      
+
+        /// <summary>
+        /// Calculate the best compressed size.
+        /// </summary>
+        /// <param name="capacity"></param>
+        /// <param name="errorRate"></param>
+        /// <param name="foldFactor"></param>
+        /// <returns></returns>
+        public override long BestCompressedSize(long capacity, float errorRate, int foldFactor = 0)
+        {
+            var m = base.BestCompressedSize(capacity, errorRate);
+            var foldingStrategy = FoldingStrategy;
+            if (foldingStrategy != null)
+            {
+                return foldingStrategy.ComputeFoldableSize(m, foldFactor);
+            }
+            return m;
+        }
+
         /// <summary>
         /// Determine if the configuration supports the given capacity and set size.
         /// </summary>
         /// <param name="capacity">Capacity for the Bloom filter</param>
         /// <param name="size">The actual set size.</param>
         /// <returns></returns>
-        public abstract bool Supports(long capacity, long size);
+        public virtual bool Supports(long capacity, long size)
+        {
+            return CountConfiguration.Supports(capacity, size);
+        }
+
+        /// <summary>
+        /// The folding strategy for the Bloom filter.
+        /// </summary>
+        public virtual IFoldingStrategy FoldingStrategy { get; set; }
     }
 }
 

@@ -13,10 +13,11 @@
         /// <typeparam name="TId">Type of the identifier</typeparam>
         /// <typeparam name="THash">Type of the hash</typeparam>
         /// <typeparam name="TCount">Type of the counter</typeparam>
+        /// <param name="capacity"></param>
         /// <param name="m">Size per hash function</param>
         /// <param name="k">The number of hash functions.</param>
         /// <returns>The Bloom filter data</returns>
-        public InvertibleBloomFilterData<TId, THash, TCount> Create<TId, THash, TCount>(long m, uint k)
+        public InvertibleBloomFilterData<TId, THash, TCount> Create<TId, THash, TCount>(long capacity, long m, uint k)
             where TId : struct
             where TCount : struct
             where THash : struct
@@ -31,7 +32,8 @@
                 BlockSize = m,
                 Counts = new TCount[m],
                 IdSums = new TId[m],
-                HashSums = new THash[m ]
+                HashSums = new THash[m],
+                Capacity = capacity
             };
         }
 

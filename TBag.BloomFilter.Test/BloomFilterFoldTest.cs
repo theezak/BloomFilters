@@ -16,7 +16,7 @@ namespace TBag.BloomFilter.Test
             var size = testData.Length;
             var configuration = new KeyValueBloomFilterConfiguration();
             var bloomFilter = new InvertibleReverseBloomFilter<TestEntity, long, sbyte>(configuration);
-            bloomFilter.Initialize(size, 1024, 3);
+            bloomFilter.Initialize(size, 1024, (uint)3);
             foreach (var itm in testData)
             {
                 bloomFilter.Add(itm);

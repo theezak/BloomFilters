@@ -12,6 +12,8 @@
     public abstract class BloomFilterIdConfigurationBase<TEntity, TId, THash> : IBloomFilterSizeConfiguration
        where THash : struct
     {
+        private static readonly double Log2 = Math.Log(2.0D);
+        private static readonly double Pow2Log2 = Math.Pow(2, Math.Log(2.0D));
         /// <summary>
         /// Constructor
         /// </summary>
@@ -67,7 +69,7 @@
             //at least 2 hash functions.
             return Math.Max(
                 MinimumHashFunctionCount,
-                (uint)Math.Ceiling(Math.Abs(Math.Log(2.0D) * (1.0D * BestSize(capacity, errorRate) / capacity))));
+                (uint)Math.Ceiling(Math.Abs(Log2 * (1.0D * BestSize(capacity, errorRate) / capacity))));
         }
 
         /// <summary>
@@ -75,13 +77,13 @@
         /// </summary>
         /// <param name="capacity">The capacity</param>
         /// <param name="errorRate">The desired error rate (between 0 and 1).</param>
+        /// <param name="foldFactor">The fold factor.</param>
         /// <returns></returns>
-        public virtual long BestCompressedSize(long capacity, float errorRate)
+        public virtual long BestCompressedSize(long capacity, float errorRate, int foldFactor = 0)
         {
-            return BestSize(capacity, errorRate);
             //compress the size of the Bloom filter, by ln2.
-            //TODO: causes too many false positives?
-            //return (long)(BestSize(capacity, errorRate) * Math.Log(2.0D));
+            //TODO: causes too many false positives? Alternative is return BestSize(capacity, errorRate);
+            return (long)(BestSize(capacity, errorRate) * Log2);
         }
 
         /// <summary>
@@ -92,7 +94,7 @@
         /// <returns></returns>
         public virtual long BestSize(long capacity, float errorRate)
         {
-            return (long)Math.Abs(capacity * Math.Log(errorRate) / Math.Pow(2, Math.Log(2.0D)));
+            return (long)Math.Abs(capacity * Math.Log(errorRate) / Pow2Log2);
         }
       
         /// <summary>

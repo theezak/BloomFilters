@@ -27,15 +27,6 @@
             return BitConverter.ToInt32(_murmurHash.Hash(Encoding.UTF32.GetBytes(entity.Value )) , 0);
         }
 
-        /// <summary>
-        /// Determine if an IBF, given this configuration and the given <paramref name="capacity"/>, will support a set of the given size.
-        /// </summary>
-        /// <param name="capacity"></param>
-        /// <param name="size"></param>
-        /// <returns></returns>
-        public override bool Supports(long capacity, long size)
-        {
-            return (sbyte.MaxValue - 15) * size > capacity;
-        }
+        public override IFoldingStrategy FoldingStrategy { get; set; } = new SmoothNumbersFoldingStrategy();
     }
 }

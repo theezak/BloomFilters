@@ -45,8 +45,24 @@
         Func<TCount, TCount> Increase { get; set; }
 
         /// <summary>
-        /// Equality comparer for counts.
+        /// A comparer for the count.
         /// </summary>
-        IEqualityComparer<TCount> EqualityComparer { get; set; }
+        IComparer<TCount>  Comparer { get; set; }
+
+        /// <summary>
+        /// Determine if, given the size of the Bloom filter, this count configuration is expected to be able to support the capacity.
+        /// </summary>
+        /// <param name="capacity"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        bool Supports(long capacity, long size);
+
+        /// <summary>
+        /// Estimate the number of items in the filter.
+        /// </summary>
+        /// <param name="counts"></param>
+        /// <param name="hashSize"></param>
+        /// <returns></returns>
+        long GetEstimatedCount(TCount[] counts, uint hashSize);
     }
 }

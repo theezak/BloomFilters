@@ -16,7 +16,7 @@
         private readonly RuntimeTypeModel _protobufModel;
         private readonly IList<TestEntity> _dataSet;
         private readonly IHybridEstimatorFactory _hybridEstimatorFactory;
-       private readonly IBloomFilterConfiguration<TestEntity, long, int,  int> _configuration;
+       private readonly IBloomFilterConfiguration<TestEntity, long, int,  short> _configuration;
         private readonly IInvertibleBloomFilterFactory _bloomFilterFactory;
 
         /// <summary>
@@ -29,7 +29,7 @@
         public Actor(IList<TestEntity> dataSet,
             IHybridEstimatorFactory hybridEstimatorFactory,
             IInvertibleBloomFilterFactory bloomFilterFactory,
-            IBloomFilterConfiguration<TestEntity, long, int,  int> configuration)
+            IBloomFilterConfiguration<TestEntity, long, int,  short> configuration)
         {
             _protobufModel = TypeModel.Create();
             _protobufModel.UseImplicitZeroDefaults = true;
@@ -48,8 +48,8 @@
         public long? GetEstimate(MemoryStream estimatorStream)
         {
             var otherEstimator =
-               (HybridEstimatorData<int, int>)
-                   _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, int>));
+               (HybridEstimatorData<int, short>)
+                   _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, short>));
             var estimator = _hybridEstimatorFactory.CreateMatchingEstimator(otherEstimator, _configuration,
                 _dataSet.LongCount());
             foreach (var item in _dataSet)
@@ -67,8 +67,8 @@
         public MemoryStream RequestFilter(MemoryStream estimatorStream, Actor otherActor)
         {
             var otherEstimator =
-                (IHybridEstimatorData<int, int>)
-                    _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, int>));
+                (IHybridEstimatorData<int, short>)
+                    _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, short>));
             var estimator = _hybridEstimatorFactory.CreateMatchingEstimator(otherEstimator, _configuration,
                 _dataSet.LongCount());
             foreach (var item in _dataSet)
@@ -129,8 +129,8 @@
                 estimatorStream.Position = 0;
                 //send the estimator to the other actor and receive the filter from that actor.
                 var otherFilterStream = actor.RequestFilter(estimatorStream, this);
-                var otherFilter = (IInvertibleBloomFilterData<long, int, int>)
-                    _protobufModel.Deserialize(otherFilterStream, null, _configuration.DataFactory.GetDataType<long,int,int>());
+                var otherFilter = (IInvertibleBloomFilterData<long, int,short>)
+                    _protobufModel.Deserialize(otherFilterStream, null, _configuration.DataFactory.GetDataType<long,int,short>());
                 otherFilterStream.Dispose();
                 var filter = _bloomFilterFactory.CreateMatchingHighUtilizationFilter(_configuration,
                     _dataSet.LongCount(), otherFilter);

@@ -16,7 +16,7 @@ namespace TBag.BloomFilter.Test
         [TestMethod]
         public void InvertibleBloomFilterFalsePositiveTest()
         {
-            var addSize = 1000;
+            var addSize = 10000;
             var testData = DataGenerator.Generate().Take(addSize).ToArray();
             var errorRate = 0.001F;
             var size = testData.Length;
@@ -37,10 +37,13 @@ namespace TBag.BloomFilter.Test
             Assert.IsTrue(notFoundCount <= 2, "False positive error rate violated on ContainsKey");
         }
 
+        /// <summary>
+        /// Reverse IBF has worse false-positive rates.
+        /// </summary>
         [TestMethod]
         public void ReverseInvertibleBloomFilterFalsePositiveTest()
         {
-            var addSize = 1000;
+            var addSize = 10000;
             var testData = DataGenerator.Generate().Take(addSize).ToArray();
             var errorRate = 0.001F;
             var size = testData.Length;
@@ -54,17 +57,21 @@ namespace TBag.BloomFilter.Test
             var notFoundCount = testData.Count(itm => !bloomFilter.Contains(itm));
             Assert.IsTrue(notFoundCount == 0, "False negative error rate violated");
             notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.Contains(itm));
-            Assert.IsTrue(notFoundCount <= 6, "False positive error rate violated");
+            //reverse Bloom filter has a much higher false positive rate.
+            Assert.IsTrue(notFoundCount <= 40, "False positive error rate violated");
         }
 
+        /// <summary>
+        /// Hybrid has the same (or better ) false positive rates.
+        /// </summary>
         [TestMethod]
         public void HybridInvertibleBloomFilterFalsePositiveTest()
         {
-            var addSize = 100000;
+            var addSize = 10000;
             var testData = DataGenerator.Generate().Take(addSize).ToArray();
             var errorRate = 0.001F;
             var size = testData.Length;
-            var configuration = new KeyValueBloomFilterConfiguration();
+            var configuration = new HybridDefaultBloomFilterConfiguration();
             var bloomFilter = new InvertibleHybridBloomFilter<TestEntity, long, sbyte>(configuration);
             bloomFilter.Initialize(size, errorRate);
             foreach (var itm in testData)
@@ -76,9 +83,9 @@ namespace TBag.BloomFilter.Test
             notFoundCount = testData.Count(itm => !bloomFilter.ContainsKey(itm.Id));
             Assert.IsTrue(notFoundCount == 0, "False negative error rate violated on ContainsKey");
             notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.Contains(itm));
-            Assert.IsTrue(notFoundCount <= 400, "False positive error rate violated");
+            Assert.IsTrue(notFoundCount <= 2, "False positive error rate violated");
             notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.ContainsKey(itm.Id));
-            Assert.IsTrue(notFoundCount <= 400, "False positive error rate violated on ContainsKey");
+            Assert.IsTrue(notFoundCount <= 2, "False positive error rate violated on ContainsKey");
         }
 
         [TestMethod]

@@ -13,8 +13,7 @@ namespace TBag.BloomFilters.Measurements.Test
         internal static IEnumerable<TestEntity> Generate()
         {
             var id = 1L;
-            var mers = new MersenneTwister();
-            while (id < long.MaxValue)
+             while (id < long.MaxValue)
             {
                 yield return new TestEntity { Id = id, Value = (long.MaxValue - id).ToString() };
                 id++;

@@ -46,5 +46,15 @@
         /// The Bloom filter data for the value hash (optional).
         /// </summary>
         InvertibleBloomFilterData<TId, THash, TCount> SubFilter { get; set; }
+
+        /// <summary>
+        /// Number of items in the Bloom filter.
+        /// </summary>
+        long ItemCount { get; set; }
+
+        /// <summary>
+        /// The capacity
+        /// </summary>
+        long Capacity { get; set; }
     }
 }

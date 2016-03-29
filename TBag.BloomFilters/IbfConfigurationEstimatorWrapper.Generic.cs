@@ -189,9 +189,25 @@
             }
         }
 
-        public override long BestCompressedSize(long capacity, float errorRate)
+        /// <summary>
+        /// Override the compressed size.
+        /// </summary>
+        /// <param name="capacity"></param>
+        /// <param name="errorRate"></param>
+        /// <param name="foldFactor"></param>
+        /// <returns></returns>
+        public override long BestCompressedSize(long capacity, float errorRate, int foldFactor = 0)
         {
-            return _wrappedConfiguration.BestCompressedSize(capacity, errorRate);
+            return _wrappedConfiguration.BestCompressedSize(capacity, errorRate, foldFactor);
+        }    
+
+        /// <summary>
+        /// The folding strategy.
+        /// </summary>
+        public override IFoldingStrategy FoldingStrategy
+        {
+            get { return _wrappedConfiguration.FoldingStrategy; }
+            set { _wrappedConfiguration.FoldingStrategy = value; }
         }
 
         public override float BestErrorRate(long capacity)

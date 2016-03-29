@@ -6,7 +6,9 @@
     /// <typeparam name="TEntity">The type of the entity</typeparam>
     /// <typeparam name="TId">The type of the entity identifier</typeparam>
     /// <typeparam name="TCount">The type of the occurence counter.</typeparam>
-    public interface IBitMinwiseHashEstimator<TEntity, TId, TCount> where TCount : struct
+    public interface IBitMinwiseHashEstimator<TEntity, TId, TCount> 
+        where TCount : struct
+        where TId : struct
     {
         /// <summary>
         /// Add an item to the estimator
@@ -15,10 +17,38 @@
         void Add(TEntity item);
 
         /// <summary>
+        /// Add the <paramref name="estimator">estimator</paramref> to the current estimator.
+        /// </summary>
+        /// <param name="estimator">Estimator to add</param>
+        /// <returns></returns>
+        void Add(IBitMinwiseHashEstimator<TEntity, TId, TCount> estimator);
+
+        /// <summary>
+        /// Add the <paramref name="estimator">estimator</paramref> to the current estimator.
+        /// </summary>
+        /// <param name="estimator">Estimator to add</param>
+         /// <returns></returns>
+        void Add(IBitMinwiseHashEstimatorFullData estimator);
+
+        /// <summary>
         /// Extract a serializable version of the bit minwise hash estimator.
         /// </summary>
         /// <returns></returns>
         BitMinwiseHashEstimatorData Extract();
+
+        /// <summary>
+        /// Fold the estimator.
+        /// </summary>
+        /// <param name="factor">Factor to fold by.</param>
+        /// <param name="inPlace">When <c>true</c> the estimator will be replaced by a folded estimator, else <c>false</c>.</param>
+        /// <returns></returns>
+        IBitMinwiseHashEstimator<TEntity, TId, TCount> Fold(uint factor, bool inPlace = false);
+
+        /// <summary>
+        /// Full extract of the data
+        /// </summary>
+        /// <returns></returns>
+        BitMinwiseHashEstimatorFullData FullExtract();
 
         /// <summary>
         /// Determine the similarity between the hash estimator and the provided hash estimator data.

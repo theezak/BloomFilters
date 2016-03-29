@@ -46,11 +46,17 @@
              _setSize = setSize;
             //TODO: clean up math. This is very close though to what actually ends up in the estimator.
             var max = Math.Pow(2, MaxTrailingZeros);
+            var minWiseCapacity = Math.Max(
+                (uint) (_setSize*(1 - (max - Math.Pow(2, MaxTrailingZeros - maxStrata))/max)), 1);
+            if (configuration.FoldingStrategy != null)
+            {
+                minWiseCapacity = (uint)configuration.FoldingStrategy.ComputeFoldableSize(minWiseCapacity, 0);
+            }
             _minwiseEstimator = new BitMinwiseHashEstimator<KeyValuePair<int,int>, int, TCount>(
                 Configuration.ConvertToEstimatorConfiguration(), 
                 bitSize, 
                 minWiseHashCount, 
-                Math.Max((uint)(_setSize * (1 - (max - Math.Pow(2, MaxTrailingZeros - maxStrata)) / max)), 1));
+                minWiseCapacity);
             DecodeCountFactor = _capacity >= 20 ? 1.45D : 1.0D;
         }
         #endregion
@@ -150,6 +156,7 @@
                 BitMinwiseEstimator = _minwiseEstimator.FullExtract(),
                 StrataEstimator = Extract(),
                 StrataCount = MaxStrata,
+                //TODO: much better count based upon actual items in StrataEstimator ????
                 CountEstimate = _setSize
             };
         }

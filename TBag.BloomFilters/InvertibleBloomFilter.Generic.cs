@@ -3,8 +3,7 @@
     using Configurations;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-
+  
     /// <summary>
     /// An invertible Bloom filter supports removal and additions.
     /// </summary>
@@ -52,14 +51,15 @@
         #endregion
 
         #region Implementation of Bloom Filter public contract
-        
+
         /// <summary>
         /// Initialize
         /// </summary>
         /// <param name="capacity">The capacity</param>
-        public void Initialize(long capacity)
+        /// <param name="foldFactor"></param>
+        public void Initialize(long capacity, int foldFactor = 0)
         {
-            Initialize(capacity, Configuration.BestErrorRate(capacity));
+            Initialize(capacity, Configuration.BestErrorRate(capacity), foldFactor);
         }
 
         /// <summary>
@@ -67,11 +67,12 @@
         /// </summary>
         /// <param name="capacity">Capacity</param>
         /// <param name="errorRate">The desired error rate (between 0 and 1).</param>
-        public void Initialize(long capacity, float errorRate)
+        /// <param name="foldFactor"></param>
+        public void Initialize(long capacity, float errorRate, int foldFactor = 0)
         {
             Initialize(
                 capacity,
-                Configuration.BestCompressedSize(capacity, errorRate),
+                Configuration.BestCompressedSize(capacity, errorRate, foldFactor),
                 Configuration.BestHashFunctionCount(capacity, errorRate));
         }
 
@@ -89,7 +90,7 @@
                 throw new ArgumentOutOfRangeException(
                     $"The size {m} of the Bloom filter is not large enough to hold {capacity} items.");
             }
-            Data = Configuration.DataFactory.Create<TId, int, TCount>(m, k);            
+            Data = Configuration.DataFactory.Create<TId, int, TCount>(capacity, m, k);
         }
 
         /// <summary>
@@ -152,6 +153,7 @@
                     "Invertible Bloom filter data is invalid.",
                     nameof(data));
             Data = data.ConvertToBloomFilterData(Configuration);
+            ValidateData();
         }
 
         /// <summary>
@@ -249,10 +251,30 @@
             return CreateNewInstance(res);
         }
 
+        /// <summary>
+        /// Compress the Bloom filter.
+        /// </summary>
+        /// <param name="inPlace"></param>
+        /// <returns></returns>
+        public virtual IInvertibleBloomFilter<TEntity, TId, TCount> Compress(bool inPlace = false)
+        {
+            var res = Extract().Compress(Configuration);
+            if (inPlace)
+            {
+                Rehydrate(res);
+                return this;
+            }
+            return CreateNewInstance(res);
+        }
+
         #endregion
 
         #region Methods
-
+        /// <summary>
+        /// Create a new Bloom filter with the given data.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
         protected virtual IInvertibleBloomFilter<TEntity, TId, TCount> CreateNewInstance(IInvertibleBloomFilterData<TId, int, TCount> data)
         {
             var bloomFilter = new InvertibleBloomFilter<TEntity, TId, TCount>(Configuration);
@@ -275,6 +297,7 @@
             {
                 Data.Add(Configuration, key, entityHash, position);
             }
+            Data.ItemCount++;
         }
 
         /// <summary>
@@ -290,18 +313,34 @@
                 IsValidConfiguration(Configuration.IdHash(key), hash);
             }
             var countIdentity = Configuration.CountConfiguration.Identity();
+            var countUnity = Configuration.CountConfiguration.Unity();
+            var countConfiguration = Configuration.CountConfiguration;
             foreach (var position in Configuration.Probe(Data,  hash))
             {
+                var count = Data.Counts[position];
                 if (Configuration.IsPure(Data, position) &&
                      (!Configuration.IdEqualityComparer.Equals(Data.IdSums[position], key) ||
                          !Configuration.HashEqualityComparer.Equals(Data.HashSums[position], hash)))
                 {
                     return false;
                 }
-                if (Configuration.CountConfiguration.EqualityComparer.Equals(Data.Counts[position], countIdentity))
+                var countComparedToIdentity = countConfiguration.Comparer.Compare(count, countIdentity);
+                if (countComparedToIdentity == 0)
                 {
                     return false;
                 }
+                if (countComparedToIdentity > 0 &&
+                     countConfiguration.IsPure(countConfiguration.Subtract(count, countUnity)))
+                {
+                    Data.Remove(Configuration, key, hash, position);
+                    var pureAfterRemoval = Configuration.IsPure(Data, position);
+                    Data.Add(Configuration, key, hash, position);
+                    if (!pureAfterRemoval)
+                    {
+                        return false;
+                    }
+                }
+
             }
             return true;
         }
@@ -321,17 +360,22 @@
             {
                 Data.Remove(Configuration, key, hash, position);
             }
+            Data.ItemCount--;
         }
 
         /// <summary>
         /// Validate the data.
         /// </summary>
-        protected void ValidateData()
+        protected virtual void ValidateData()
         {
             if (Data==null)
             {
                 throw new InvalidOperationException("The invertible Bloom filter was not initialized or rehydrated.");
-            }            
+            }
+            if (Data.IsReverse)
+            {
+                throw new InvalidOperationException("An invertible Bloom filter does not accept reverse Bloom filter data. Please use a reverse Bloom filter.");
+            }
         }
 
         /// <summary>

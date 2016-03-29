@@ -38,9 +38,25 @@
         public virtual Func<TCount, TCount> Increase { get; set; }
 
         /// <summary>
-        /// Count equality comparer
+        /// Count comparer
         /// </summary>
-        public virtual IEqualityComparer<TCount> EqualityComparer { get; set; }
+        public virtual IComparer<TCount> Comparer { get; set; }
+
+        /// <summary>
+        /// Determine if an IBF, given this configuration and the given <paramref name="capacity"/>, will support a set of the given size.
+        /// </summary>
+        /// <param name="capacity"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>      
+        public abstract bool Supports(long capacity, long size);
+
+        /// <summary>
+        /// Estimate the number of items in the Bloom filter.
+        /// </summary>
+        /// <param name="counts"></param>
+        /// <param name="hashSize"></param>
+        /// <returns></returns>
+        public abstract long GetEstimatedCount(TCount[] counts, uint hashSize);     
 
         /// <summary>
         /// Add two counts.

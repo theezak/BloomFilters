@@ -25,6 +25,7 @@ namespace TBag.BloomFilters.Estimators
         private byte _bitSize;
         private ulong _capacity;
         private Lazy<int[]> _slots ;
+        private readonly IBloomFilterConfiguration<TEntity, TId, int, TCount> _configuration;
 
         #endregion
 
@@ -47,8 +48,9 @@ namespace TBag.BloomFilters.Estimators
             _bitSize = bitSize;
             _capacity = capacity;
             _hashCount = hashCount;
+            _configuration = configuration;
             _hashFunctions = GenerateHashes();
-            _entityHash = e => unchecked((int)((ulong)(configuration.EntityHash(e)+configuration.IdHash(configuration.GetId(e)))));
+            _entityHash = e => unchecked((int)((ulong)(_configuration.EntityHash(e)+configuration.IdHash(_configuration.GetId(e)))));
             _slots = new Lazy<int[]>(()=> GetMinHashSlots(_hashCount, _capacity));
         }
 
@@ -91,6 +93,26 @@ namespace TBag.BloomFilters.Estimators
         }
 
         /// <summary>
+        /// Add an estimator
+        /// </summary>
+        /// <param name="estimator">The estimator to add.</param>
+        /// <returns></returns>
+        public void Add(IBitMinwiseHashEstimator<TEntity, TId, TCount> estimator)
+        {
+            Rehydrate(FullExtract().Add(estimator?.FullExtract(), true));
+        }
+
+        /// <summary>
+        /// Add an estimator
+        /// </summary>
+        /// <param name="estimator">The estimator to add.</param>
+        /// <returns></returns>
+        public void Add(IBitMinwiseHashEstimatorFullData estimator)
+        {
+            Rehydrate(FullExtract().Add(estimator, true));
+        }
+
+        /// <summary>
         /// Extract the estimator data in a serializable format.
         /// </summary>
         /// <returns></returns>
@@ -122,6 +144,40 @@ namespace TBag.BloomFilters.Estimators
         }
 
         /// <summary>
+        /// Fold the estimator.
+        /// </summary>
+        /// <param name="factor">Factor to fold by.</param>
+        /// <param name="inPlace">When <c>true</c> the estimator will be replaced by a folded estimator, else <c>false</c>.</param>
+        /// <returns></returns>
+        public BitMinwiseHashEstimator<TEntity, TId, TCount> Fold(uint factor, bool inPlace = false)
+        {
+            var res = FullExtract().Fold(factor);
+            if (inPlace)
+            {
+                Rehydrate(res);
+                return this;
+            }
+            var estimator = new BitMinwiseHashEstimator<TEntity, TId, TCount>(
+                _configuration, 
+                res.BitSize, 
+                res.HashCount,
+                res.Capacity);
+            estimator.Rehydrate(res);
+            return estimator;
+        }
+
+        /// <summary>
+        /// Explicit implementation of the interface for folding.
+        /// </summary>
+        /// <param name="factor"></param>
+        /// <param name="inPlace"></param>
+        /// <returns></returns>
+        IBitMinwiseHashEstimator<TEntity, TId, TCount> IBitMinwiseHashEstimator<TEntity, TId, TCount>.Fold(uint factor, bool inPlace)
+        {
+            return Fold(factor, inPlace);
+        }
+
+        /// <summary>
         /// Rehydrate the given data.
         /// </summary>
         /// <param name="data"></param>
@@ -134,7 +190,7 @@ namespace TBag.BloomFilters.Estimators
             _slots = data.Values == null
                 ? new Lazy<int[]>(() => GetMinHashSlots(_hashCount, _capacity))
                 : new Lazy<int[]>(() => data.Values);
-        }
+        }        
 
         #endregion
 

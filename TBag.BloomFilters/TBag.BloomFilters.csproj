@@ -49,10 +49,12 @@
     <Compile Include="Configurations\BloomFilterConfigurationExtensions.cs" />
     <Compile Include="Configurations\BloomFilterIdConfigurationBase.Generic.cs" />
     <Compile Include="Collections\BitArrayExtensions.cs" />
-    <Compile Include="CompressionExtensions.cs" />
+    <Compile Include="Configurations\PowerOfTwoFoldingStrategy.cs" />
+    <Compile Include="Configurations\IFoldingStrategy.cs" />
     <Compile Include="Configurations\ShortCountConfiguration.cs" />
     <Compile Include="Configurations\ByteCountConfiguration.cs" />
     <Compile Include="Configurations\CountConfigurationBase.Generic.cs" />
+    <Compile Include="Configurations\SmoothNumbersFoldingStrategy.cs" />
     <Compile Include="LongEnumerable.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimatorFullData.Generic.cs" />
     <Compile Include="Estimators\HybridEstimatorFullData.Generic.cs" />
@@ -72,7 +74,7 @@
     <Compile Include="Configurations\IbfConfigurationBase.Generic.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimator.Generic.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimatorData.Generic.cs" />
-    <Compile Include="Estimators\BitMinwiseHashEstimatorExtensions.cs" />
+    <Compile Include="Estimators\BitMinwiseHashEstimatorDataExtensions.cs" />
     <Compile Include="Estimators\HybridEstimator.Generic.cs" />
     <Compile Include="Estimators\HybridEstimatorData.Generic..cs" />
     <Compile Include="Estimators\HybridEstimatorDataExtensions.cs" />
@@ -99,6 +101,7 @@
     <Compile Include="InvertibleBloomFilterFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Configurations\KeyValuePairIbfConfigurationBase.Generic.cs" />
+    <Compile Include="SmoothNumberGenerator.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TBag.HashAlgorithms\TBag.HashAlgorithms.csproj">

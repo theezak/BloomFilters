@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters
+﻿using System.Diagnostics.Eventing.Reader;
+
+namespace TBag.BloomFilters
 {
     using Configurations;
     using System;
@@ -121,9 +123,36 @@
                     pureList?.Push(i);
                 }
             }
+            //no longer really meaningful.
+            result.ItemCount = configuration.CountConfiguration.GetEstimatedCount(result.Counts, result.HashFunctionCount);
             return result;
         }
 
+        /// <summary>
+        /// Try to compress the data
+        /// </summary>
+        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="THash"></typeparam>
+        /// <typeparam name="TCount"></typeparam>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="filterData">The Bloom filter data to compress.</param>
+        /// <param name="configuration">The Bloom filter configuration</param>
+        /// <returns>The compressed data, or <c>null</c> when compression failed.</returns>
+        public static IInvertibleBloomFilterData<TId, THash, TCount> Compress<TEntity, TId, THash, TCount>(
+            this IInvertibleBloomFilterData<TId, THash, TCount> filterData,
+            IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration)
+             where TCount : struct
+            where TId : struct
+            where THash : struct
+        {
+            if (filterData == null || configuration?.FoldingStrategy == null) return null;
+           var fold = configuration.FoldingStrategy.FindFoldFactor(filterData.BlockSize, filterData.Capacity, filterData.ItemCount);                   
+            var res = fold.HasValue ? filterData.Fold(configuration, fold.Value) : null;
+            if (res == null) return null;
+            res.SubFilter = filterData.SubFilter.Compress(configuration).ConvertToBloomFilterData(configuration)??filterData.SubFilter;
+            return res;
+
+        }
         /// <summary>
         /// Decode the filter.
         /// </summary>
@@ -169,7 +198,7 @@
                 var isModified = false;
                 foreach (var position in configuration.Probe(filter, hashSum))
                 {
-                    var wasZero = configuration.CountConfiguration.EqualityComparer.Equals(filter.Counts[position], countsIdentity);
+                    var wasZero = configuration.CountConfiguration.Comparer.Compare(filter.Counts[position], countsIdentity) == 0;
                     if (configuration.IsPure(filter, position) &&
                         !configuration.HashEqualityComparer.Equals(filter.HashSums[position], hashSum) &&
                         configuration.IdEqualityComparer.Equals(id, filter.IdSums[position]))
@@ -245,7 +274,7 @@
                 }
                 if (!configuration.IdEqualityComparer.Equals(idIdentity, filter.IdSums[position]) ||
                     !configuration.HashEqualityComparer.Equals(hashIdentity, filter.HashSums[position]) ||
-                    !configuration.CountConfiguration.EqualityComparer.Equals(filter.Counts[position], countIdentity))
+                    configuration.CountConfiguration.Comparer.Compare(filter.Counts[position], countIdentity)!=0)
                     return false;
             }
             return true;
@@ -270,9 +299,9 @@
             where THash : struct
         {
             if (data == null) return null;
-            var result = configuration.DataFactory.Create<TId, THash, TCount>(data.BlockSize, data.HashFunctionCount);
+            var result = configuration.DataFactory.Create<TId, THash, TCount>(data.Capacity, data.BlockSize, data.HashFunctionCount);
             result.IsReverse = data.IsReverse;
-            return result;
+             return result;
         }
 
         /// <summary>
@@ -341,7 +370,7 @@
         /// <param name="filterData"></param>
         /// <param name="configuration"></param>
         /// <param name="otherFilterData"></param>
-        /// <param name="inPlace">When <c>true</c> the <paramref name="otherFilterData"/> will be added to the <paramref name="filter"/> instance, otheerwise a new instance of the filter data will be returned.</param>
+        /// <param name="inPlace">When <c>true</c> the <paramref name="otherFilterData"/> will be added to the <paramref name="filterData"/> instance, otheerwise a new instance of the filter data will be returned.</param>
         /// <returns>The filter data or <c>null</c> when the addition failed.</returns>
         ///<remarks></remarks>
         public static IInvertibleBloomFilterData<TId, THash, TCount> Add<TEntity, TId, THash, TCount>(
@@ -375,6 +404,7 @@
                 .SubFilter
                 .Add(configuration.SubFilterConfiguration, otherFilterData.SubFilter, inPlace)
                 .ConvertToBloomFilterData(configuration);
+            res.ItemCount = filterData.ItemCount + otherFilterData.ItemCount;
             return res;
         }
 
@@ -383,20 +413,28 @@
         /// </summary>
         /// <typeparam name="TId"></typeparam>
         /// <typeparam name="TCount"></typeparam>
+        /// <typeparam name="TEntity"></typeparam>
         /// <param name="data"></param>
+        /// <param name="configuration"></param>
         /// <param name="factor"></param>
         /// <returns></returns>
         /// <remarks>Captures the concept of reducing the size of a Bloom filter.</remarks>
-        public static IInvertibleBloomFilterData<TId, int, TCount> Fold<TEntity,TId,TCount>(this IInvertibleBloomFilterData<TId,int, TCount> data, 
-            IBloomFilterConfiguration<TEntity,TId,int,TCount> configuration, uint factor)
+        public static IInvertibleBloomFilterData<TId, THash, TCount> Fold<TEntity,TId,THash,TCount>(
+            this IInvertibleBloomFilterData<TId, THash, TCount> data, 
+            IBloomFilterConfiguration<TEntity,TId, THash, TCount> configuration, 
+            uint factor)
             where TId : struct
             where TCount : struct
+            where THash : struct
         {
+            if (factor <= 0)
+                throw new ArgumentException($"Fold factor should be a positive number (given value was {factor}.");
             if (data == null) return null;
             if (data.BlockSize % factor != 0)
                 throw new ArgumentException($"Bloom filter data cannot be folded by {factor}.", nameof(factor));
-            var res = configuration.DataFactory.Create<TId, int, TCount>((long)(data.BlockSize / factor), data.HashFunctionCount);
+            var res = configuration.DataFactory.Create<TId, THash, TCount>(data.Capacity / factor, data.BlockSize / factor, data.HashFunctionCount);
             res.IsReverse = data.IsReverse;
+            res.ItemCount = data.ItemCount;
             for(var i = 0L; i < data.Counts.LongLength; i++)
             {
                 if (i < res.BlockSize)
@@ -470,9 +508,11 @@
             var pureList = new Stack<long>();
             var hasReverseFilter = filter.SubFilter != null || subtractedFilter.SubFilter != null;
             //add a dummy mod set when there is a reverse filter, because a regular filter is pretty bad at recognizing modified entites.
-            var idRes = filter.Counts == null && filter.IsReverse || filter
-                .Subtract(subtractedFilter, configuration, listA, listB, pureList, destructive)
-                .Decode(configuration, listA, listB, hasReverseFilter ? null : modifiedEntities, pureList);
+            var idRes = filter.Counts == null &&
+                        filter.IsReverse ||
+                        filter
+                            .Subtract(subtractedFilter, configuration, listA, listB, pureList, destructive)
+                            .Decode(configuration, listA, listB, hasReverseFilter ? null : modifiedEntities, pureList);
             if (hasReverseFilter)
             {
                 valueRes = filter
@@ -494,7 +534,9 @@
         /// <typeparam name="TId">The identifier type</typeparam>
         /// <typeparam name="TEntityHash">The entity hash type</typeparam>
         /// <typeparam name="TCount">The occurence count type</typeparam>
+        /// <typeparam name="TEntity"></typeparam>
         /// <param name="filterData">The IBF data</param>
+        /// <param name="configuration"></param>
         /// <returns></returns>
         internal static InvertibleBloomFilterData<TId, TEntityHash, TCount> ConvertToBloomFilterData<TEntity, TId, TEntityHash, TCount>(
             this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filterData,
@@ -515,6 +557,8 @@
                 IdSums = filterData.IdSums,
                 IsReverse = filterData.IsReverse,
                 SubFilter = filterData.SubFilter,
+                Capacity =  filterData.Capacity,
+                ItemCount =  filterData.ItemCount
             };
         }
     }

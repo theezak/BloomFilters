@@ -30,5 +30,7 @@ namespace TBag.BloomFilter.Test
         {
             return entity?.Id ?? 0L;
         }
+
+        public override IFoldingStrategy FoldingStrategy { get; set; }  = new SmoothNumbersFoldingStrategy();
     }
 }

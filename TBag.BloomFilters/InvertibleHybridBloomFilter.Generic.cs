@@ -1,5 +1,4 @@
-﻿
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters
 {
     using Configurations;
     using System;
@@ -42,10 +41,9 @@ namespace TBag.BloomFilters
         /// <param name="item">The entity to add</param>
         public override void Add(TEntity item)
         {
-            var entityHash = Configuration.EntityHash(item);
             var id = Configuration.GetId(item);
              Add(id, Configuration.IdHash(id));
-            _reverseBloomFilter.Add(new KeyValuePair<TId, int>(id, entityHash));
+            _reverseBloomFilter.Add(new KeyValuePair<TId, int>(id, Configuration.EntityHash(item)));
         }
 
         /// <summary>
@@ -54,12 +52,10 @@ namespace TBag.BloomFilters
         /// <param name="item">The entity to remove</param>
         public override void Remove(TEntity item)
         {
-            var entityHash = Configuration.EntityHash(item);
             var id = Configuration.GetId(item);
-            var idHash = Configuration.IdHash(id);
-            RemoveKey(id, idHash);
-            _reverseBloomFilter.Remove(new KeyValuePair<TId, int>(id, entityHash));
-        }
+            RemoveKey(id, Configuration.IdHash(id));
+            _reverseBloomFilter.Remove(new KeyValuePair<TId, int>(id, Configuration.EntityHash(item)));
+        }       
 
         /// <summary>
         /// Determine if the Bloom filter contains the item
@@ -69,7 +65,8 @@ namespace TBag.BloomFilters
         public override bool Contains(TEntity item)
         {
             var id = Configuration.GetId(item);
-            return ContainsKey(id, Configuration.IdHash(id));
+            return ContainsKey(id, Configuration.IdHash(id)) &&
+                _reverseBloomFilter.Contains(new KeyValuePair<TId, int>(id, Configuration.EntityHash(item)));
         }
 
         /// <summary>
@@ -105,7 +102,8 @@ namespace TBag.BloomFilters
                 throw new ArgumentException("Data and value filter data are required for a hybrid estimator.", nameof(data));
             base.Rehydrate(data);
             _reverseBloomFilter.Rehydrate(data.SubFilter);
-        }
+        }        
+
         #endregion
 
         #region Methods
