@@ -24,6 +24,9 @@ The cost of computing the value hash can be considerable. If this becomes an iss
 
 The estimators and Bloom filters themselves can in fact be pre-computed under certain conditions. An estimator can be fully serialized and deserialized for storage. However, since an estimator does not know a Remove operation, an estimator would have to be recomputed after a number of updates or deletes have occured or when the set size becomes significantly larger than the set size that the estimator was sized for. Bloom filters do support deletes (and updates through a combined delete/insert), and thus can be kept in-sync with the data. A number of different sized Bloom filters could be pre-computed and picked from based upon the estimate of the difference. When a comparable sized Bloom filter is not available, you could either give it a best effort (assuming some differences will be recognized, thus reducing the overall number of differences and making progress) or calculate a matching Bloom filter. Note that the size of the pre-calculated estimators and Bloom filters should be agreed upon by the parties involved, since estimators or Bloom filters of different size can't be compared. 
 
+## Resizing a Bloom filter
+Bloom filters can be folded through any factor of its size. A strategy is provided for folding, including a strategy that sizes Bloom filter with smooth numbers to increase the folding opportunities. Based upon the folding operator, a compression operator is provided that attempts to reduce the size of a Bloom filter utilized under its capacity without impacting its error rate. The same operators are also provided for the minwise estimator.
+
 ## Wishlist
 Although this is initially just a testbed, an obvious wishlist item is a buffer pool to counteract some of the horrible things the Bloom Filter does to memory management.
 
