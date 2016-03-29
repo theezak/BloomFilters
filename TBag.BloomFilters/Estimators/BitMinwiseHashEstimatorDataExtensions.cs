@@ -5,7 +5,7 @@ namespace TBag.BloomFilters.Estimators
     using System.Collections;
     using System.Linq;
     using System.Diagnostics.Contracts;
-
+    using Configurations;
     /// <summary>
     /// Extension methods for bit minwise hash estimator data
     /// </summary>
@@ -31,6 +31,24 @@ namespace TBag.BloomFilters.Estimators
                 CreateBitArray(otherEstimatorData),
                 estimator.HashCount,
                 estimator.BitSize);
+        }
+
+        /// <summary>
+        /// Compress the estimator data.
+        /// </summary>
+        /// <param name="estimator"></param>
+        /// <param name="foldingStrategy"></param>
+        /// <returns></returns>
+        public static IBitMinwiseHashEstimatorFullData Compress<TEntity, TId, TCount>(
+            this IBitMinwiseHashEstimatorFullData estimator,
+           IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration)
+            where TId : struct
+            where TCount : struct
+        {
+            if (configuration?.FoldingStrategy == null || estimator == null) return null;
+            var fold = configuration.FoldingStrategy.FindFoldFactor(estimator.Capacity, estimator.Capacity, estimator.ItemCount);
+            var res = fold.HasValue ? estimator.Fold(fold.Value) : null;
+            return res;
         }
 
         /// <summary>

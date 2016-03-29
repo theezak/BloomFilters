@@ -24,11 +24,11 @@
                configuration,
                2,
               20,
-                (ulong)data.LongCount());
+                data.LongCount());
             foreach(var element in data)
             estimator.Add(element);
           
-           var estimator2 = new BitMinwiseHashEstimator<TestEntity,long, sbyte>(configuration, 2, 20, (ulong)data.LongCount());
+           var estimator2 = new BitMinwiseHashEstimator<TestEntity,long, sbyte>(configuration, 2, 20, data.LongCount());
              foreach(var element in data2)
                 //just making sure we do not depend upon the order of adding things.
             estimator2.Add(element);

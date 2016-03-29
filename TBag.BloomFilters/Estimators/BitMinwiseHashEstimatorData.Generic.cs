@@ -19,7 +19,7 @@
         /// Capacity of the esitmator
         /// </summary>
         [DataMember(Order = 2)]
-        public ulong Capacity { get; set; }
+        public long Capacity { get; set; }
 
         /// <summary>
         /// The number of hash functions used.
@@ -32,5 +32,11 @@
         /// </summary>
         [DataMember(Order = 4)]
         public byte[] Values { get; set; }
+
+        /// <summary>
+        /// The item count.
+        /// </summary>
+        [DataMember(Order = 5)]
+        public long ItemCount { get; set; }
     }
 }

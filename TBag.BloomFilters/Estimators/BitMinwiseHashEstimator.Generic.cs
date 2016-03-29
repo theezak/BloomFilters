@@ -23,8 +23,9 @@ namespace TBag.BloomFilters.Estimators
         private readonly Func<int, IEnumerable<int>> _hashFunctions;
         private readonly Func<TEntity, int> _entityHash;
         private byte _bitSize;
-        private ulong _capacity;
+        private long _capacity;
         private Lazy<int[]> _slots ;
+        private long _itemCount;
         private readonly IBloomFilterConfiguration<TEntity, TId, int, TCount> _configuration;
 
         #endregion
@@ -43,7 +44,7 @@ namespace TBag.BloomFilters.Estimators
             IBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration,
             byte bitSize,
             int hashCount,
-            ulong capacity)
+            long capacity)
         {
             _bitSize = bitSize;
             _capacity = capacity;
@@ -123,7 +124,8 @@ namespace TBag.BloomFilters.Estimators
                 BitSize = _bitSize,
                 Capacity = _capacity,
                 HashCount = _hashCount,
-                Values = Convert(_slots, _bitSize).ToBytes()
+                Values = Convert(_slots, _bitSize).ToBytes(),
+                ItemCount = _itemCount
             };
         }
 
@@ -139,8 +141,27 @@ namespace TBag.BloomFilters.Estimators
                 BitSize = _bitSize,
                 Capacity = _capacity,
                 HashCount = _hashCount,
-                Values = !_slots.IsValueCreated ? null : _slots.Value
+                Values = !_slots.IsValueCreated ? null : _slots.Value,
+                ItemCount = _itemCount
             };
+        }
+
+        /// <summary>
+        /// Compress the estimator.
+        /// </summary>
+        /// <param name="inPlace"></param>
+        /// <returns></returns>
+        public IBitMinwiseHashEstimator<TEntity, TId, TCount> Compress(bool inPlace = false)
+        {
+            var res = FullExtract().Compress(_configuration);
+            if (inPlace)
+            {
+                Rehydrate(res);
+                return this;
+            }
+            var estimatorRes = new BitMinwiseHashEstimator<TEntity, TId, TCount>(_configuration, _bitSize, _hashCount, _capacity);
+            estimatorRes.Rehydrate(res);
+            return estimatorRes;
         }
 
         /// <summary>
@@ -187,6 +208,7 @@ namespace TBag.BloomFilters.Estimators
             _capacity = data.Capacity;
             _hashCount = data.HashCount;
             _bitSize = data.BitSize;
+            _itemCount = data.ItemCount;
             _slots = data.Values == null
                 ? new Lazy<int[]>(() => GetMinHashSlots(_hashCount, _capacity))
                 : new Lazy<int[]>(() => data.Values);
@@ -255,8 +277,8 @@ namespace TBag.BloomFilters.Estimators
         {
             var entityHash =_entityHash(element);
             var entityHashes = _hashFunctions(entityHash).ToArray();
-            ulong idx = 0;
-            var idhash = (ulong)Math.Abs(unchecked((long)((ulong)entityHash % _capacity)));
+            var idx = 0L;
+            var idhash = Math.Abs(unchecked(entityHash % _capacity));
             for (var i = 0L; i < entityHashes.LongLength; i++)
             {
                  if (entityHashes[i] < _slots.Value[idx+idhash])
@@ -265,6 +287,7 @@ namespace TBag.BloomFilters.Estimators
                 }
                 idx += _capacity;
             }
+            _itemCount++;
         }
 
         /// <summary>
@@ -273,9 +296,9 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="numHashFunctions"></param>
         /// <param name="setSize"></param>
         /// <returns></returns>
-        private static int[] GetMinHashSlots(int numHashFunctions, ulong setSize)
+        private static int[] GetMinHashSlots(int numHashFunctions, long setSize)
         {
-            var minHashValues = new int[(ulong)numHashFunctions*setSize];
+            var minHashValues = new int[numHashFunctions*setSize];
             for (var i = 0L; i < minHashValues.LongLength; i++)
             {
                 minHashValues[i] = int.MaxValue;
@@ -297,6 +320,7 @@ namespace TBag.BloomFilters.Estimators
             //Modify the hash family as per the size of possible elements in a Set
             return unchecked((int) (Math.Abs((int) ((a*(id >> 4) + b*id + c) & 131071))%bound));
         }
+
         #endregion
     }
 }

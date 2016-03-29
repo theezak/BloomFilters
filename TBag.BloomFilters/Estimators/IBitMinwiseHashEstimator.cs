@@ -45,6 +45,13 @@
         IBitMinwiseHashEstimator<TEntity, TId, TCount> Fold(uint factor, bool inPlace = false);
 
         /// <summary>
+        /// Compress the estimator,
+        /// </summary>
+        /// <param name="inPlace"></param>
+        /// <returns></returns>
+        IBitMinwiseHashEstimator<TEntity, TId, TCount> Compress(bool inPlace = false);
+
+        /// <summary>
         /// Full extract of the data
         /// </summary>
         /// <returns></returns>

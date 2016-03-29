@@ -13,7 +13,7 @@
         /// <summary>
         /// The capacity (number of elements).
         /// </summary>
-        ulong Capacity { get; set; }
+        long Capacity { get; set; }
 
         /// <summary>
         /// The number of hash functions
@@ -24,5 +24,10 @@
         /// The hashed values.
         /// </summary>
         int[] Values { get; set; }
+
+        /// <summary>
+        /// The item count.
+        /// </summary>
+        long ItemCount { get; set; }
     }
 }
