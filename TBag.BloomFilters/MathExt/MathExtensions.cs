@@ -12,6 +12,30 @@ namespace TBag.BloomFilters.MathExt
         private static volatile Tuple<long, IEnumerable<long>> _primeCache;
 
         /// <summary>
+        /// Calculate GCD.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></pa?ram>
+        /// <returns></returns>
+        public static long? GetGcd(long a, long b)
+        {
+            if (a == 0L || b == 0L) return null;
+            var _gcd = 1L;
+            a = Math.Abs(a);
+            b = Math.Abs(b);
+            if (a == b) { return a; }
+            else if (a > b && a % b == 0L) { return b; }
+            else if (b > a && b % a == 0L) { return a; }
+            while (b != 0L)
+            {
+                _gcd = b;
+                b = a % b;
+                a = _gcd;
+            }
+            return _gcd;
+        }
+
+        /// <summary>
         /// Get the primes
         /// </summary>
         /// <param name="to"></param>

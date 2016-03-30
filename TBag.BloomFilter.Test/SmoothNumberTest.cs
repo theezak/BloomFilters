@@ -46,5 +46,28 @@ namespace TBag.BloomFilter.Test
             }
             var compressed = bloomFilter.Compress();
         }
+
+        [TestMethod]
+        public void SmoothNumbersSubtract()
+        {
+            //the configuration already has the smooth number folding strategy set.
+            var config = new KeyValueBloomFilterConfiguration();
+            var bloomFilter = new InvertibleReverseBloomFilter<TestEntity, long, sbyte>(config);
+            bloomFilter.Initialize(100000, 0.001F);
+            foreach (var itm in DataGenerator.Generate().Take(500).ToArray())
+            {
+                bloomFilter.Add(itm);
+            }
+            var bloomFilterData = bloomFilter.Extract();
+            //find a fold factor based upon the Bloom filter size, the capacity and the actual keys used.          
+            var fold = config.FoldingStrategy.FindFoldFactor(bloomFilterData.BlockSize, bloomFilterData.Capacity, bloomFilterData.ItemCount);
+            var folded = bloomFilter.Compress();
+            var hashSet = new HashSet<long>();
+            foreach (var itm in DataGenerator.Generate().Skip(500).Take(100).ToArray())
+            {
+                bloomFilter.Add(itm);
+            }
+            var res = folded.SubtractAndDecode(bloomFilter, hashSet, hashSet, hashSet);
+        }
     }
 }
