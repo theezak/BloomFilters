@@ -37,7 +37,7 @@ namespace TBag.BloomFilters.Estimators
         /// Compress the estimator data.
         /// </summary>
         /// <param name="estimator"></param>
-        /// <param name="foldingStrategy"></param>
+        /// <param name="configuration"></param>
         /// <returns></returns>
         public static IBitMinwiseHashEstimatorFullData Compress<TEntity, TId, TCount>(
             this IBitMinwiseHashEstimatorFullData estimator,
@@ -57,7 +57,7 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="estimator">The estimator data</param>
         /// <param name="factor">The folding factor</param>
         /// <returns></returns>
-        public static IBitMinwiseHashEstimatorFullData Fold(this IBitMinwiseHashEstimatorFullData estimator, uint factor)
+        public static BitMinwiseHashEstimatorFullData Fold(this IBitMinwiseHashEstimatorFullData estimator, uint factor)
         {
             if (factor <= 0)
                 throw new ArgumentException($"Fold factor should be a positive number (given value was {factor}).");
@@ -67,7 +67,7 @@ namespace TBag.BloomFilters.Estimators
             var res = new BitMinwiseHashEstimatorFullData
             {
                 BitSize = estimator.BitSize,
-                Capacity =  estimator.Capacity%factor,
+                Capacity =  estimator.Capacity % factor,
                 HashCount = estimator.HashCount,
                 ItemCount = estimator.ItemCount,
                 Values = estimator.Values==null?null:new int[estimator.Capacity % factor]

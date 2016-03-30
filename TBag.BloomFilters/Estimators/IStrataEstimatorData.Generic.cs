@@ -34,5 +34,10 @@
         /// The decode count factor.
         /// </summary>
         double DecodeCountFactor { get; set; }
+
+        /// <summary>
+        /// The item count
+        /// </summary>
+        long ItemCount { get; }
     }
 }

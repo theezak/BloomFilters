@@ -5,14 +5,14 @@
     /// </summary>
     /// <typeparam name="TId">The type of the entity identifier.</typeparam>
     /// <typeparam name="TCount">The type of the occurence count for the invertible Bloom filters.</typeparam>
-    public interface IHybridEstimatorData<TId, TCount>
+    public interface IHybridEstimatorFullData<TId, TCount>
         where TId : struct
         where TCount : struct
     {
         /// <summary>
         /// Estimated size of the set.
         /// </summary>
-        long CountEstimate { get; set; }
+        long ItemCount { get; }
 
         /// <summary>
         /// The capacity
@@ -33,6 +33,6 @@
         /// <summary>
         /// Data for the bit minwise estimator component of the hybrid estimator.
         /// </summary>
-        IBitMinwiseHashEstimatorData BitMinwiseEstimator { get;  }
+        IBitMinwiseHashEstimatorFullData BitMinwiseEstimator { get;  }
     }
 }

@@ -30,6 +30,15 @@ namespace TBag.BloomFilters.Estimators
 
         #endregion
 
+        #region Properties
+
+        /// <summary>
+        /// The number of items in the estimator.
+        /// </summary>
+        public virtual long ItemCount => _itemCount;
+
+        #endregion
+
         #region Constructor
 
         /// <summary>

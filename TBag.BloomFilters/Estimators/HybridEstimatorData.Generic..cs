@@ -12,12 +12,11 @@
     public class HybridEstimatorData<TId,TCount> : IHybridEstimatorData<TId, TCount> 
         where TCount : struct
         where TId : struct
-    {       
+    {
         /// <summary>
         /// Estimated number of elements in the set.
         /// </summary>
-        [DataMember(Order = 1)]
-        public long CountEstimate { get; set; }
+        public long ItemCount =>(StrataEstimator?.ItemCount ?? 0L) + (BitMinwiseEstimator?.ItemCount ?? 0L);
 
         /// <summary>
         /// The capacity

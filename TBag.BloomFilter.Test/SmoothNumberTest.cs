@@ -33,7 +33,7 @@ namespace TBag.BloomFilter.Test
             var config =new  DefaultBloomFilterConfiguration();                    
            var bloomFilter = new InvertibleBloomFilter<TestEntity, long, sbyte>(config);
             bloomFilter.Initialize(100000, 0.001F);
-            foreach (var itm in DataGenerator.Generate().Take(10000).ToArray())
+            foreach (var itm in DataGenerator.Generate().Take(500).ToArray())
             {
                 bloomFilter.Add(itm);
             }
@@ -44,6 +44,7 @@ namespace TBag.BloomFilter.Test
             {
                 var res = bloomFilter.Fold(fold.Value);
             }
+            var compressed = bloomFilter.Compress();
         }
     }
 }

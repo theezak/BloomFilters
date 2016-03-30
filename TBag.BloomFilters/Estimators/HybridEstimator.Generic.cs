@@ -18,7 +18,14 @@
         #region Fields
         private readonly BitMinwiseHashEstimator<KeyValuePair<int,int>, int, TCount> _minwiseEstimator;
         private long _capacity;
-        private long _setSize;
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// The item count for the estimator.
+        /// </summary>
+        public override long ItemCount => base.ItemCount + (_minwiseEstimator?.ItemCount ?? 0L);
+
         #endregion
 
         #region Constructor
@@ -28,7 +35,7 @@
         /// <param name="capacity">Capacity for strata estimator (good default is 80)</param>
         /// <param name="bitSize">The bit size for the bit minwise estimator.</param>
         /// <param name="minWiseHashCount">number of hash functions for the bit minwise estimator</param>
-        /// <param name="setSize">Estimated maximum set size for the bit minwise estimator (capacity)</param>
+        /// <param name="setSize">Estimated maximum set size for the whole estimator</param>
         /// <param name="maxStrata">Maximum strate for the strata estimator.</param>
         /// <param name="configuration">The configuration</param>
         public HybridEstimator(
@@ -43,11 +50,10 @@
                 maxStrata)        
         {
             _capacity = capacity;           
-             _setSize = setSize;
-            //TODO: clean up math. This is very close though to what actually ends up in the estimator.
+             //TODO: clean up math. This is very close though to what actually ends up in the estimator.
             var max = Math.Pow(2, MaxTrailingZeros);
             var minWiseCapacity = Math.Max(
-                (uint) (_setSize*(1 - (max - Math.Pow(2, MaxTrailingZeros - maxStrata))/max)), 1);
+                (uint) (setSize*(1 - (max - Math.Pow(2, MaxTrailingZeros - maxStrata))/max)), 1);
             if (configuration.FoldingStrategy != null)
             {
                 minWiseCapacity = (uint)configuration.FoldingStrategy.ComputeFoldableSize(minWiseCapacity, 0);
@@ -118,12 +124,60 @@
         public long? Decode(IHybridEstimatorData<int, TCount> estimator,
             bool destructive = false)
         {
-            if (estimator == null) return _setSize;
+            if (estimator == null) return ItemCount;
             return ((IHybridEstimator<TEntity, int, TCount>) this)
                 .Extract()
                 .Decode(estimator, Configuration);
         }
 
+        /// <summary>
+        /// Fold the hybrid estimator.
+        /// </summary>
+        /// <param name="factor"></param>
+        /// <param name="inPlace"></param>
+        /// <returns></returns>
+        IHybridEstimator<TEntity, int, TCount> IHybridEstimator<TEntity, int, TCount>.Fold(uint factor, bool inPlace)
+        {
+            IHybridEstimator<TEntity, int, TCount> self = this;
+            var res = self.FullExtract().Fold(Configuration, factor);
+            if (inPlace)
+            {
+                self.Rehydrate(res);
+                return this;
+            }
+            var max = Math.Pow(2, MaxTrailingZeros);
+            IHybridEstimator<TEntity, int, TCount> estimator = new HybridEstimator<TEntity, TId, TCount>(
+                res.Capacity,
+                res.BitMinwiseEstimator.BitSize, 
+                res.BitMinwiseEstimator.HashCount, 
+                (long)(res.BitMinwiseEstimator.Capacity*(1+(max - Math.Pow(2, MaxTrailingZeros - res.StrataCount)) / max)), res.StrataCount, Configuration);
+            estimator.Rehydrate(res);
+            return estimator;
+        }
+
+        /// <summary>
+        /// Compress the hybrid estimator.
+        /// </summary>
+        /// <param name="inPlace"></param>
+        /// <returns></returns>
+        IHybridEstimator<TEntity, int, TCount> IHybridEstimator<TEntity, int, TCount>.Compress(bool inPlace)
+        {
+            IHybridEstimator<TEntity, int, TCount> self = this;
+            var res = self.FullExtract().Compress(Configuration);
+            if (inPlace)
+            {
+                self.Rehydrate(res);
+                return this;
+            }
+            var max = Math.Pow(2, MaxTrailingZeros);
+            IHybridEstimator<TEntity, int, TCount> estimator = new HybridEstimator<TEntity, TId, TCount>(
+                res.Capacity,
+                res.BitMinwiseEstimator.BitSize,
+                res.BitMinwiseEstimator.HashCount,
+                (long)(res.BitMinwiseEstimator.Capacity * (1 + (max - Math.Pow(2, MaxTrailingZeros - res.StrataCount)) / max)), res.StrataCount, Configuration);
+            estimator.Rehydrate(res);
+            return estimator;
+        }
         #endregion
 
         #region Implementation of IHybridEstimator{Entity, int, TCount}
@@ -139,7 +193,6 @@
                 BitMinwiseEstimator = _minwiseEstimator.Extract(),
                 StrataEstimator = Extract(),
                 StrataCount = MaxStrata,
-                CountEstimate = _setSize
             };
         }
 
@@ -155,9 +208,7 @@
                 Capacity = _capacity,
                 BitMinwiseEstimator = _minwiseEstimator.FullExtract(),
                 StrataEstimator = Extract(),
-                StrataCount = MaxStrata,
-                //TODO: much better count based upon actual items in StrataEstimator ????
-                CountEstimate = _setSize
+                StrataCount = MaxStrata               
             };
         }
 
@@ -171,9 +222,8 @@
             _minwiseEstimator.Rehydrate(data.BitMinwiseEstimator);
             _capacity = data.Capacity;
             MaxStrata = data.StrataCount;
-            _setSize = data.CountEstimate;
             Rehydrate(data.StrataEstimator);
-        }
+        }     
         #endregion
     }
 }

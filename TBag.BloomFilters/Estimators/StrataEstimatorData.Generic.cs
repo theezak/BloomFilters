@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters.Estimators
+﻿using System.Linq;
+
+namespace TBag.BloomFilters.Estimators
 {
     using System;
     using System.Runtime.Serialization;
@@ -43,6 +45,11 @@
         /// <remarks>used as a work around for serializers that ignore null values.</remarks>
         [DataMember(Order = 5)]
         public byte[] BloomFilterStrataIndexes { get; set; }
+
+        /// <summary>
+        /// The item count
+        /// </summary>
+        public long ItemCount => BloomFilters?.Sum(filter => filter?.ItemCount ?? 0L)??0L;
 
         #region Implementation of IStrataEstimatorData{TId,TCount}
         /// <summary>

@@ -21,6 +21,11 @@
         /// When <c>true</c> the configuration will be validated, else <c>false</c>.
         /// </summary>
         protected bool ValidateConfiguration { get; set; }
+
+        /// <summary>
+        /// The item count.
+        /// </summary>
+        public virtual long ItemCount => Data?.ItemCount ?? 0L;
       
         /// <summary>
         /// The configuration for the Bloom filter.

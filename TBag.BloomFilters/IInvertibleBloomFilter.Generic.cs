@@ -145,5 +145,10 @@ namespace TBag.BloomFilters
         /// </summary>
         IInvertibleBloomFilter<T, TId, TCount> Compress(bool inPlace = false);
 
+        /// <summary>
+        /// The number of items in the Bloom filter.
+        /// </summary>
+        long ItemCount { get; }
+
     }
 }

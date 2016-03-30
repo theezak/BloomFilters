@@ -414,6 +414,7 @@ namespace TBag.BloomFilters
         /// <typeparam name="TId"></typeparam>
         /// <typeparam name="TCount"></typeparam>
         /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="THash"></typeparam>
         /// <param name="data"></param>
         /// <param name="configuration"></param>
         /// <param name="factor"></param>

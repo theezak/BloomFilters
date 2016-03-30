@@ -20,7 +20,7 @@
         #region Fields
         private  long _capacity;
          protected const byte MaxTrailingZeros = sizeof(int)*8;
-        private IMurmurHash _murmur = new Murmur3();
+        private readonly IMurmurHash _murmur = new Murmur3();
         #endregion
 
         #region Properties
@@ -28,7 +28,13 @@
         /// <summary>
         /// The maximum strata.
         /// </summary>
-        protected byte MaxStrata { get; set; } = MaxTrailingZeros;
+        protected byte MaxStrata { get; set; } = MaxTrailingZeros;     
+
+        /// <summary>
+        /// The item count.
+        /// </summary>
+        public virtual long ItemCount
+            => (StrataFilters?.Sum(filter => (filter?.IsValueCreated ?? false) ? filter.Value.ItemCount : 0L) ?? 0L);
 
         /// <summary>
         /// Strata filters.
@@ -100,7 +106,7 @@
             if (data == null) return;
             _capacity = data.Capacity;
             MaxStrata = data.StrataCount;
-            DecodeCountFactor = data.DecodeCountFactor;
+            DecodeCountFactor = data.DecodeCountFactor;            
             CreateFilters(data);
         }
 
@@ -127,6 +133,25 @@
         }
 
         /// <summary>
+        /// Fold the strata estimator.
+        /// </summary>
+        /// <param name="factor"></param>
+        /// <param name="inPlace"></param>
+        /// <returns></returns>
+        public virtual IStrataEstimator<TEntity, int, TCount> Fold(uint factor, bool inPlace = false)
+        {
+            var res = Extract().Fold(Configuration, factor);
+            if (inPlace)
+            {
+                Rehydrate(res);
+                return this;
+            }
+            var strataEstimator = new StrataEstimator<TEntity, TId, TCount>(res.Capacity, Configuration, res.StrataCount);
+            strataEstimator.Rehydrate(res);
+            return strataEstimator;
+        }
+
+        /// <summary>
         /// Decode the given estimator data.
         /// </summary>
         /// <param name="estimator">Estimator data to subtract.</param>
@@ -149,6 +174,25 @@
             bool destructive = false)
         {
             return Decode(estimator.Extract(), destructive);
+        }
+
+        /// <summary>
+        /// Compress the estimator.
+        /// </summary>
+        /// <param name="inPlace"></param>
+        /// <returns></returns>
+        public IStrataEstimator<TEntity, int, TCount> Compress(bool inPlace = false)
+        {
+            var res = Extract().Compress(Configuration);
+            if (inPlace)
+            {
+                Rehydrate(res);
+                return this;
+            }
+            var estimator = new StrataEstimator<TEntity, TId, TCount>(res.Capacity, Configuration, res.StrataCount);
+            estimator.Rehydrate(res);
+            return estimator;
+
         }
         #endregion
 

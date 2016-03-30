@@ -21,19 +21,19 @@
         /// <returns>An estimate of the difference between two sets based upon the estimators.</returns>
         public static long? Decode<TEntity, TId, TCount>(this IHybridEstimatorData<int, TCount> estimator,
             IHybridEstimatorData<int, TCount> otherEstimatorData,
-            IBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration,
-             bool destructive = false)
+            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
+            bool destructive = false)
             where TCount : struct
             where TId : struct
         {
-            if (estimator == null && 
+            if (estimator == null &&
                 otherEstimatorData == null) return 0L;
             if (estimator == null ||
-                estimator.CountEstimate <= 0L)
-                return otherEstimatorData.CountEstimate;
+                estimator.ItemCount <= 0L)
+                return otherEstimatorData.ItemCount;
             if (otherEstimatorData == null ||
-                otherEstimatorData.CountEstimate <= 0)
-                return estimator.CountEstimate;
+                otherEstimatorData.ItemCount <= 0)
+                return estimator.ItemCount;
             var decodeFactor = Math.Max(estimator.StrataEstimator?.DecodeCountFactor ?? 1.0D,
                 otherEstimatorData.StrataEstimator?.DecodeCountFactor ?? 1.0D);
             var strataDecode = estimator
@@ -41,9 +41,62 @@
                 .Decode(otherEstimatorData.StrataEstimator, configuration, estimator.StrataCount, destructive);
             if (!strataDecode.HasValue) return null;
             var similarity = estimator.BitMinwiseEstimator.Similarity(otherEstimatorData.BitMinwiseEstimator);
-           var minwiseDecode = (long)(decodeFactor*((1-similarity)/(1+similarity)) * (estimator.BitMinwiseEstimator.Capacity + otherEstimatorData.BitMinwiseEstimator.Capacity));
+            var minwiseDecode =
+                (long)
+                    (decodeFactor*((1 - similarity)/(1 + similarity))*
+                     (estimator.BitMinwiseEstimator.Capacity + otherEstimatorData.BitMinwiseEstimator.Capacity));
             //use upperbound on set difference.
-            return Math.Min(strataDecode.Value + minwiseDecode, estimator.CountEstimate + otherEstimatorData.CountEstimate);
+            return Math.Min(strataDecode.Value + minwiseDecode, estimator.ItemCount + otherEstimatorData.ItemCount);
+        }
+
+        /// <summary>
+        /// Fold the strata estimator data.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="TCount"></typeparam>
+        /// <param name="estimatorData"></param>
+        /// <param name="configuration"></param>
+        /// <param name="factor"></param>
+        /// <returns></returns>
+        public static HybridEstimatorFullData<int, TCount> Fold<TEntity, TId, TCount>(
+            this IHybridEstimatorFullData<int, TCount> estimatorData,
+            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
+            uint factor)
+            where TCount : struct
+            where TId : struct
+        {
+            if (estimatorData == null) return null;
+            return new HybridEstimatorFullData<int, TCount>
+            {
+                Capacity = estimatorData.Capacity,
+                StrataCount = estimatorData.StrataCount,
+                BitMinwiseEstimator = estimatorData.BitMinwiseEstimator?.Fold(factor),
+                StrataEstimator =
+                    estimatorData.StrataEstimator?.Fold(configuration.ConvertToEstimatorConfiguration(), factor)
+            };
+        }
+
+        /// <summary>
+        /// Compress the hybrid estimator.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="TCount"></typeparam>
+        /// <param name="estimatorData"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        public static HybridEstimatorFullData<int, TCount> Compress<TEntity, TId, TCount>(
+            this IHybridEstimatorFullData<int, TCount> estimatorData,
+            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration)
+            where TCount : struct
+            where TId : struct
+        {
+            if (configuration?.FoldingStrategy == null || estimatorData == null) return null;
+            var fold = configuration.FoldingStrategy.FindFoldFactor(estimatorData.Capacity, estimatorData.Capacity,
+                estimatorData.ItemCount);
+            var res = fold.HasValue ? estimatorData.Fold(configuration, fold.Value) : null;
+            return res;
         }
     }
 }

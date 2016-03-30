@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters.Estimators
+﻿using System;
+
+namespace TBag.BloomFilters.Estimators
 {
     /// <summary>
     /// Interface for a bit minwise hash estimator
@@ -42,6 +44,7 @@
         /// <param name="factor">Factor to fold by.</param>
         /// <param name="inPlace">When <c>true</c> the estimator will be replaced by a folded estimator, else <c>false</c>.</param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException">When the estimator cannot be folded by the given factor.</exception>
         IBitMinwiseHashEstimator<TEntity, TId, TCount> Fold(uint factor, bool inPlace = false);
 
         /// <summary>
@@ -72,5 +75,10 @@
         /// <returns>Similarity (percentage similar, zero is completely different, one is completely the same)</returns>
         /// <remarks>Zero is no similarity, one is completely similar.</remarks>
         double Similarity(IBitMinwiseHashEstimator<TEntity, TId, TCount> estimator);
+
+        /// <summary>
+        /// The number of items in the estimator.
+        /// </summary>
+        long ItemCount { get; }
     }
 }

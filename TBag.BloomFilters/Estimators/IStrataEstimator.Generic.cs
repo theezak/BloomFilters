@@ -1,4 +1,7 @@
-﻿namespace TBag.BloomFilters.Estimators
+﻿using System;
+using TBag.BloomFilters.Configurations;
+
+namespace TBag.BloomFilters.Estimators
 {
     /// <summary>
     /// Interface for the Strata estimator.
@@ -56,5 +59,24 @@
         /// </summary>
         /// <param name="item"></param>
         void Remove(TEntity item);
+
+        /// <summary>
+        /// Fold the strata estimator by the given <paramref name="factor"/>.
+        /// </summary>
+        /// <param name="factor">Folding factor</param>
+        /// <param name="inPlace">When <c>true</c> the estimator is replaced by the folded version, else <c>false</c></param>
+        /// <returns>The estimator</returns>
+        /// <exception cref="ArgumentException">When the estimator cannot be folded by the given factor.</exception>
+        IStrataEstimator<TEntity, TId, TCount> Fold(uint factor, bool inPlace = false);
+
+        /// <summary>
+        /// Compress the estimator.
+        /// </summary>
+        IStrataEstimator<TEntity, TId, TCount> Compress(bool inPlace = false);
+
+        /// <summary>
+        /// The number of items in the estimator.
+        /// </summary>
+        long ItemCount { get; }
     }
 }
