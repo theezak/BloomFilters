@@ -1,13 +1,13 @@
-﻿
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using TBag.BloomFilters.Collections.Generics;
-
-namespace TBag.BloomFilters.MathExt
+﻿namespace TBag.BloomFilters.MathExt
 {
-    internal static class MathExtensions
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using TBag.BloomFilters.Collections.Generics;
+    /// <summary>
+    /// Math extensions
+    /// </summary>
+    public static class MathExtensions
     {
         private static volatile Tuple<long, IEnumerable<long>> _primeCache;
 
@@ -86,7 +86,7 @@ namespace TBag.BloomFilters.MathExt
         /// </summary>
         /// <param name="number"></param>
         /// <returns></returns>
-        internal static IEnumerable<long> GetFactors(long number)
+        public static IEnumerable<long> GetFactors(long number)
         {
             return GetPrimeFactors(number)
                 .GetPowerSet()

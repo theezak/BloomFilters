@@ -28,7 +28,7 @@
         /// <summary>
         /// The capacity for the estimator.
         /// </summary>
-        long Capacity { get; set; }
+        long BlockSize { get; set; }
 
         /// <summary>
         /// The decode count factor.

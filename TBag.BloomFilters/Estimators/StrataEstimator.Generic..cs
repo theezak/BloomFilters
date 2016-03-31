@@ -18,9 +18,9 @@
         where TId : struct
     {
         #region Fields
-        private  long _capacity;
          protected const byte MaxTrailingZeros = sizeof(int)*8;
         private readonly IMurmurHash _murmur = new Murmur3();
+        private const float ErrorRate = 0.001F;
         #endregion
 
         #region Properties
@@ -28,7 +28,12 @@
         /// <summary>
         /// The maximum strata.
         /// </summary>
-        protected byte MaxStrata { get; set; } = MaxTrailingZeros;     
+        protected byte MaxStrata { get; set; } = MaxTrailingZeros;   
+        
+        /// <summary>
+        /// The block size
+        /// </summary>
+        protected virtual long BlockSize { get; set; }  
 
         /// <summary>
         /// The item count.
@@ -57,25 +62,27 @@
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="capacity">The capacity (size of the set to be added)</param>
+        /// <param name="blockSize">The capacity (size of the set to be added)</param>
         /// <param name="configuration">The Bloom filter configuration</param>
         /// <param name="maxStrata">Optional maximum strata</param>
              protected StrataEstimator(
-            long capacity,
+            long blockSize,
             IBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration,
             byte? maxStrata = null)
         {
-            _capacity = capacity;
+            BlockSize = configuration.FoldingStrategy?.ComputeFoldableSize(blockSize, 0) ?? blockSize;
             if (maxStrata.HasValue)
             {
                 if (maxStrata <= 0 || maxStrata > MaxTrailingZeros)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(maxStrata), $"Maximimum strata value {maxStrata.Value} is not in the valid range [1, {MaxTrailingZeros}].");
+                    throw new ArgumentOutOfRangeException(
+                        nameof(maxStrata), 
+                        $"Maximimum strata value {maxStrata.Value} is not in the valid range [1, {MaxTrailingZeros}].");
                 }
                 MaxStrata = maxStrata.Value;
             }
             Configuration = configuration;
-            DecodeCountFactor = _capacity >= 20 ? 1.39D : 1.0D;
+            DecodeCountFactor = BlockSize >= 20 ? 1.39D : 1.0D;
             CreateFilters();
         }
         #endregion
@@ -89,11 +96,18 @@
         {
             return new StrataEstimatorData<int, TCount>
             {
-                Capacity = _capacity,
+                BlockSize = BlockSize,
                 DecodeCountFactor = DecodeCountFactor,
-                StrataCount =  MaxStrata,
-                BloomFilters = StrataFilters.Where(s=>s?.IsValueCreated??false).Select(s => s.Value.Extract()).ToArray(),
-                BloomFilterStrataIndexes = StrataFilters.Select((s,i) => new { Index = (byte)i, Include = s?.IsValueCreated??false }).Where(i=>i.Include).Select(i=>i.Index).ToArray()
+                StrataCount = MaxStrata,
+                BloomFilters = StrataFilters
+                    .Where(s => s?.IsValueCreated ?? false)
+                    .Select(s => s.Value.Extract())
+                    .ToArray(),
+                BloomFilterStrataIndexes = StrataFilters
+                    .Select((s, i) => new {Index = (byte) i, Include = s?.IsValueCreated ?? false})
+                    .Where(i => i.Include)
+                    .Select(i => i.Index)
+                    .ToArray()
             };
         }
 
@@ -104,7 +118,7 @@
         public void Rehydrate(IStrataEstimatorData<int, TCount> data)
         {
             if (data == null) return;
-            _capacity = data.Capacity;
+            BlockSize = data.BlockSize;
             MaxStrata = data.StrataCount;
             DecodeCountFactor = data.DecodeCountFactor;            
             CreateFilters(data);
@@ -146,7 +160,7 @@
                 Rehydrate(res);
                 return this;
             }
-            var strataEstimator = new StrataEstimator<TEntity, TId, TCount>(res.Capacity, Configuration, res.StrataCount);
+            var strataEstimator = new StrataEstimator<TEntity, TId, TCount>(res.BlockSize, Configuration, res.StrataCount);
             strataEstimator.Rehydrate(res);
             return strataEstimator;
         }
@@ -189,7 +203,7 @@
                 Rehydrate(res);
                 return this;
             }
-            var estimator = new StrataEstimator<TEntity, TId, TCount>(res.Capacity, Configuration, res.StrataCount);
+            var estimator = new StrataEstimator<TEntity, TId, TCount>(res.BlockSize, Configuration, res.StrataCount);
             estimator.Rehydrate(res);
             return estimator;
 
@@ -242,6 +256,7 @@
         private void CreateFilters(IStrataEstimatorData<int, TCount> estimatorData = null)
         {
               var configuration = Configuration.ConvertToEstimatorConfiguration();
+            var hashFunctionCount = configuration.BestHashFunctionCount(BlockSize, ErrorRate);
             for (var idx = 0; idx < StrataFilters.Length; idx++)
             {
                 if (idx >= MaxStrata)
@@ -254,10 +269,15 @@
                 StrataFilters[idx] = new Lazy<InvertibleBloomFilter<KeyValuePair<int, int>, int, TCount>>(() =>
                 {
                     var res = new InvertibleBloomFilter<KeyValuePair<int, int>, int, TCount>(configuration);
-                    res.Initialize(_capacity, 0.001F);
+                    //capacity doesn't really matter, the capacity is basically the block size.
+                    res.Initialize(BlockSize, BlockSize, hashFunctionCount);
                      res.Rehydrate(filterData);
                     return res;
                 });
+                if (filterData!= null)
+                {
+                    var tmp = StrataFilters[idx].Value;
+                }
             }
         }
 

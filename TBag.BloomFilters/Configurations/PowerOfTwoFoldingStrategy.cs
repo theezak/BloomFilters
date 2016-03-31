@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters.Configurations
+﻿using TBag.BloomFilters.MathExt;
+
+namespace TBag.BloomFilters.Configurations
 {
     using System;
 
@@ -53,6 +55,13 @@
                     return (uint)pieces;
             }
             return null;
+        }
+
+        public Tuple<long, long> GetFoldFactors(long size1, long size2)
+        {
+            var gcd = MathExtensions.GetGcd(size1, size2);
+            if (!gcd.HasValue || gcd < 1) return new Tuple<long, long>(1, 1);
+            return new Tuple<long, long>(size1 / gcd.Value, size2 / gcd.Value);
         }
     }
 }

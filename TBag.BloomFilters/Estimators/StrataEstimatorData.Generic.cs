@@ -19,7 +19,7 @@ namespace TBag.BloomFilters.Estimators
         /// The capacity
         /// </summary>
         [DataMember(Order = 1)]
-        public long Capacity { get; set; }
+        public long BlockSize { get; set; }
 
         /// <summary>
         /// The decode factor.

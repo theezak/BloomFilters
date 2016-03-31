@@ -27,6 +27,7 @@ namespace TBag.BloomFilters.Estimators
         private Lazy<int[]> _slots ;
         private long _itemCount;
         private readonly IBloomFilterConfiguration<TEntity, TId, int, TCount> _configuration;
+  
 
         #endregion
 
@@ -55,12 +56,12 @@ namespace TBag.BloomFilters.Estimators
             int hashCount,
             long capacity)
         {
-            _bitSize = bitSize;
-            _capacity = capacity;
             _hashCount = hashCount;
             _configuration = configuration;
             _hashFunctions = GenerateHashes();
-            _entityHash = e => unchecked((int)((ulong)(_configuration.EntityHash(e)+configuration.IdHash(_configuration.GetId(e)))));
+           _bitSize = bitSize;
+            _capacity = _configuration.FoldingStrategy?.ComputeFoldableSize(capacity, 0) ?? capacity;
+             _entityHash = e => unchecked((int)((ulong)(_configuration.EntityHash(e)+configuration.IdHash(_configuration.GetId(e)))));
             _slots = new Lazy<int[]>(()=> GetMinHashSlots(_hashCount, _capacity));
         }
 
@@ -109,7 +110,7 @@ namespace TBag.BloomFilters.Estimators
         /// <returns></returns>
         public void Add(IBitMinwiseHashEstimator<TEntity, TId, TCount> estimator)
         {
-            Rehydrate(FullExtract().Add(estimator?.FullExtract(), true));
+            Rehydrate(FullExtract().Add(estimator?.FullExtract(), _configuration.FoldingStrategy, true));
         }
 
         /// <summary>
@@ -119,7 +120,7 @@ namespace TBag.BloomFilters.Estimators
         /// <returns></returns>
         public void Add(IBitMinwiseHashEstimatorFullData estimator)
         {
-            Rehydrate(FullExtract().Add(estimator, true));
+            Rehydrate(FullExtract().Add(estimator, _configuration.FoldingStrategy, true));
         }
 
         /// <summary>

@@ -1,11 +1,10 @@
-﻿using System;
-
-namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Estimators
 {
     using System.Collections;
     using System.Linq;
-    using System.Diagnostics.Contracts;
-    using Configurations;
+    using System;
+     using Configurations;
+
     /// <summary>
     /// Extension methods for bit minwise hash estimator data
     /// </summary>
@@ -55,9 +54,11 @@ namespace TBag.BloomFilters.Estimators
         /// Fold the minwise estimator data.
         /// </summary>
         /// <param name="estimator">The estimator data</param>
-        /// <param name="factor">The folding factor</param>
+         /// <param name="factor">The folding factor</param>
         /// <returns></returns>
-        public static BitMinwiseHashEstimatorFullData Fold(this IBitMinwiseHashEstimatorFullData estimator, uint factor)
+        public static BitMinwiseHashEstimatorFullData Fold(
+            this IBitMinwiseHashEstimatorFullData estimator,           
+            uint factor)
         {
             if (factor <= 0)
                 throw new ArgumentException($"Fold factor should be a positive number (given value was {factor}).");
@@ -67,12 +68,12 @@ namespace TBag.BloomFilters.Estimators
             var res = new BitMinwiseHashEstimatorFullData
             {
                 BitSize = estimator.BitSize,
-                Capacity =  estimator.Capacity % factor,
+                Capacity =  estimator.Capacity / factor,
                 HashCount = estimator.HashCount,
                 ItemCount = estimator.ItemCount,
-                Values = estimator.Values==null?null:new int[estimator.Capacity % factor]
+                Values = estimator.Values==null?null:new int[estimator.Capacity / factor]
             };
-            if (res.Values == null) return res;
+            if ((res.Values?.Length??0L) == 0L) return res;
             for (var i = 0L; i < estimator.Values.LongLength; i++)
             {
                 if (i < res.Values.LongLength)
@@ -81,7 +82,7 @@ namespace TBag.BloomFilters.Estimators
                 }
                 else
                 {
-                    var pos = i%res.Values.LongLength;
+                    var pos = i % res.Values.LongLength;
                     if (res.Values[pos] > estimator.Values[i])
                     {
                         res.Values[pos] = estimator.Values[i];
@@ -94,48 +95,45 @@ namespace TBag.BloomFilters.Estimators
         /// <summary>
         /// Add two estimators.
         /// </summary>
-        /// <param name="estimator"></param>
-        /// <param name="otherEstimator"></param>
+        /// <param name="estimator">The estimator to add to.</param>
+        /// <param name="otherEstimator">The other estimator to add.</param>
+        /// <param name="foldingStrategy">THe folding strategy to use</param>
         /// <param name="inPlace">When <c>true</c> the data is added to the given <paramref name="estimator"/>, otherwise a new estimator is created.</param>
         /// <returns></returns>
         public static IBitMinwiseHashEstimatorFullData Add(
             this IBitMinwiseHashEstimatorFullData estimator,
             IBitMinwiseHashEstimatorFullData otherEstimator,
+            IFoldingStrategy foldingStrategy,
             bool inPlace = false)
         {
             if (estimator == null ||
                 otherEstimator == null) return null;
-            if (estimator.Capacity != otherEstimator.Capacity ||
+            var foldingFactors = foldingStrategy?.GetFoldFactors(estimator.Capacity, otherEstimator.Capacity);
+            if ((estimator.Capacity != otherEstimator.Capacity && 
+                (foldingFactors?.Item1??0L)<=1 &&
+                 (foldingFactors?.Item2 ?? 0L) <= 1) ||
                 estimator.HashCount != otherEstimator.HashCount)
             {
                 throw new ArgumentException("Minwise estimators with different capacity or hash count cannot be added.");
             }
-            var res = inPlace
+            var res = inPlace &&
+                ((foldingFactors?.Item1??1L) == 1L) &&
+                ((foldingFactors?.Item2 ?? 1L) == 1L)
                 ? estimator
                 : new BitMinwiseHashEstimatorFullData
                 {
-                    Capacity = estimator.Capacity,
+                    Capacity = estimator.Capacity/(foldingFactors?.Item1??1L),
                     HashCount = estimator.HashCount,
                     BitSize = estimator.BitSize,
-                    ItemCount = estimator.ItemCount,
-                    Values =
-                        (estimator.Values == null && otherEstimator.Values == null) ? null : new int[estimator.Capacity]
+                    ItemCount = estimator.ItemCount,                   
                 };
-            if (estimator.Values == null && otherEstimator.Values == null)
+            res.Values = (estimator.Values == null && otherEstimator.Values == null) ? null : new int[res.Capacity];           
+            if (res.Values==null) return res;
+            for (var i = 0L; i < res.Capacity; i++)
             {
-                return res;
-            }
-            if (!inPlace)
-            {
-                estimator.Values?.CopyTo(res.Values, 0);
-            }
-            if (otherEstimator.Values == null) return res;
-            for (var i = 0L; i < otherEstimator.Values.LongLength; i++)
-            {
-                if (res.Values[i] > otherEstimator.Values[i])
-                {
-                    res.Values[i] = otherEstimator.Values[i];
-                }
+                var estimatorValue = GetFolded(estimator.Values, i, foldingFactors?.Item1, Math.Min, int.MaxValue);
+                var otherEstimatorValue = GetFolded(otherEstimator.Values, i, foldingFactors?.Item1, Math.Min, int.MaxValue);
+                res.Values[i] = Math.Min(estimatorValue, otherEstimatorValue);
             }
             res.ItemCount += otherEstimator.ItemCount;
             return res;
@@ -208,6 +206,29 @@ namespace TBag.BloomFilters.Estimators
                 }
             }
              return identicalMinHashes / (1.0D * minHashValues2.Length / bitSize);
+        }
+
+        private static T GetFolded<T>(
+            T[] values, 
+            long position, 
+            long? foldFactor, 
+            Func<T, T, T> foldOperator, 
+            T defaultValue = default(T))
+        {
+            if (values == null) return defaultValue;
+            if ((foldFactor ?? 0L) <= 1L) return values[position];
+            var foldedSize = values.Length / foldFactor.Value;
+            position = position % foldedSize;
+            var val = values[position];
+            foldFactor--;
+            position += foldedSize;
+            while (foldFactor > 0)
+            {
+                val = foldOperator(val, values[position]);
+                foldFactor--;
+                position += foldedSize;
+            }
+            return val;
         }
         #endregion
     }

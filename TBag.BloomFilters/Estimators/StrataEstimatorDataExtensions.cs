@@ -120,7 +120,7 @@ namespace TBag.BloomFilters.Estimators
                         ? null
                         : new InvertibleBloomFilterData<int, int, TCount>[estimatorData.BloomFilters.Length],
                 BloomFilterStrataIndexes = estimatorData.BloomFilterStrataIndexes?.ToArray(),
-                Capacity = estimatorData.Capacity % factor,
+                BlockSize = estimatorData.BlockSize / factor,
                 DecodeCountFactor = estimatorData.DecodeCountFactor,
                 StrataCount = estimatorData.StrataCount
             };
@@ -150,7 +150,7 @@ namespace TBag.BloomFilters.Estimators
             where TId : struct
         {
             if (configuration?.FoldingStrategy == null || estimatorData == null) return null;
-            var fold = configuration.FoldingStrategy.FindFoldFactor(estimatorData.Capacity, estimatorData.Capacity,
+            var fold = configuration.FoldingStrategy.FindFoldFactor(estimatorData.BlockSize, estimatorData.BlockSize,
                 estimatorData.ItemCount);
             var res = fold.HasValue ? estimatorData.Fold(configuration, fold.Value) : null;
             return res;

@@ -22,7 +22,7 @@
         /// The capacity
         /// </summary>
         [DataMember(Order = 2)]
-        public long Capacity { get; set; }
+        public long BlockSize { get; set; }
 
         /// <summary>
         /// The strate estimator data

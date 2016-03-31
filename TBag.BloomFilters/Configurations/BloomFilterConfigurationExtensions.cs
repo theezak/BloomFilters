@@ -24,7 +24,7 @@
             where TId : struct
         {
             if (configuration == null) return null;
-            return new IbfConfigurationEstimatorhWrapper<TEntity,TId, TCount>(configuration);
+            return new IbfConfigurationEstimatorWrapper<TEntity,TId, TCount>(configuration);
         }
 
         /// <summary>

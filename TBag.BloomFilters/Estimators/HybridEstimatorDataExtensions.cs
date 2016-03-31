@@ -1,8 +1,9 @@
 ﻿namespace TBag.BloomFilters.Estimators
 {
     using Configurations;
+    using MathExt;
     using System;
-
+    using System.Linq;
     /// <summary>
     /// Extension methods for the hybrid estimator data.
     /// </summary>
@@ -67,11 +68,13 @@
             where TId : struct
         {
             if (estimatorData == null) return null;
+            var minWiseFold = estimatorData.BitMinwiseEstimator == null ? 1L :
+                (MathExtensions.GetFactors(estimatorData.BitMinwiseEstimator.Capacity).Cast<long?>().OrderBy(f => f).FirstOrDefault(f => f > factor) ?? 1L);
             return new HybridEstimatorFullData<int, TCount>
             {
-                Capacity = estimatorData.Capacity,
+                BlockSize = estimatorData.BlockSize / factor,
                 StrataCount = estimatorData.StrataCount,
-                BitMinwiseEstimator = estimatorData.BitMinwiseEstimator?.Fold(factor),
+                BitMinwiseEstimator = estimatorData.BitMinwiseEstimator?.Fold((uint)minWiseFold),
                 StrataEstimator =
                     estimatorData.StrataEstimator?.Fold(configuration.ConvertToEstimatorConfiguration(), factor)
             };
@@ -93,7 +96,7 @@
             where TId : struct
         {
             if (configuration?.FoldingStrategy == null || estimatorData == null) return null;
-            var fold = configuration.FoldingStrategy.FindFoldFactor(estimatorData.Capacity, estimatorData.Capacity,
+            var fold = configuration.FoldingStrategy.FindFoldFactor(estimatorData.BlockSize, estimatorData.BlockSize,
                 estimatorData.ItemCount);
             var res = fold.HasValue ? estimatorData.Fold(configuration, fold.Value) : null;
             return res;

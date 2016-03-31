@@ -17,7 +17,7 @@
         /// <summary>
         /// The capacity
         /// </summary>
-        long Capacity { get; set; }
+        long BlockSize { get; set; }
 
         /// <summary>
         /// Data for the strata estimator component of the hybrid estimator.

@@ -12,7 +12,7 @@
     /// <typeparam name="TId"></typeparam>
     /// <typeparam name="TCount"></typeparam>
     /// <remarks>Estimators utilize the entity hash as the identifier, so we need to derive a configuration for that,</remarks>
-    internal class IbfConfigurationEstimatorhWrapper<TEntity, TId, TCount> :
+    internal class IbfConfigurationEstimatorWrapper<TEntity, TId, TCount> :
       KeyValuePairIbfConfigurationBase<int,int,TCount>
          where TCount : struct
         where TId : struct
@@ -30,7 +30,7 @@
         /// Constructor
         /// </summary>
         /// <param name="configuration">The original configuration.</param>
-        public IbfConfigurationEstimatorhWrapper(
+        public IbfConfigurationEstimatorWrapper(
             IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration)
         {
             _wrappedConfiguration = configuration;
@@ -223,7 +223,7 @@
         public override bool Supports(long capacity, long size)
         {
             return _wrappedConfiguration.Supports(capacity, size);
-        }
+        }      
         #endregion
     }
 

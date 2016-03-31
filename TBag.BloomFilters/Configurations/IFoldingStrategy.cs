@@ -1,3 +1,5 @@
+using System;
+
 namespace TBag.BloomFilters.Configurations
 {
     /// <summary>
@@ -15,5 +17,13 @@ namespace TBag.BloomFilters.Configurations
         /// <param name="keyCount">The actual number of keys.</param>
         /// <returns></returns>
         uint? FindFoldFactor(long blockSize, long capacity, long? keyCount = null);
+
+        /// <summary>
+        /// Get the best matching fold factor to make the two sizes match .
+        /// </summary>
+        /// <param name="size1"></param>
+        /// <param name="size2"></param>
+        /// <returns></returns>
+        Tuple<long, long> GetFoldFactors(long size1, long size2);
     }
 }

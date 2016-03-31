@@ -89,7 +89,7 @@
             where TId : struct
         {
             return new HybridEstimator<TEntity, TId, TCount>(
-                data.Capacity,
+                data.BlockSize,
                 data.BitMinwiseEstimator.BitSize,
                 data.BitMinwiseEstimator.HashCount,
                 setSize,
