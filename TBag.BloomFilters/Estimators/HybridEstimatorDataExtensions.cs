@@ -47,16 +47,17 @@
                 .Decode(otherEstimatorData.StrataEstimator, configuration, estimator.StrataCount, destructive);
             if (!strataDecode.HasValue) return null;
             var similarity = estimator.BitMinwiseEstimator?.Similarity(otherEstimatorData.BitMinwiseEstimator);
-            if (!similarity.HasValue)
-            {
-                //proportional to the number of differences found for the strata.
-                var max = Math.Pow(2, MaxTrailingZeros);
-                strataDecode = (long)(strataDecode * (1 + ((Math.Pow(2, MaxTrailingZeros - estimator.StrataCount)) / max)));
-            }
-            else
+            if (similarity.HasValue)
             {
                 strataDecode += (long)(decodeFactor * ((1 - similarity) / (1 + similarity)) *
                        (estimator.BitMinwiseEstimator.Capacity + otherEstimatorData.BitMinwiseEstimator.Capacity));
+            }
+            var decodedItemCount = estimator.StrataEstimator.ItemCount + (estimator.BitMinwiseEstimator?.ItemCount ?? 0L);
+            if (strataDecode.HasValue &&
+                decodedItemCount > 0)
+            {
+                //assume differences for the items counted, but not in the strata estimator or bit minwise estimator, contribute proportionally.
+                strataDecode = (long)Math.Ceiling(1.0D * strataDecode.Value * estimator.ItemCount / decodedItemCount);
             }
             //use upperbound on set difference.
             return Math.Min(strataDecode.Value, estimator.ItemCount + otherEstimatorData.ItemCount);
