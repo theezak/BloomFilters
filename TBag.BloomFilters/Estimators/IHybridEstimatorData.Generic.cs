@@ -12,7 +12,7 @@
         /// <summary>
         /// Estimated size of the set.
         /// </summary>
-        long ItemCount { get;  }
+        long ItemCount { get; set; }
 
         /// <summary>
         /// The capacity

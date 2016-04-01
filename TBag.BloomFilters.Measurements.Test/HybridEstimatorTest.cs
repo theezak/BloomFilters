@@ -49,15 +49,15 @@
                                     var testData = DataGenerator.Generate().Take(dataSize).ToList();
                                     var modCount = (int) (dataSize/100.0D*errorSize);
                                     var startTime = DateTime.UtcNow;
-                                    var estimator1 = new HybridEstimator<TestEntity, long, int>(capacity, 2, 10,
-                                        (uint) testData.Count, strata, configuration);
+                                    var estimator1 = new HybridEstimator<TestEntity, long, int>(capacity, strata, configuration);
+                                    estimator1.Initialize((uint)testData.Count, 2, 10);
                                     foreach (var item in testData)
                                     {
                                         estimator1.Add(item);
                                     }
                                     testData.Modify(modCount);
-                                    var estimator2 = new HybridEstimator<TestEntity, long, int>(capacity, 2, 10,
-                                        (uint) testData.Count, strata, configuration);
+                                    var estimator2 = new HybridEstimator<TestEntity, long, int>(capacity, strata, configuration);
+                                    estimator2.Initialize((uint)testData.Count, 2, 10);
                                     foreach (var item in testData)
                                     {
                                         estimator2.Add(item);

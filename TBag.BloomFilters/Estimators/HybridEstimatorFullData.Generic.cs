@@ -16,7 +16,11 @@
         /// <summary>
         /// Estimated number of elements in the set.
         /// </summary>
-        public long ItemCount => (StrataEstimator?.ItemCount ?? 0L) + (BitMinwiseEstimator?.ItemCount ?? 0L);
+        [DataMember(Order =1)]
+        public long ItemCount
+        {
+            get; set;
+        }
 
         /// <summary>
         /// The capacity

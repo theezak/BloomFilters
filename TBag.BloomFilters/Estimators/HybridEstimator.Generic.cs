@@ -16,14 +16,15 @@
         where TId : struct
     {
         #region Fields
-        private readonly BitMinwiseHashEstimator<KeyValuePair<int,int>, int, TCount> _minwiseEstimator;
+        private long _minwiseReplacementCount;
+        private BitMinwiseHashEstimator<KeyValuePair<int,int>, int, TCount> _minwiseEstimator;
         #endregion
 
         #region Properties
         /// <summary>
         /// The item count for the estimator.
         /// </summary>
-        public override long ItemCount => base.ItemCount + (_minwiseEstimator?.ItemCount ?? 0L);
+        public override long ItemCount => base.ItemCount + (_minwiseEstimator?.ItemCount ?? 0L) + _minwiseReplacementCount;
 
         #endregion
 
@@ -39,33 +40,44 @@
         /// <param name="configuration">The configuration</param>
         public HybridEstimator(
             long blockSize,
-            byte bitSize,
-            int minWiseHashCount,
-            long setSize,
             byte maxStrata,
             IBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration) : base(
                 blockSize,
                 configuration,
                 maxStrata)        
         {
-            //TODO: clean up math. This is very close though to what actually ends up in the estimator.
-            var max = Math.Pow(2, MaxTrailingZeros);
-            var minWiseCapacity = Math.Max(
-                (uint) (setSize*(1 - (max - Math.Pow(2, MaxTrailingZeros - maxStrata))/max)), 1);
-            if (configuration.FoldingStrategy != null)
-            {
-                minWiseCapacity = (uint)configuration.FoldingStrategy.ComputeFoldableSize(minWiseCapacity, 2);
-            }
-            _minwiseEstimator = new BitMinwiseHashEstimator<KeyValuePair<int,int>, int, TCount>(
-                Configuration.ConvertToEstimatorConfiguration(), 
-                bitSize, 
-                minWiseHashCount, 
-                minWiseCapacity);
+           
             DecodeCountFactor = BlockSize >= 20 ? 1.45D : 1.0D;
         }
         #endregion
 
         #region Implementation
+        /// <summary>
+        /// Initialize
+        /// </summary>
+        /// <param name="capacity">The capacity (number of items to be added)</param>
+        /// <param name="bitSize">The bit size for the bit minwise estimator</param>
+        /// <param name="minWiseHashCount">The minwise hash count</param>
+        public virtual void Initialize(
+            long capacity,
+            byte bitSize,
+            int minWiseHashCount)
+        {
+            var max = Math.Pow(2, MaxTrailingZeros);
+            var minWiseCapacity = Math.Max(
+                (uint)(capacity * (1 - (max - Math.Pow(2, MaxTrailingZeros - MaxStrata)) / max)), 1);
+            if (Configuration.FoldingStrategy != null)
+            {
+                minWiseCapacity = (uint)Configuration.FoldingStrategy.ComputeFoldableSize(minWiseCapacity, 2);
+            }
+            _minwiseEstimator = new BitMinwiseHashEstimator<KeyValuePair<int, int>, int, TCount>(
+                Configuration.ConvertToEstimatorConfiguration(),
+                bitSize,
+                minWiseHashCount,
+                minWiseCapacity);
+            _minwiseReplacementCount = 0L;
+        }
+
         /// <summary>
         /// Add an item to the estimator.
         /// </summary>
@@ -80,9 +92,16 @@
             {
                 Add(idHash, entityHash, idx);
             }
-            else
+            else 
             {
-                _minwiseEstimator.Add(new KeyValuePair<int, int>(idHash, entityHash));
+                if (_minwiseEstimator == null)
+                {
+                    _minwiseReplacementCount++;
+                }
+                else
+                {
+                    _minwiseEstimator.Add(new KeyValuePair<int, int>(idHash, entityHash));
+                }
             }
         }
 
@@ -90,14 +109,26 @@
         /// Remove an item from the estimator
         /// </summary>
         /// <param name="item"></param>
-        /// <exception cref="NotSupportedException">Removal is not supported on a hybrid estimator that utilizes the minwise estimator.</exception>
         public override void Remove(TEntity item)
         {
-            if (MaxStrata < MaxTrailingZeros)
+            if (MaxStrata < MaxTrailingZeros && 
+                _minwiseEstimator!=null)
             {
-                throw new NotSupportedException("Removal not supported on a hybrid estimator.");
+                _minwiseReplacementCount += _minwiseEstimator?.ItemCount ?? 0L;
+                //after removal, the bit minwise estimator needs to be dropped since we can't remove from that.
+                _minwiseEstimator = null;
             }
-            base.Remove(item);
+            var idHash = Configuration.IdHash(Configuration.GetId(item));
+            var entityHash = Configuration.EntityHash(item);
+            var idx = GetStrata(idHash, entityHash);
+            if (idx < MaxStrata)
+            {
+                base.Remove(idHash, entityHash, idx);
+            }
+            else
+            {
+                _minwiseReplacementCount--;
+            }
         }
 
         /// <summary>
@@ -148,11 +179,15 @@
             //TODO: estimator constructor that simply takes the full data? Split things across constructor and initialize?
             IHybridEstimator<TEntity, int, TCount> estimator = new HybridEstimator<TEntity, TId, TCount>(
                 res.BlockSize,
-                res.BitMinwiseEstimator.BitSize, 
-                res.BitMinwiseEstimator.HashCount, 
-                res.BitMinwiseEstimator.ItemCount, 
                 res.StrataCount, 
                 Configuration);
+            if (res.BitMinwiseEstimator != null)
+            {
+                estimator.Initialize(
+                    res.BitMinwiseEstimator.ItemCount,
+                    res.BitMinwiseEstimator.BitSize,
+                    res.BitMinwiseEstimator.HashCount);
+            }
             estimator.Rehydrate(res);
             return estimator;
         }
@@ -171,12 +206,17 @@
                 self.Rehydrate(res);
                 return this;
             }
-            var max = Math.Pow(2, MaxTrailingZeros);
             IHybridEstimator<TEntity, int, TCount> estimator = new HybridEstimator<TEntity, TId, TCount>(
                 res.BlockSize,
-                res.BitMinwiseEstimator.BitSize,
-                res.BitMinwiseEstimator.HashCount,
-                (long)(res.BitMinwiseEstimator.Capacity * (1 + (max - Math.Pow(2, MaxTrailingZeros - res.StrataCount)) / max)), res.StrataCount, Configuration);
+                res.StrataCount,
+                Configuration);
+            if (res.BitMinwiseEstimator != null)
+            {
+                estimator.Initialize(
+                    res.BitMinwiseEstimator.Capacity + res.ItemCount,
+                    res.BitMinwiseEstimator.BitSize,
+                    res.BitMinwiseEstimator.HashCount);
+            }
             estimator.Rehydrate(res);
             return estimator;
         }
@@ -191,8 +231,9 @@
         {
             return new HybridEstimatorData<int, TCount>
             {
+                ItemCount = ItemCount,
                 BlockSize = BlockSize,
-                BitMinwiseEstimator = _minwiseEstimator.Extract(),
+                BitMinwiseEstimator = _minwiseEstimator?.Extract(),
                 StrataEstimator = Extract(),
                 StrataCount = MaxStrata,
             };
@@ -207,8 +248,9 @@
         {
             return new HybridEstimatorFullData<int, TCount>
             {
+                ItemCount = ItemCount,
                 BlockSize = BlockSize,
-                BitMinwiseEstimator = _minwiseEstimator.FullExtract(),
+                BitMinwiseEstimator = _minwiseEstimator?.FullExtract(),
                 StrataEstimator = Extract(),
                 StrataCount = MaxStrata               
             };
@@ -221,10 +263,11 @@
         void IHybridEstimator<TEntity, int, TCount>.Rehydrate(IHybridEstimatorFullData<int, TCount> data)
         {
             if (data == null) return;
-            _minwiseEstimator.Rehydrate(data.BitMinwiseEstimator);
+            _minwiseEstimator?.Rehydrate(data.BitMinwiseEstimator);
             BlockSize = data.BlockSize;
             MaxStrata = data.StrataCount;
             Rehydrate(data.StrataEstimator);
+            _minwiseReplacementCount = Math.Max(0, data.ItemCount - (base.ItemCount + (_minwiseEstimator?.ItemCount ?? 0L)));
         }     
         #endregion
     }

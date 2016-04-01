@@ -10,6 +10,11 @@
     public static class HybridEstimatorDataExtensions
     {
         /// <summary>
+        /// Maximum number of trailing zeros (based upon the hash type)
+        /// </summary>
+        private const byte MaxTrailingZeros = sizeof(int) * 8;
+
+        /// <summary>
         /// Decode the hybrid estimator data instances.
         /// </summary>
         /// <typeparam name="TEntity">The type of the entity</typeparam>
@@ -41,13 +46,20 @@
                 .StrataEstimator
                 .Decode(otherEstimatorData.StrataEstimator, configuration, estimator.StrataCount, destructive);
             if (!strataDecode.HasValue) return null;
-            var similarity = estimator.BitMinwiseEstimator.Similarity(otherEstimatorData.BitMinwiseEstimator);
-            var minwiseDecode =
-                (long)
-                    (decodeFactor*((1 - similarity)/(1 + similarity))*
-                     (estimator.BitMinwiseEstimator.Capacity + otherEstimatorData.BitMinwiseEstimator.Capacity));
+            var similarity = estimator.BitMinwiseEstimator?.Similarity(otherEstimatorData.BitMinwiseEstimator);
+            if (!similarity.HasValue)
+            {
+                //proportional to the number of differences found for the strata.
+                var max = Math.Pow(2, MaxTrailingZeros);
+                strataDecode = (long)(strataDecode * (1 + ((Math.Pow(2, MaxTrailingZeros - estimator.StrataCount)) / max)));
+            }
+            else
+            {
+                strataDecode += (long)(decodeFactor * ((1 - similarity) / (1 + similarity)) *
+                       (estimator.BitMinwiseEstimator.Capacity + otherEstimatorData.BitMinwiseEstimator.Capacity));
+            }
             //use upperbound on set difference.
-            return Math.Min(strataDecode.Value + minwiseDecode, estimator.ItemCount + otherEstimatorData.ItemCount);
+            return Math.Min(strataDecode.Value, estimator.ItemCount + otherEstimatorData.ItemCount);
         }
 
         /// <summary>
@@ -72,6 +84,7 @@
                 (MathExtensions.GetFactors(estimatorData.BitMinwiseEstimator.Capacity).Cast<long?>().OrderBy(f => f).FirstOrDefault(f => f > factor) ?? 1L);
             return new HybridEstimatorFullData<int, TCount>
             {
+                ItemCount = estimatorData.ItemCount,
                 BlockSize = estimatorData.BlockSize / factor,
                 StrataCount = estimatorData.StrataCount,
                 BitMinwiseEstimator = estimatorData.BitMinwiseEstimator?.Fold((uint)minWiseFold),
@@ -96,7 +109,9 @@
             where TId : struct
         {
             if (configuration?.FoldingStrategy == null || estimatorData == null) return null;
-            var fold = configuration.FoldingStrategy.FindFoldFactor(estimatorData.BlockSize, estimatorData.BlockSize,
+            var fold = configuration.FoldingStrategy.FindFoldFactor(
+                estimatorData.BlockSize, 
+                estimatorData.BlockSize,
                 estimatorData.ItemCount);
             var res = fold.HasValue ? estimatorData.Fold(configuration, fold.Value) : null;
             return res;

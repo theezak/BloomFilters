@@ -36,11 +36,13 @@
             _dataSet = dataSet;
             _hybridEstimatorFactory = hybridEstimatorFactory;
             //TODO: hide this in a factory. Typically the estimator is heavily undersized when it comes to capacity.
-            _estimator = new HybridEstimator<TestEntity, long,  short>(5000, 2, 14, _dataSet.Count, 7, configuration);
+            _estimator = new HybridEstimator<TestEntity, long,  short>(5000,  7, configuration);
+            _estimator.Initialize(_dataSet.Count, 2, 14);
             foreach (var itm in _dataSet)
             {
                 _estimator.Add(itm);
             }
+            _estimator.Remove(_dataSet[0]);
             _bloomFilterFactory = bloomFilterFactory;
             _configuration = configuration;
         }

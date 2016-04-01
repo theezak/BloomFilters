@@ -18,7 +18,7 @@
         where TId : struct
     {
         #region Fields
-         protected const byte MaxTrailingZeros = sizeof(int)*8;
+        protected const byte MaxTrailingZeros = sizeof(int)*8;
         private readonly IMurmurHash _murmur = new Murmur3();
         private const float ErrorRate = 0.001F;
         #endregion

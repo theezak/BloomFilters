@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Estimators
 {
     /// <summary>
     /// Interface for a hybrid estimator.
@@ -70,5 +68,23 @@ namespace TBag.BloomFilters.Estimators
         /// Compress the estimator.
         /// </summary>
         IHybridEstimator<TEntity, TId, TCount> Compress(bool inPlace);
+
+        /// <summary>
+        /// Initialize
+        /// </summary>
+        /// <param name="capacity">The capacity (number of items to be added)</param>
+        /// <param name="bitSize">The bit size for the bit minwise estimator</param>
+        /// <param name="minWiseHashCount">The minwise hash count</param>
+        void Initialize(
+            long capacity,
+            byte bitSize,
+            int minWiseHashCount);
+
+        /// <summary>
+        /// Remove an item.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <remarks>The bit minwise estimator does not support removal, so removing an item from the estimator disables the bit minwise estimator and thus impacts the estimate.</remarks>
+        void Remove(TEntity item);
     }
 }

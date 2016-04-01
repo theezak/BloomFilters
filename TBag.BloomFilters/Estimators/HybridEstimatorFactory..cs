@@ -58,12 +58,10 @@
             }
             var result = new HybridEstimator<TEntity, TId, TCount>(
                 capacity,
-                bitSize,
-                minwiseHashCount,
-                setSize,
                 strata,
                 configuration)
             { };
+            result.Initialize(setSize, bitSize, minwiseHashCount);
             if (failedDecodeCount > 1)
             {
                 result.DecodeCountFactor = Math.Pow(2, failedDecodeCount);
@@ -88,16 +86,18 @@
             where TCount : struct
             where TId : struct
         {
-            return new HybridEstimator<TEntity, TId, TCount>(
+            var estimator = new HybridEstimator<TEntity, TId, TCount>(
                 data.BlockSize,
-                data.BitMinwiseEstimator.BitSize,
-                data.BitMinwiseEstimator.HashCount,
-                setSize,
                 data.StrataCount,
                 configuration)
             {
                 DecodeCountFactor = data.StrataEstimator.DecodeCountFactor
             };
+            if (data.BitMinwiseEstimator != null)
+            {
+                estimator.Initialize(setSize, data.BitMinwiseEstimator.BitSize, data.BitMinwiseEstimator.HashCount);
+            }
+            return estimator;
         }
     }
 }
