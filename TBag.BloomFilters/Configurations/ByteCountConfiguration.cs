@@ -13,7 +13,19 @@ namespace TBag.BloomFilters.Configurations
         /// <summary>
         /// Decrease the count
         /// </summary>
-        public override Func<sbyte, sbyte> Decrease { get; set; } =  sb => (sbyte)(sb - 1);
+        public override Func<sbyte, sbyte> Decrease { get; set; } =  DecreaseImpl;
+
+        private static sbyte DecreaseImpl(sbyte c)
+        {
+            try
+            {
+                return checked((sbyte)(c - 1));
+            }
+            catch (OverflowException)
+            {
+                return sbyte.MinValue;
+            }
+        }
 
         /// <summary>
         /// Identity for the count (0).
@@ -23,12 +35,36 @@ namespace TBag.BloomFilters.Configurations
         /// <summary>
         /// Increase the count
         /// </summary>
-        public override Func<sbyte, sbyte> Increase { get; set; } = sb => (sbyte)(sb + 1);
+        public override Func<sbyte, sbyte> Increase { get; set; } = IncreaseImpl;
+
+        private static sbyte IncreaseImpl(sbyte c)
+        {
+            try
+            {
+                return checked((sbyte)(c + 1));
+            }
+            catch (OverflowException)
+            {
+                return sbyte.MaxValue;
+            }
+        }
 
         /// <summary>
         /// Subtract two count values
         /// </summary>
-        public override Func<sbyte, sbyte, sbyte> Subtract { get; set; } = (sb1,sb2) => (sbyte)(sb1 - sb2);
+        public override Func<sbyte, sbyte, sbyte> Subtract { get; set; } = SubtractImpl;
+
+        private static sbyte SubtractImpl(sbyte c1, sbyte c2)
+        {
+            try
+            {
+                return checked((sbyte)(c1 - c2));
+            }
+            catch (OverflowException)
+            {
+                return c2 > 0 ? sbyte.MinValue : sbyte.MaxValue;
+            }
+        }
 
         /// <summary>
         /// Unity of the count (1).
@@ -61,12 +97,35 @@ namespace TBag.BloomFilters.Configurations
         /// <summary>
         /// Determine if the count is pure.
         /// </summary>
-        public override Func<sbyte, bool> IsPure { get; set; } = sb => Math.Abs(sb) == 1;
+        public override Func<sbyte, bool> IsPure { get; set; } = IsPureImpl;
+
+        private static bool IsPureImpl(sbyte c)
+        {
+            try
+            {
+                return checked(Math.Abs(c) == 1);
+            }
+            catch (OverflowException)
+            {
+                return false;
+            }
+        }
 
         /// <summary>
         /// Add two counts.
         /// </summary>
-        public override  Func<sbyte, sbyte, sbyte> Add { get; set; } = (sb1, sb2) => (sbyte)(sb1 + sb2);
-        
+        public override  Func<sbyte, sbyte, sbyte> Add { get; set; } = AddImpl;
+
+        private static sbyte AddImpl(sbyte c1, sbyte c2)
+        {
+            try
+            {
+                return checked((sbyte)(c1 + c2));
+            }
+            catch (OverflowException)
+            {
+                return c2 > 0 ? sbyte.MaxValue : sbyte.MinValue;
+            }
+        }
     }
 }

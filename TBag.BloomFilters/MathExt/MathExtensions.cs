@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters.MathExt
+﻿using System.Net;
+
+namespace TBag.BloomFilters.MathExt
 {
     using System;
     using System.Collections.Generic;
@@ -52,9 +54,12 @@
                 LongEnumerable.Range(2, to - 1).ToList(),
                 (result, index) =>
                 {
-                    var bp = result[(int)index];
-                    var sqr = bp * bp;
-                    result.RemoveAll(i => i >= sqr && i % bp == 0);
+                    if (index < result.Count)
+                    {
+                        var bp = result[(int) index];
+                        var sqr = bp*bp;
+                        result.RemoveAll(i => i >= sqr && i%bp == 0);
+                    }
                     return result;
                 });
             _primeCache = new Tuple<long, IEnumerable<long>>(to, res);

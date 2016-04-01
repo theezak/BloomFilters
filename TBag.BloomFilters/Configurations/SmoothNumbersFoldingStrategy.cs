@@ -1,11 +1,7 @@
-﻿
-
-using System;
-
-namespace TBag.BloomFilters.Configurations
+﻿namespace TBag.BloomFilters.Configurations
 {
     using System.Linq;
-    using Collections.Generics;
+    using System;
     using MathExt;
 
     /// <summary>
@@ -16,24 +12,25 @@ namespace TBag.BloomFilters.Configurations
     {
         private readonly SmoothNumberGenerator _smoothNumberGenerator = new SmoothNumberGenerator();
         private const byte MaxTrials = 5;
-
+        private static readonly double PrimePowFactor = 1.0D / (4.0D *Math.Sqrt(Math.E)) + 0.001D;
         /// <summary>
         /// Compute a foldable size of at least <paramref name="blockSize"/>.
         /// </summary>
         /// <param name="blockSize">The Bloom filter size.</param>
         /// <param name="foldFactor">The fold factor desired</param>
         /// <returns></returns>
+        /// <remarks>See http://people.math.gatech.edu/~ecroot/smooth6.pdf : there are >> sqrt(x) of y smooth numbers in [x, x+sqrt(x)] for y = x^(1/(4*sqrt(e))+epsilon)</remarks>
         public long ComputeFoldableSize(long blockSize, int foldFactor)
         {
             var trials = MaxTrials;
+            var trialSize = Math.Max(200L, (long) (Math.Sqrt(blockSize)/trials));
             var smoothNumbers = default(long[]);
-            var smoothness = 2000;
+            var smoothness = (long)Math.Max(500L, Math.Pow(blockSize, PrimePowFactor));
             while (trials > 0 && (smoothNumbers == null || smoothNumbers.Length == 0))
             {
-                smoothNumbers = _smoothNumberGenerator.GetSmoothNumbers(blockSize, 200, smoothness);
+                smoothNumbers = _smoothNumberGenerator.GetSmoothNumbers(blockSize, trialSize, smoothness);
                 trials--;
-                blockSize += 200;
-                smoothness += 2000;
+                blockSize += trialSize;
             }
             return smoothNumbers != null && smoothNumbers.Length > 0 ? 
                 smoothNumbers.FirstOrDefault(s=> foldFactor <= 0 || s%foldFactor==0) : 

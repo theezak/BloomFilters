@@ -12,7 +12,19 @@
         /// <summary>
         /// Decrease the count
         /// </summary>
-        public override Func<int, int> Decrease { get; set; } = i => i- 1;
+        public override Func<int, int> Decrease { get; set; } = DecreaseImpl;
+
+        private static int DecreaseImpl(int c)
+        {
+            try
+            {
+                return checked(c - 1);
+            }
+            catch (OverflowException)
+            {
+                return int.MinValue;
+            }
+        }
 
         /// <summary>
         /// The count identity value (0)
@@ -22,12 +34,36 @@
         /// <summary>
         /// Increase the count
         /// </summary>
-        public override Func<int, int> Increase { get; set; } = i => i + 1;
+        public override Func<int, int> Increase { get; set; } = IncreaseImpl;
+
+        private static int IncreaseImpl(int c)
+        {
+            try
+            {
+                return checked(c + 1);
+            }
+            catch (OverflowException)
+            {
+                return int.MaxValue;
+            }
+        }
 
         /// <summary>
         /// Subtract counts
         /// </summary>
-        public override Func<int, int, int> Subtract { get; set; } = (i1,i2)=>i1-i2;
+        public override Func<int, int, int> Subtract { get; set; } = SubtractImpl;
+
+        private static int SubtractImpl(int c1, int c2)
+        {
+            try
+            {
+                return checked(c1 - c2);
+            }
+            catch (OverflowException)
+            {
+                return c2 > 0 ? int.MinValue : int.MaxValue;
+            }
+        }
 
         /// <summary>
         /// The count unity (1)
@@ -42,12 +78,36 @@
         /// <summary>
         /// Determine if the count is pure.
         /// </summary>
-        public override Func<int, bool> IsPure { get; set; } = i => Math.Abs(i) == 1;
+        public override Func<int, bool> IsPure { get; set; } = IsPureImpl;
+
+        private static bool IsPureImpl(int c)
+        {
+            try
+            {
+                return checked(Math.Abs(c) == 1);
+            }
+            catch (OverflowException)
+            {
+                return false;
+            }
+        }
 
         /// <summary>
         /// Add two counts
         /// </summary>
-        public override Func<int, int, int> Add { get; set; } = (c1, c2) => c1 + c2;
+        public override Func<int, int, int> Add { get; set; } = AddImpl;
+
+        private static int AddImpl(int c1, int c2)
+        {
+            try
+            {
+                return checked(c1 + c2);
+            }
+            catch (OverflowException)
+            {
+                return c2 > 0 ? int.MaxValue : int.MinValue;
+            }
+        }
 
         /// <summary>
         /// Determine if given the size of the Bloom filter, this count configuration is expected to be able to support the capacity.

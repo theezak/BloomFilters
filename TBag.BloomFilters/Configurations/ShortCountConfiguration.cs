@@ -1,10 +1,9 @@
-﻿using System.Linq;
-
-namespace TBag.BloomFilters.Configurations
+﻿namespace TBag.BloomFilters.Configurations
 {
     using System;
     using System.Collections.Generic;
-   
+    using System.Linq;
+
     /// <summary>
     /// Count configuration for type <see cref="short"/>.
     /// </summary>
@@ -13,7 +12,19 @@ namespace TBag.BloomFilters.Configurations
         /// <summary>
         /// Decrease the count
         /// </summary>
-        public override Func<short, short> Decrease { get; set; } =  sb => (short)(sb - 1);
+        public override Func<short, short> Decrease { get; set; } =  DecreaseImpl;
+
+        private static short DecreaseImpl(short c)
+        {
+            try
+            {
+                return checked((short)(c - 1));
+            }
+            catch(OverflowException)
+            {
+                return short.MinValue;
+            }
+        }
 
         /// <summary>
         /// Identity for the count (0).
@@ -23,12 +34,36 @@ namespace TBag.BloomFilters.Configurations
         /// <summary>
         /// Increase the count
         /// </summary>
-        public override Func<short, short> Increase { get; set; } = sb => (short)(sb + 1);
+        public override Func<short, short> Increase { get; set; } = IncreaseImpl;
+
+        private static short IncreaseImpl(short c)
+        {
+            try
+            {
+                return checked((short)(c + 1));
+            }
+            catch (OverflowException)
+            {
+                return short.MaxValue;
+            }
+        }
 
         /// <summary>
         /// Subtract two count values
         /// </summary>
-        public override Func<short, short, short> Subtract { get; set; } = (sb1,sb2) => (short)(sb1 - sb2);
+        public override Func<short, short, short> Subtract { get; set; } = SubtractImpl;
+
+        private static short SubtractImpl(short c1, short c2)
+        {
+            try
+            {
+                return checked((short)(c1 - c2));
+            }
+            catch (OverflowException)
+            {
+                return c2 > 0  ?short.MinValue : short.MaxValue;
+            }
+        }
 
         /// <summary>
         /// Unity of the count (1).
@@ -43,12 +78,36 @@ namespace TBag.BloomFilters.Configurations
         /// <summary>
         /// Determine if the count is pure.
         /// </summary>
-        public override Func<short, bool> IsPure { get; set; } = sb => Math.Abs(sb) == 1;
+        public override Func<short, bool> IsPure { get; set; } = IsPureImpl;
+
+        private static bool IsPureImpl(short c)
+        {
+            try
+            {
+                return checked(Math.Abs(c) == 1);
+            }
+            catch(OverflowException)
+            {
+                return false;
+            }
+        }
 
         /// <summary>
         /// Add two counts
         /// </summary>
-        public override Func<short, short, short> Add { get; set; } = (c1, c2) => (short)(c1 + c2);
+        public override Func<short, short, short> Add { get; set; } = AddImpl;
+
+        private static short AddImpl(short c1, short c2)
+        {
+            try
+            {
+                return checked((short)(c1 + c2));
+            }
+            catch (OverflowException)
+            {
+                return c2 > 0 ? short.MaxValue : short.MinValue;
+            }
+        }
 
         /// <summary>
         /// Determine if given the size of the Bloom filter, this count configuration is expected to be able to support the capacity.
