@@ -231,6 +231,37 @@
             return val;
         }
         #endregion
+
+        /// <summary>
+        /// Convert the slots to a bit array that only includes the specificied number of bits per slot.
+        /// </summary>
+        /// <param name="slots">The hashed values.</param>
+        /// <param name="bitSize">The bit size to be used per slot.</param>
+        /// <returns></returns>
+        internal static BitArray ConvertToBitArray(this int[] slots, byte bitSize)
+        {
+            if (slots == null || bitSize <= 0) return null;
+            var hashValues = new BitArray((int)(bitSize * slots.LongLength));
+            var allDefault = true;
+            var idx = 0;
+            for (var i = 0; i < slots.LongLength; i++)
+            {
+                allDefault = allDefault && slots[i] == int.MaxValue;
+                var byteValue = BitConverter.GetBytes(slots[i]);
+                var byteValueIdx = 0;
+                for (var b = 0; b < bitSize; b++)
+                {
+                    hashValues.Set(idx + b, (byteValue[byteValueIdx] & (1 << (b % 8))) != 0);
+                    if (b > 0 && b % 8 == 0)
+                    {
+                        byteValueIdx = (byteValueIdx + 1) % byteValue.Length;
+                    }
+                }
+                idx += bitSize;
+            }
+            if (allDefault) return null;
+            return hashValues;
+        }
     }
 }
 

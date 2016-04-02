@@ -33,7 +33,7 @@
         /// <summary>
         /// The block size
         /// </summary>
-        protected virtual long BlockSize { get; set; }  
+        public virtual long BlockSize { get; protected set; }  
 
         /// <summary>
         /// The item count.

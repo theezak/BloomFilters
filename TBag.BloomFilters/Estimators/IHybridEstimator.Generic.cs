@@ -11,6 +11,11 @@
         where TCount : struct
     {
         /// <summary>
+        /// Block size
+        /// </summary>
+        long BlockSize { get; }
+
+        /// <summary>
         /// The decode count factor.
         /// </summary>
         double DecodeCountFactor { get; set; }

@@ -1,7 +1,4 @@
-﻿using System;
-using TBag.BloomFilters.Configurations;
-
-namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Estimators
 {
     /// <summary>
     /// Interface for the Strata estimator.
@@ -13,6 +10,11 @@ namespace TBag.BloomFilters.Estimators
         where TCount : struct
         where TId : struct
     {
+        /// <summary>
+        /// The block size
+        /// </summary>
+        long BlockSize { get; }
+
         /// <summary>
         /// The decode count factor.
         /// </summary>

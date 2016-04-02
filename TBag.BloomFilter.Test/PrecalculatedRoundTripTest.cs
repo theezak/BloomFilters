@@ -19,7 +19,7 @@
         [TestMethod]
         public void TestPrecalculatedRoundTrip()
         {
-            var configuration = new KeyValueLargeBloomFilterConfiguration();
+            var configuration = new KeyValueBloomFilterConfiguration();
             IHybridEstimatorFactory estimatorFactory = new HybridEstimatorFactory();
             IInvertibleBloomFilterFactory bloomFilterFactory = new InvertibleBloomFilterFactory();
             var dataSet1 = DataGenerator.Generate().Take(10000).ToList();

@@ -8,17 +8,18 @@
     using BloomFilters;
     using BloomFilters.Estimators;
     using BloomFilters.Configurations;
-    using BloomFilters.MathExt;    /// <summary>
-                                   /// A full working test harness for creating an estimator, serializing the estimator and receiving the filter.
-                                   /// </summary>
+    
+    /// <summary>
+    /// A full working test harness for creating an estimator, serializing the estimator and receiving the filter.
+    /// </summary>
     internal class PrecalculatedActor
     {
         private readonly RuntimeTypeModel _protobufModel;
         private readonly IList<TestEntity> _dataSet;
         private readonly IHybridEstimatorFactory _hybridEstimatorFactory;
-       private readonly IBloomFilterConfiguration<TestEntity, long, int,  short> _configuration;
+       private readonly IBloomFilterConfiguration<TestEntity, long, int,  sbyte> _configuration;
         private readonly IInvertibleBloomFilterFactory _bloomFilterFactory;
-        private readonly IHybridEstimator<TestEntity, int, short> _estimator;
+        private readonly HybridEstimator<TestEntity, long, sbyte> _estimator;
         /// <summary>
         /// Constructor
         /// </summary>
@@ -29,22 +30,20 @@
         public PrecalculatedActor(IList<TestEntity> dataSet,
             IHybridEstimatorFactory hybridEstimatorFactory,
             IInvertibleBloomFilterFactory bloomFilterFactory,
-            IBloomFilterConfiguration<TestEntity, long, int,  short> configuration)
-        {
+            IBloomFilterConfiguration<TestEntity, long, int,  sbyte> configuration)           {
             _protobufModel = TypeModel.Create();
             _protobufModel.UseImplicitZeroDefaults = true;
             _dataSet = dataSet;
             _hybridEstimatorFactory = hybridEstimatorFactory;
-            //TODO: hide this in a factory. Typically the estimator is heavily undersized when it comes to capacity.
-            _estimator = new HybridEstimator<TestEntity, long,  short>(5000,  7, configuration);
-            _estimator.Initialize(_dataSet.Count, 2, 14);
+            _bloomFilterFactory = bloomFilterFactory;
+            _configuration = configuration;
+            //terribly over size the estimator.
+            _estimator = _hybridEstimatorFactory.Create(_configuration, 100000);
             foreach (var itm in _dataSet)
             {
                 _estimator.Add(itm);
             }
             _estimator.Remove(_dataSet[0]);
-            _bloomFilterFactory = bloomFilterFactory;
-            _configuration = configuration;
         }
 
         /// <summary>
@@ -56,13 +55,9 @@
         public long? GetEstimate(MemoryStream estimatorStream)
         {
             var otherEstimator =
-               (HybridEstimatorData<int, short>)
-                   _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, short>));
-            var fold = _configuration.FoldingStrategy.GetFoldFactors(_estimator.FullExtract().BlockSize,
-                otherEstimator.BlockSize);
-            //tricky: can't fold the estimator data. Well, you can, just not the bit min wise estimator.
-            var estimator = _estimator.Fold((uint)fold.Item1, false);           
-            return estimator.Extract().Decode(otherEstimator, _configuration);
+               (HybridEstimatorData<int, sbyte>)
+                   _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, sbyte>));
+           return _hybridEstimatorFactory.FoldAndDecode(_configuration, _estimator, otherEstimator);
         }
 
         /// <summary>
@@ -74,33 +69,19 @@
         public MemoryStream RequestFilter(MemoryStream estimatorStream, PrecalculatedActor otherActor)
         {
             var otherEstimator =
-                (IHybridEstimatorData<int, short>)
-                    _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, short>));
-            //TODO: awkward just to get the capacity. Fix that.
-            var estimatorData = _estimator.FullExtract();
-            //TODO: using knowledge that both estimators were equally sized, thus other estimator size is a factor of the estimator capacity.
-            //TODO; handle when that is not the case.
-            var estimator = _estimator.Fold((uint)(estimatorData.BlockSize / otherEstimator.BlockSize), false);
-            var estimate = estimator.Extract().Decode(otherEstimator, _configuration);
+                (IHybridEstimatorData<int, sbyte>)
+                    _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, sbyte>));
+            var estimate = _hybridEstimatorFactory.FoldAndDecode(_configuration, _estimator, otherEstimator);
             if (estimate == null)
             {
                 //additional communication step needed to create a new estimator.
                 byte failedDecodeCount = 0;
                 while (estimate == null && failedDecodeCount < 5)
                 {
-                    //TODO: not only capacity, but strata goes in to this as well.
-                    //Strata requires truly a new estimator to be created.
-                    //So in those cases ... ?
-                    //Now:technically you could create a strata 9, because you will not pay the price for it unless you use it and on small set sizes
-                    //there is little chance you'll use them.
-                    var factors = MathExtensions.GetFactors(estimatorData.BlockSize);
-                    var foldFactor = (uint)factors.OrderByDescending(f => f).Where(f => estimatorData.BlockSize / f > 80).Skip(failedDecodeCount).First();
-
-                    estimator = _estimator.Fold(foldFactor, false);
-                
+                    var estimator = _hybridEstimatorFactory.Extract(_configuration, _estimator, failedDecodeCount);
                     using (var stream = new MemoryStream())
                     {
-                        _protobufModel.Serialize(stream, estimator.Extract());
+                        _protobufModel.Serialize(stream, estimator);
                         stream.Position = 0;
                         estimate = otherActor.GetEstimate(stream);
                     }
@@ -133,16 +114,14 @@
             using (var estimatorStream = new MemoryStream())
             {
                 //TODO: hide in a strategy for compressing the estimator (when more failures, less compresed)
-                var fullData = _estimator.FullExtract();
-                var factors = MathExtensions.GetFactors(fullData.BlockSize);
-                var foldFactor =(uint) factors.OrderByDescending(f => f).First(f =>  fullData.BlockSize / f > 80);
-                var data = _estimator.Fold(foldFactor, false).Extract();
+
+                var data = _hybridEstimatorFactory.Extract(_configuration, _estimator);
                 _protobufModel.Serialize(estimatorStream, data);
                 estimatorStream.Position = 0;
                 //send the estimator to the other actor and receive the filter from that actor.
                 var otherFilterStream = actor.RequestFilter(estimatorStream, this);
-                var otherFilter = (IInvertibleBloomFilterData<long, int,short>)
-                    _protobufModel.Deserialize(otherFilterStream, null, _configuration.DataFactory.GetDataType<long,int,short>());
+                var otherFilter = (IInvertibleBloomFilterData<long, int,sbyte>)
+                    _protobufModel.Deserialize(otherFilterStream, null, _configuration.DataFactory.GetDataType<long,int,sbyte>());
                 otherFilterStream.Dispose();
                 var filter = _bloomFilterFactory.CreateMatchingHighUtilizationFilter(_configuration,
                     _dataSet.LongCount(), otherFilter);

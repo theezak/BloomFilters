@@ -3,6 +3,7 @@
     using Configurations;
     using MathExt;
     using System;
+    using System.Collections;
     using System.Linq;
     /// <summary>
     /// Extension methods for the hybrid estimator data.
@@ -82,7 +83,7 @@
         {
             if (estimatorData == null) return null;
             var minWiseFold = estimatorData.BitMinwiseEstimator == null ? 1L :
-                (MathExtensions.GetFactors(estimatorData.BitMinwiseEstimator.Capacity).Cast<long?>().OrderBy(f => f).FirstOrDefault(f => f > factor) ?? 1L);
+                Math.Max(1L, (MathExtensions.GetFactors(estimatorData.BitMinwiseEstimator.Capacity).OrderBy(f => f).FirstOrDefault(f => f > factor)));
             return new HybridEstimatorFullData<int, TCount>
             {
                 ItemCount = estimatorData.ItemCount,
@@ -104,18 +105,51 @@
         /// <param name="configuration"></param>
         /// <returns></returns>
         public static HybridEstimatorFullData<int, TCount> Compress<TEntity, TId, TCount>(
-            this IHybridEstimatorFullData<int, TCount> estimatorData,
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration)
-            where TCount : struct
-            where TId : struct
+           this IHybridEstimatorFullData<int, TCount> estimatorData,
+           IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration)
+           where TCount : struct
+           where TId : struct
         {
             if (configuration?.FoldingStrategy == null || estimatorData == null) return null;
             var fold = configuration.FoldingStrategy.FindFoldFactor(
-                estimatorData.BlockSize, 
+                estimatorData.BlockSize,
                 estimatorData.BlockSize,
                 estimatorData.ItemCount);
             var res = fold.HasValue ? estimatorData.Fold(configuration, fold.Value) : null;
             return res;
+        }
+
+        /// <summary>
+        /// Convert full data to serializable data.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="TCount"></typeparam>
+        /// <param name="estimatorData"></param>
+        /// <returns></returns>
+        public static IHybridEstimatorData<TId, TCount> ToEstimatorData<TId,TCount>(
+            this HybridEstimatorFullData<TId, TCount> estimatorData)
+            where TCount : struct
+            where TId : struct
+        {
+            if (estimatorData == null) return null;
+            return new HybridEstimatorData<TId, TCount>
+            {
+                BlockSize = estimatorData.BlockSize,
+                ItemCount = estimatorData.ItemCount,
+                StrataCount = estimatorData.StrataCount,
+                StrataEstimator = estimatorData.StrataEstimator,
+                BitMinwiseEstimator = estimatorData.BitMinwiseEstimator == null ?
+                    null :
+                    new BitMinwiseHashEstimatorData
+                    {
+                        BitSize = estimatorData.BitMinwiseEstimator.BitSize,
+                        Capacity = estimatorData.BitMinwiseEstimator.Capacity,
+                        HashCount = estimatorData.BitMinwiseEstimator.HashCount,
+                        ItemCount = estimatorData.BitMinwiseEstimator.ItemCount,
+                        Values = estimatorData.BitMinwiseEstimator.Values.ConvertToBitArray(estimatorData.BitMinwiseEstimator.BitSize).ToBytes()
+                    }
+            };
         }
     }
 }

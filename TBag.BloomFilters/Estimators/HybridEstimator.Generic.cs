@@ -26,6 +26,27 @@
         /// </summary>
         public override long ItemCount => base.ItemCount + (_minwiseEstimator?.ItemCount ?? 0L) + _minwiseReplacementCount;
 
+        long IHybridEstimator<TEntity, int, TCount>.BlockSize
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        double IHybridEstimator<TEntity, int, TCount>.DecodeCountFactor
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         #endregion
 
         #region Constructor
@@ -176,7 +197,6 @@
                 return this;
             }
             var max = Math.Pow(2, MaxTrailingZeros);
-            //TODO: estimator constructor that simply takes the full data? Split things across constructor and initialize?
             IHybridEstimator<TEntity, int, TCount> estimator = new HybridEstimator<TEntity, TId, TCount>(
                 res.BlockSize,
                 res.StrataCount, 
@@ -244,7 +264,7 @@
         /// </summary>
         /// <remarks>Do not serialize across the wire, but can be used to rehydrate an estimator.</remarks>
         /// <returns></returns>
-        IHybridEstimatorFullData<int, TCount> IHybridEstimator<TEntity, int, TCount>.FullExtract()
+        public HybridEstimatorFullData<int, TCount> FullExtract()
         {
             return new HybridEstimatorFullData<int, TCount>
             {
@@ -254,6 +274,11 @@
                 StrataEstimator = Extract(),
                 StrataCount = MaxStrata               
             };
+        }
+
+        IHybridEstimatorFullData<int, TCount> IHybridEstimator<TEntity, int, TCount>.FullExtract()
+        {
+            return FullExtract();
         }
 
         /// <summary>
@@ -268,7 +293,8 @@
             MaxStrata = data.StrataCount;
             Rehydrate(data.StrataEstimator);
             _minwiseReplacementCount = Math.Max(0, data.ItemCount - (base.ItemCount + (_minwiseEstimator?.ItemCount ?? 0L)));
-        }     
+        }
+
         #endregion
     }
 }

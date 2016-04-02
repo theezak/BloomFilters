@@ -26,7 +26,8 @@
             var trialSize = Math.Max(200L, (long) (Math.Sqrt(blockSize)/trials));
             var smoothNumbers = default(long[]);
             var smoothness = (long)Math.Max(500L, Math.Pow(blockSize, PrimePowFactor));
-            while (trials > 0 && (smoothNumbers == null || smoothNumbers.Length == 0))
+            while (trials > 0 && 
+                (smoothNumbers == null || smoothNumbers.Length == 0))
             {
                 smoothNumbers = _smoothNumberGenerator.GetSmoothNumbers(blockSize, trialSize, smoothness);
                 trials--;
@@ -56,6 +57,12 @@
             return pieces > 1 ? (uint?) (uint) pieces : null;
         }
 
+        /// <summary>
+        /// Get fold factors for the two given sizes.
+        /// </summary>
+        /// <param name="size1"></param>
+        /// <param name="size2"></param>
+        /// <returns></returns>
         public Tuple<long, long> GetFoldFactors(long size1, long size2)
         {
             var gcd = MathExtensions.GetGcd(size1, size2);

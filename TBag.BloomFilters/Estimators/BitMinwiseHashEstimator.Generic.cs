@@ -134,7 +134,7 @@ namespace TBag.BloomFilters.Estimators
                 BitSize = _bitSize,
                 Capacity = _capacity,
                 HashCount = _hashCount,
-                Values = Convert(_slots, _bitSize).ToBytes(),
+                Values = !_slots.IsValueCreated ? null : _slots.Value.ConvertToBitArray(_bitSize).ToBytes(),
                 ItemCount = _itemCount
             };
         }
@@ -228,36 +228,7 @@ namespace TBag.BloomFilters.Estimators
 
         #region Methods
 
-        /// <summary>
-        /// Convert the slots to a bit array that only includes the specificied number of bits per slot.
-        /// </summary>
-        /// <param name="slots">The hashed values.</param>
-        /// <param name="bitSize">The bit size to be used per slot.</param>
-        /// <returns></returns>
-        private static BitArray Convert(Lazy<int[]> slots, byte bitSize)
-        {
-            if (!slots.IsValueCreated || bitSize <= 0) return null;
-            var hashValues = new BitArray((int)(bitSize * slots.Value.LongLength));
-            var allDefault = true;
-            var idx = 0;
-            for (var i = 0; i < slots.Value.LongLength; i++)
-            {
-                allDefault = allDefault && slots.Value[i] == int.MaxValue;
-                var byteValue = BitConverter.GetBytes(slots.Value[i]);
-                var byteValueIdx = 0;
-                for (var b = 0; b < bitSize; b++)
-                {
-                    hashValues.Set(idx + b, (byteValue[byteValueIdx] & (1 << (b % 8))) != 0);
-                    if (b > 0 && b % 8 == 0)
-                    {
-                        byteValueIdx = (byteValueIdx + 1) % byteValue.Length;
-                    }
-                }
-                idx += bitSize;
-            }
-            if (allDefault) return null;
-            return hashValues;
-        }
+      
 
         /// <summary>
         /// Bit minwise estimator requires this specific hash function.
