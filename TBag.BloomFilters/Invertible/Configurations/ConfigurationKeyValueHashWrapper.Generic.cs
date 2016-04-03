@@ -1,7 +1,6 @@
-﻿namespace TBag.BloomFilters.Invertible
+﻿namespace TBag.BloomFilters.Invertible.Configurations
 {
     using BloomFilters.Configurations;
-    using Configurations;
     using System;
     using System.Collections.Generic;
 

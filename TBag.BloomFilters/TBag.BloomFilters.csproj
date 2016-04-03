@@ -69,7 +69,7 @@
     <Compile Include="Configurations\IntCountConfiguration.cs" />
     <Compile Include="Invertible\Configurations\HybridConfigurationBase.Generic.cs" />
     <Compile Include="Estimators\ConfigurationEstimatorWrapper.Generic.cs" />
-    <Compile Include="Invertible\ConfigurationKeyValueHashWrapper.Generic.cs" />
+    <Compile Include="Invertible\Configurations\ConfigurationKeyValueHashWrapper.Generic.cs" />
     <Compile Include="Configurations\ICountConfiguration.Generic..cs" />
     <Compile Include="Invertible\IInvertibleBloomFilterDataFactory.cs" />
     <Compile Include="Invertible\InvertibleBloomFilterData.Generic.cs" />
