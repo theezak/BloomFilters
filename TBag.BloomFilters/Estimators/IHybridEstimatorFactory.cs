@@ -1,7 +1,7 @@
 ﻿namespace TBag.BloomFilters.Estimators
 {
     using Configurations;
-
+    using Invertible.Configurations;
     /// <summary>
     /// Interface for the hybrid estimator factory.
     /// </summary>
@@ -20,7 +20,7 @@
         /// <returns>A hybrid estimator</returns>
         /// <remarks>If decoding the invertible Bloom filter fails, a better hybrid estimator can be created by either providing a larger value for <paramref name="setSize"/> and/or providing a value for <paramref name="failedDecodeCount"/> (which will trigger an empirical rule for increasing the estimator size).</remarks>
         HybridEstimator<TEntity, TId, TCount> Create<TEntity, TId, TCount>(
-             IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
+             IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
              long setSize,
              byte failedDecodeCount = 0)
              where TCount : struct
@@ -39,7 +39,7 @@
         /// <remarks>The set size is for the your local set. The <paramref name="data"/> would typically be for the set that you are comparing against.</remarks>
         IHybridEstimator<TEntity, int, TCount> CreateMatchingEstimator<TEntity, TId, TCount>(
             IHybridEstimatorData<int, TCount> data,
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
             long setSize)
             where TId : struct
             where TCount : struct;
@@ -55,7 +55,7 @@
         /// <param name="failedDecodeCount">Number of times decoding has failed based upon the provided estimator.</param>
         /// <returns></returns>
         IHybridEstimatorData<int, TCount> Extract<TEntity, TId, TCount>(
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
              HybridEstimator<TEntity, TId, TCount> precalculatedEstimator,
             byte failedDecodeCount = 0)
             where TCount : struct
@@ -72,7 +72,8 @@
         /// <param name="setSize"></param>
         /// <param name="failedDecodeCount"></param>
         /// <returns></returns>
-        byte GetRecommendedStrata<TEntity, TId, THash, TCount>(IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
+        byte GetRecommendedStrata<TEntity, TId, THash, TCount>(
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
            long setSize,
            byte failedDecodeCount = 0)
             where TId : struct
@@ -91,7 +92,8 @@
         /// <param name="setSize"></param>
         /// <param name="failedDecodeCount"></param>
         /// <returns></returns>
-        byte GetRecommendedBitSize<TEntity, TId, THash, TCount>(IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
+        byte GetRecommendedBitSize<TEntity, TId, THash, TCount>(
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
       long setSize,
       byte failedDecodeCount = 0)
        where TId : struct
@@ -109,7 +111,8 @@
         /// <param name="setSize"></param>
         /// <param name="failedDecodeCount"></param>
         /// <returns></returns>
-        int GetRecommendedMinwiseHashCount<TEntity, TId, THash, TCount>(IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
+        int GetRecommendedMinwiseHashCount<TEntity, TId, THash, TCount>(
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
           long setSize,
           byte failedDecodeCount = 0)
            where TId : struct
@@ -127,7 +130,8 @@
         /// <param name="setSize"></param>
         /// <param name="failedDecodeCount"></param>
         /// <returns></returns>
-        long GetRecommendedCapacity<TEntity, TId, THash, TCount>(IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
+        long GetRecommendedCapacity<TEntity, TId, THash, TCount>(
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
             long setSize,
             byte failedDecodeCount = 0)
             where TId : struct

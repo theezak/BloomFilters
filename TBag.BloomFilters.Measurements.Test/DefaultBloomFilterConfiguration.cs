@@ -3,13 +3,13 @@
 namespace TBag.BloomFilters.Measurements.Test
 {
     using Configurations;
-  
+    using Invertible.Configurations;
     /// <summary>
     /// A test Bloom filter configuration.
     /// </summary>
-    internal class DefaultBloomFilterConfiguration : IbfConfigurationBase<TestEntity, sbyte>
+    internal class DefaultBloomFilterConfiguration : ConfigurationBase<TestEntity, sbyte>
     {
-        private IBloomFilterConfiguration<KeyValuePair<long, int>, long, int, sbyte> _valueFilterConfiguration;
+        private IInvertibleBloomFilterConfiguration<KeyValuePair<long, int>, long, int, sbyte> _valueFilterConfiguration;
         public DefaultBloomFilterConfiguration() : base(new ByteCountConfiguration(), false)
         {
             //allows the reverse filter to only use PureCount or the pure function, while this configuration
@@ -24,7 +24,7 @@ namespace TBag.BloomFilters.Measurements.Test
             return entity?.Id ?? 0L;
         }
 
-        public override IBloomFilterConfiguration<KeyValuePair<long, int>, long, int, sbyte> SubFilterConfiguration
+        public override IInvertibleBloomFilterConfiguration<KeyValuePair<long, int>, long, int, sbyte> SubFilterConfiguration
         {
             get { return _valueFilterConfiguration; }
             set { _valueFilterConfiguration = value; }

@@ -1,6 +1,7 @@
 ﻿namespace TBag.BloomFilters.Estimators
 {
     using Configurations;
+    using Invertible.Configurations;
     using MathExt;
     using System;
     using System.Collections.Generic;
@@ -21,7 +22,7 @@
         /// <param name="failedDecodeCount">Number of times decoding has failed based upon the provided estimator.</param>
         /// <returns></returns>
         public IHybridEstimatorData<int, TCount> Extract<TEntity, TId, TCount>(
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
              HybridEstimator<TEntity, TId, TCount> precalculatedEstimator,
             byte failedDecodeCount = 0)
             where TCount : struct
@@ -64,7 +65,7 @@
         /// <param name="failedDecodeCount">Number of times decoding has failed based upon the provided estimator.</param>
         /// <returns></returns>
         public HybridEstimator<TEntity,TId, TCount> Create<TEntity, TId, TCount>(
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
             long setSize,
             byte failedDecodeCount = 0)
             where TCount : struct
@@ -98,7 +99,8 @@
         /// <param name="setSize"></param>
         /// <param name="failedDecodeCount"></param>
         /// <returns></returns>
-        public int GetRecommendedMinwiseHashCount<TEntity, TId, THash, TCount>(IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
+        public int GetRecommendedMinwiseHashCount<TEntity, TId, THash, TCount>(
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
          long setSize,
          byte failedDecodeCount = 0)
           where TId : struct
@@ -128,7 +130,8 @@
         /// <param name="setSize"></param>
         /// <param name="failedDecodeCount"></param>
         /// <returns></returns>
-        public byte GetRecommendedBitSize<TEntity, TId, THash, TCount>(IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
+        public byte GetRecommendedBitSize<TEntity, TId, THash, TCount>(
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
          long setSize,
          byte failedDecodeCount = 0)
           where TId : struct
@@ -150,7 +153,8 @@
         /// <param name="setSize"></param>
         /// <param name="failedDecodeCount"></param>
         /// <returns></returns>
-        public byte GetRecommendedStrata<TEntity, TId, THash, TCount>(IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
+        public byte GetRecommendedStrata<TEntity, TId, THash, TCount>(
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
             long setSize,
             byte failedDecodeCount = 0)
              where TId : struct
@@ -186,7 +190,8 @@
         /// <param name="setSize"></param>
         /// <param name="failedDecodeCount"></param>
         /// <returns></returns>
-        public long GetRecommendedCapacity<TEntity, TId, THash, TCount>(IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
+        public long GetRecommendedCapacity<TEntity, TId, THash, TCount>(
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
             long setSize,
             byte failedDecodeCount = 0)
             where TId : struct
@@ -222,7 +227,7 @@
         /// <returns>An estimator</returns>
         public IHybridEstimator<TEntity, int, TCount> CreateMatchingEstimator<TEntity, TId, TCount>(
             IHybridEstimatorData<int, TCount> data,
-            IBloomFilterConfiguration<TEntity, TId, int,  TCount> configuration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int,  TCount> configuration,
             long setSize)
             where TCount : struct
             where TId : struct

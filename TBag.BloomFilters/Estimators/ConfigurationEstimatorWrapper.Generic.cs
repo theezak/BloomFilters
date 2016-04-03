@@ -1,19 +1,19 @@
-﻿namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters.Estimators
 {
     using System;
     using System.Collections.Generic;
     using HashAlgorithms;
     using Configurations;
-
-    /// <summary>
-    /// Derived Bloom filter configuration for an estimator
-    /// </summary>
-    /// <typeparam name="TEntity"></typeparam>
-    /// <typeparam name="TId"></typeparam>
-    /// <typeparam name="TCount"></typeparam>
-    /// <remarks>Estimators utilize the entity hash as the identifier, so we need to derive a configuration for that,</remarks>
-    internal class IbfConfigurationEstimatorWrapper<TEntity, TId, TCount> :
-      KeyValuePairIbfConfigurationBase<int,int,TCount>
+    using Invertible.Configurations;
+    using Invertible;    /// <summary>
+                         /// Derived Bloom filter configuration for an estimator
+                         /// </summary>
+                         /// <typeparam name="TEntity"></typeparam>
+                         /// <typeparam name="TId"></typeparam>
+                         /// <typeparam name="TCount"></typeparam>
+                         /// <remarks>Estimators utilize the entity hash as the identifier, so we need to derive a configuration for that,</remarks>
+    internal class ConfigurationEstimatorWrapper<TEntity, TId, TCount> :
+      KeyValuePairConfigurationBase<int,int,TCount>
          where TCount : struct
         where TId : struct
     {
@@ -30,7 +30,7 @@
         /// Constructor
         /// </summary>
         /// <param name="configuration">The original configuration.</param>
-        public IbfConfigurationEstimatorWrapper(
+        public ConfigurationEstimatorWrapper(
             IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration)
         {
             _wrappedConfiguration = configuration;

@@ -1,4 +1,4 @@
-﻿namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters.Invertible
 {
     using Configurations;
 
@@ -21,7 +21,7 @@
         /// <returns>The created Bloom filter</returns>
         /// <remarks>For the scenario where you need to match a received filter with the set you own, so you can find the differences.</remarks>
         public IInvertibleBloomFilter<TEntity, TId, TCount> CreateMatchingHighUtilizationFilter<TEntity, TId, TCount>(
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> bloomFilterConfiguration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> bloomFilterConfiguration,
             long capacity,
            IInvertibleBloomFilterData<TId, int, TCount> invertibleBloomFilterData)
             where TId : struct
@@ -47,7 +47,7 @@
         /// <returns>The created Bloom filter</returns>
         /// <remarks>Assumption is that the utilization will be in line with the capacity, thus keeping individual counts low.</remarks>
         public IInvertibleBloomFilter<TEntity, TId, TCount> Create<TEntity, TId, TCount>(
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> bloomFilterConfiguration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> bloomFilterConfiguration,
             long capacity,
             float? errorRate = null,
             bool reverse = false)

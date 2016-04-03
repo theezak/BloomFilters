@@ -1,7 +1,7 @@
-using TBag.BloomFilters.Configurations;
-
-namespace TBag.BloomFilters
+namespace TBag.BloomFilters.Invertible
 {
+    using Configurations;
+
     /// <summary>
     /// Interface for an invertible Bloom filter factory.
     /// </summary>
@@ -19,7 +19,7 @@ namespace TBag.BloomFilters
         /// <returns></returns>
         /// <remarks>Estimators will utilize Bloom filters with a capacity set to the estimated number of differences, but then add the whole set. This results in much higher count values than a Bloom filter with a capacity equal to the set size would deal with.</remarks>
         IInvertibleBloomFilter<TEntity, TId, TCount> CreateMatchingHighUtilizationFilter<TEntity, TId, TCount>(
-             IBloomFilterConfiguration<TEntity, TId, int, TCount> bloomFilterConfiguration,
+             IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> bloomFilterConfiguration,
              long capacity,
             IInvertibleBloomFilterData<TId, int, TCount> invertibleBloomFilterData)
              where TId : struct
@@ -38,7 +38,7 @@ namespace TBag.BloomFilters
         /// <param name="reverse">Wen <c>true</c> a reverse IBF is created, else <c>false</c>.</param>
         /// <returns>The Bloom filter data</returns>
         IInvertibleBloomFilter<TEntity, TId, TCount> Create<TEntity, TId, TCount>(
-               IBloomFilterConfiguration<TEntity, TId, int, TCount> bloomFilterConfiguration,
+               IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> bloomFilterConfiguration,
                long capacity,
                float? errorRate = null,
                bool reverse = false)

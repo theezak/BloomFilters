@@ -2,12 +2,12 @@
 {
     using System;
     using System.Text;
-     using HashAlgorithms;
+    using HashAlgorithms;
     using BloomFilters.Configurations;
-    /// <summary>
-    /// A test Bloom filter configuration.
-    /// </summary>
-    internal class KeyValueLargeBloomFilterConfiguration : ReverseIbfConfigurationBase<TestEntity, short>
+    using BloomFilters.Invertible.Configurations;    /// <summary>
+                                                     /// A test Bloom filter configuration.
+                                                     /// </summary>
+    internal class KeyValueLargeBloomFilterConfiguration : ReverseConfigurationBase<TestEntity, short>
     {
         private readonly IMurmurHash _murmurHash = new Murmur3();
 

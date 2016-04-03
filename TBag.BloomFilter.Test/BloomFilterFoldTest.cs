@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TBag.BloomFilters;
 using System.Linq;
+using TBag.BloomFilters.Invertible;
 
 namespace TBag.BloomFilter.Test
 {

@@ -27,7 +27,6 @@ namespace TBag.BloomFilters.Estimators
         private Lazy<int[]> _slots ;
         private long _itemCount;
         private readonly IBloomFilterConfiguration<TEntity, TId, int, TCount> _configuration;
-  
 
         #endregion
 

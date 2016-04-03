@@ -1,11 +1,9 @@
-﻿using TBag.BloomFilters.MathExt;
-
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-
+    using TBag.BloomFilters.MathExt;
     /// <summary>
     /// Generate smooth numbers.
     /// </summary>

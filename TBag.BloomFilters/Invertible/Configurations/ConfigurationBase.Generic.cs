@@ -1,14 +1,15 @@
-﻿namespace TBag.BloomFilters.Configurations
+﻿namespace TBag.BloomFilters.Invertible.Configurations
 {
     using System;
     using System.Collections.Generic;
     using HashAlgorithms;
     using System.Linq;
-
+    using Invertible;
+    using BloomFilters.Configurations;
     /// <summary>
     /// A standard Bloom filter configuration, well suited for Bloom filters that are utilized according to their capacity and store keys rather than key/value pairs.
     /// </summary>
-    public abstract class IbfConfigurationBase<TEntity, TCount> : 
+    public abstract class ConfigurationBase<TEntity, TCount> : 
         BloomFilterConfigurationBase<TEntity, long, int, TCount>
         where TCount : struct
     {
@@ -32,7 +33,7 @@
         /// <summary>
         /// Constructor
         /// </summary>
-        protected IbfConfigurationBase(ICountConfiguration<TCount> configuration, bool createValueFilter = true) : 
+        protected ConfigurationBase(ICountConfiguration<TCount> configuration, bool createValueFilter = true) : 
             base(createValueFilter)
         {
             _countConfiguration = configuration;

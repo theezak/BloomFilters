@@ -1,4 +1,4 @@
-﻿namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters.Invertible
 {
     using Configurations;
     using System;
@@ -30,7 +30,7 @@
         /// <summary>
         /// The configuration for the Bloom filter.
         /// </summary>
-        protected IBloomFilterConfiguration<TEntity, TId, int, TCount> Configuration { get; }
+        protected IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> Configuration { get; }
 
         /// <summary>
         /// The Bloom filter data.
@@ -46,7 +46,7 @@
         /// <param name="bloomFilterConfiguration">The Bloom filter configuration</param>
         /// <param name="validateConfiguration">When <c>true</c> the configuration is validated on the first operation, else <c>false</c>.</param>
         public InvertibleBloomFilter(
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> bloomFilterConfiguration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> bloomFilterConfiguration,
             bool validateConfiguration = true)
         {
             Configuration = bloomFilterConfiguration;

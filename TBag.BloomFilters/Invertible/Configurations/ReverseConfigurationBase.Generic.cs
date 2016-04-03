@@ -1,13 +1,14 @@
-﻿namespace TBag.BloomFilters.Configurations
+﻿namespace TBag.BloomFilters.Invertible.Configurations
 {
+    using BloomFilters.Configurations;
     using HashAlgorithms;
     using System;
 
     /// <summary>
     /// A  Bloom filter configuration well suited for Bloom filters that utilize both keys and values.
     /// </summary>
-    public abstract class ReverseIbfConfigurationBase<TEntity, TCount> :
-        IbfConfigurationBase<TEntity, TCount>
+    public abstract class ReverseConfigurationBase<TEntity, TCount> :
+        ConfigurationBase<TEntity, TCount>
         where TCount : struct
     {
         #region Fields
@@ -22,7 +23,7 @@
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="createValueFilter"></param>
-        protected ReverseIbfConfigurationBase(ICountConfiguration<TCount> configuration, bool createValueFilter = true) :
+        protected ReverseConfigurationBase(ICountConfiguration<TCount> configuration, bool createValueFilter = true) :
             base(configuration, createValueFilter)
         {
             //the hashSum value is different.

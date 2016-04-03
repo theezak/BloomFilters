@@ -1,14 +1,16 @@
 ﻿namespace TBag.BloomFilters.Estimators
 {
     using Configurations;
+    using Invertible.Configurations;
     using MathExt;
     using System;
     using System.Collections;
     using System.Linq;
+
     /// <summary>
     /// Extension methods for the hybrid estimator data.
     /// </summary>
-    public static class HybridEstimatorDataExtensions
+    internal static class HybridEstimatorDataExtensions
     {
    
         /// <summary>
@@ -22,9 +24,9 @@
         /// <param name="configuration">Configuration</param>
         /// <param name="destructive">When <c>true</c> the values of <paramref name="estimator"/> will be altered rendering it useless, otherwise <c>false</c></param>
         /// <returns>An estimate of the difference between two sets based upon the estimators.</returns>
-        public static long? Decode<TEntity, TId, TCount>(this IHybridEstimatorData<int, TCount> estimator,
+        internal static long? Decode<TEntity, TId, TCount>(this IHybridEstimatorData<int, TCount> estimator,
             IHybridEstimatorData<int, TCount> otherEstimatorData,
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
             bool destructive = false)
             where TCount : struct
             where TId : struct
@@ -69,9 +71,9 @@
         /// <param name="configuration"></param>
         /// <param name="factor"></param>
         /// <returns></returns>
-        public static HybridEstimatorFullData<int, TCount> Fold<TEntity, TId, TCount>(
+        internal static HybridEstimatorFullData<int, TCount> Fold<TEntity, TId, TCount>(
             this IHybridEstimatorFullData<int, TCount> estimatorData,
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
             uint factor)
             where TCount : struct
             where TId : struct
@@ -97,9 +99,9 @@
         /// <param name="estimatorData"></param>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        public static HybridEstimatorFullData<int, TCount> Compress<TEntity, TId, TCount>(
+        internal static HybridEstimatorFullData<int, TCount> Compress<TEntity, TId, TCount>(
            this IHybridEstimatorFullData<int, TCount> estimatorData,
-           IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration)
+           IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration)
            where TCount : struct
            where TId : struct
         {
@@ -120,7 +122,7 @@
         /// <typeparam name="TCount"></typeparam>
         /// <param name="estimatorData"></param>
         /// <returns></returns>
-        public static IHybridEstimatorData<TId, TCount> ToEstimatorData<TId,TCount>(
+        internal static IHybridEstimatorData<TId, TCount> ToEstimatorData<TId,TCount>(
             this HybridEstimatorFullData<TId, TCount> estimatorData)
             where TCount : struct
             where TId : struct

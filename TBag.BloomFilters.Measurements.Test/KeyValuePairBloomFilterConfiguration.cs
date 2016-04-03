@@ -2,8 +2,8 @@
 namespace TBag.BloomFilters.Measurements.Test
 {
     using Configurations;
-
-    internal class KeyValuePairBloomFilterConfiguration : PairIbfConfigurationBase<sbyte>
+    using Invertible.Configurations;
+    internal class KeyValuePairBloomFilterConfiguration : PairConfigurationBase<sbyte>
     {
 
         public KeyValuePairBloomFilterConfiguration(

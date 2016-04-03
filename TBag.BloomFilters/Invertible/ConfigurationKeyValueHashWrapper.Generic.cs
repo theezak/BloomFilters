@@ -1,5 +1,6 @@
-﻿namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters.Invertible
 {
+    using BloomFilters.Configurations;
     using Configurations;
     using System;
     using System.Collections.Generic;
@@ -12,14 +13,14 @@
     /// <typeparam name="TCount">The type of the occurence count.</typeparam>
     /// <typeparam name="THash">The type of the hash value.</typeparam>
     /// <remarks>The value Bloom filter is reversed, utilizing the value hash as the identifier, and the identifier as the value hash.</remarks>
-    internal class IbfConfigurationKeyValueHashWrapper<TEntity, TId, THash, TCount> :
-          KeyValuePairIbfConfigurationBase<TId, THash, TCount>
+    internal class ConfigurationKeyValueHashWrapper<TEntity, TId, THash, TCount> :
+          KeyValuePairConfigurationBase<TId, THash, TCount>
            where TCount : struct
             where TId : struct
         where THash : struct
     {
         #region Fields
-        private readonly IBloomFilterConfiguration<TEntity, TId, THash, TCount> _wrappedConfiguration;
+        private readonly IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> _wrappedConfiguration;
         private Func<IInvertibleBloomFilterData<TId, THash, TCount>, long, bool> _isPure;
         #endregion
 
@@ -28,8 +29,8 @@
         /// Constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public IbfConfigurationKeyValueHashWrapper(
-            IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration) : 
+        public ConfigurationKeyValueHashWrapper(
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration) : 
             base(false)
         {
             _wrappedConfiguration = configuration;
@@ -186,7 +187,7 @@
         /// <summary>
         /// The sub filter configuration
         /// </summary>
-        public override IBloomFilterConfiguration<KeyValuePair<TId, THash>, TId, THash, TCount> SubFilterConfiguration => _wrappedConfiguration.SubFilterConfiguration;
+        public override IInvertibleBloomFilterConfiguration<KeyValuePair<TId, THash>, TId, THash, TCount> SubFilterConfiguration => _wrappedConfiguration.SubFilterConfiguration;
 
         /// <summary>
         /// The folding strategy.

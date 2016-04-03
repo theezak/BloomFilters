@@ -1,4 +1,4 @@
-﻿namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters.Invertible
 {
     using Configurations;
     using System;
@@ -21,7 +21,7 @@
         /// </summary>
         /// <param name="bloomFilterConfiguration">The Bloom filter configuration</param>
         public InvertibleReverseBloomFilter(
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> bloomFilterConfiguration) :
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> bloomFilterConfiguration) :
                 base(bloomFilterConfiguration)
         {
             ValidateConfiguration = false;

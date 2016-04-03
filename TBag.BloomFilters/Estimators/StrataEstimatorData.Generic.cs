@@ -2,6 +2,7 @@
 
 namespace TBag.BloomFilters.Estimators
 {
+    using Invertible;
     using System;
     using System.Runtime.Serialization;
 

@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TBag.BloomFilters;
 using TBag.BloomFilters.Configurations;
+using TBag.BloomFilters.Invertible;
 
 namespace TBag.BloomFilter.Test
 {

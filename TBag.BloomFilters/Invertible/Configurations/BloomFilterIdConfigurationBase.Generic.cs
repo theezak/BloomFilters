@@ -1,8 +1,9 @@
-﻿namespace TBag.BloomFilters.Configurations
+﻿namespace TBag.BloomFilters.Invertible.Configurations
 {
+    using BloomFilters.Configurations;
     using System;
     using System.Collections.Generic;
-  
+
     /// <summary>
     /// Base class for the Bloom filter configuration for identifiers.
     /// </summary>

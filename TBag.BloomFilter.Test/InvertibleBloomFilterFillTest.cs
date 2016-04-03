@@ -6,7 +6,7 @@ namespace TBag.BloomFilter.Test
     using System.Collections.Generic;
     using BloomFilters;
     using System.Linq;
-
+    using BloomFilters.Invertible;
     /// <summary>
     /// Simple add and lookup test on Bloom filter.
     /// </summary>

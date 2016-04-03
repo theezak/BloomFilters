@@ -1,11 +1,11 @@
 ﻿namespace TBag.BloomFilter.Test
 {
     using BloomFilters.Configurations;
-
+    using BloomFilters.Invertible.Configurations;
     /// <summary>
     /// A test Bloom filter configuration.
     /// </summary>
-    internal class LargeBloomFilterConfiguration : IbfConfigurationBase<TestEntity, short>
+    internal class LargeBloomFilterConfiguration : ConfigurationBase<TestEntity, short>
     {
         public LargeBloomFilterConfiguration() : base(new ShortCountConfiguration())
         {}

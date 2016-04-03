@@ -8,7 +8,7 @@
     /// <summary>
     /// Extension methods for bit minwise hash estimator data
     /// </summary>
-    public static class BitMinwiseHashEstimatorDataExtensions
+    internal static class BitMinwiseHashEstimatorDataExtensions
     {
         /// <summary>
         /// Determine the similarity between two estimators.
@@ -17,7 +17,7 @@
         /// <param name="otherEstimatorData"></param>
         /// <returns>Similarity (percentage similar, zero is completely different, one is completely the same)</returns>
         /// <remarks>Zero is no similarity, one is completely similar.</remarks>
-        public static double? Similarity(this IBitMinwiseHashEstimatorData estimator,
+        internal static double? Similarity(this IBitMinwiseHashEstimatorData estimator,
             IBitMinwiseHashEstimatorData otherEstimatorData)
         {
             if (estimator == null ||
@@ -38,7 +38,7 @@
         /// <param name="estimator"></param>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        public static IBitMinwiseHashEstimatorFullData Compress<TEntity, TId, TCount>(
+        internal static IBitMinwiseHashEstimatorFullData Compress<TEntity, TId, TCount>(
             this IBitMinwiseHashEstimatorFullData estimator,
            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration)
             where TId : struct
@@ -56,7 +56,7 @@
         /// <param name="estimator">The estimator data</param>
          /// <param name="factor">The folding factor</param>
         /// <returns></returns>
-        public static BitMinwiseHashEstimatorFullData Fold(
+        internal static BitMinwiseHashEstimatorFullData Fold(
             this IBitMinwiseHashEstimatorFullData estimator,           
             uint factor)
         {
@@ -100,7 +100,7 @@
         /// <param name="foldingStrategy">THe folding strategy to use</param>
         /// <param name="inPlace">When <c>true</c> the data is added to the given <paramref name="estimator"/>, otherwise a new estimator is created.</param>
         /// <returns></returns>
-        public static IBitMinwiseHashEstimatorFullData Add(
+        internal static IBitMinwiseHashEstimatorFullData Add(
             this IBitMinwiseHashEstimatorFullData estimator,
             IBitMinwiseHashEstimatorFullData otherEstimator,
             IFoldingStrategy foldingStrategy,
@@ -137,6 +137,38 @@
             }
             res.ItemCount += otherEstimator.ItemCount;
             return res;
+        }
+
+
+        /// <summary>
+        /// Convert the slots to a bit array that only includes the specificied number of bits per slot.
+        /// </summary>
+        /// <param name="slots">The hashed values.</param>
+        /// <param name="bitSize">The bit size to be used per slot.</param>
+        /// <returns></returns>
+        internal static BitArray ConvertToBitArray(this int[] slots, byte bitSize)
+        {
+            if (slots == null || bitSize <= 0) return null;
+            var hashValues = new BitArray((int)(bitSize * slots.LongLength));
+            var allDefault = true;
+            var idx = 0;
+            for (var i = 0; i < slots.LongLength; i++)
+            {
+                allDefault = allDefault && slots[i] == int.MaxValue;
+                var byteValue = BitConverter.GetBytes(slots[i]);
+                var byteValueIdx = 0;
+                for (var b = 0; b < bitSize; b++)
+                {
+                    hashValues.Set(idx + b, (byteValue[byteValueIdx] & (1 << (b % 8))) != 0);
+                    if (b > 0 && b % 8 == 0)
+                    {
+                        byteValueIdx = (byteValueIdx + 1) % byteValue.Length;
+                    }
+                }
+                idx += bitSize;
+            }
+            if (allDefault) return null;
+            return hashValues;
         }
 
         #region Methods
@@ -215,37 +247,6 @@
             return val;
         }
         #endregion
-
-        /// <summary>
-        /// Convert the slots to a bit array that only includes the specificied number of bits per slot.
-        /// </summary>
-        /// <param name="slots">The hashed values.</param>
-        /// <param name="bitSize">The bit size to be used per slot.</param>
-        /// <returns></returns>
-        internal static BitArray ConvertToBitArray(this int[] slots, byte bitSize)
-        {
-            if (slots == null || bitSize <= 0) return null;
-            var hashValues = new BitArray((int)(bitSize * slots.LongLength));
-            var allDefault = true;
-            var idx = 0;
-            for (var i = 0; i < slots.LongLength; i++)
-            {
-                allDefault = allDefault && slots[i] == int.MaxValue;
-                var byteValue = BitConverter.GetBytes(slots[i]);
-                var byteValueIdx = 0;
-                for (var b = 0; b < bitSize; b++)
-                {
-                    hashValues.Set(idx + b, (byteValue[byteValueIdx] & (1 << (b % 8))) != 0);
-                    if (b > 0 && b % 8 == 0)
-                    {
-                        byteValueIdx = (byteValueIdx + 1) % byteValue.Length;
-                    }
-                }
-                idx += bitSize;
-            }
-            if (allDefault) return null;
-            return hashValues;
-        }
     }
 }
 

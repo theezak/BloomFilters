@@ -1,13 +1,14 @@
-﻿namespace TBag.BloomFilters.Configurations
+﻿namespace TBag.BloomFilters.Invertible.Configurations
 {
+    using BloomFilters.Configurations;
     using System;
     using System.Collections.Generic;
-   
+
     /// <summary>
     /// A default Bloom filter configuration, well suited for  key/value inveritble Bloom filters that are utilized according to their capacity.
     /// </summary>
-    public abstract class PairIbfConfigurationBase<TCount> : 
-       IbfConfigurationBase<KeyValuePair<long, int>, TCount> 
+    public abstract class PairConfigurationBase<TCount> : 
+       ConfigurationBase<KeyValuePair<long, int>, TCount> 
         where TCount : struct
     {
         #region Fields
@@ -22,7 +23,7 @@
         /// Constructor
         /// </summary>
         /// <param name="createValueFilter">When <c>true</c> a configuration for the RIBF is created as well.</param>
-        protected PairIbfConfigurationBase(ICountConfiguration<TCount> configuration, bool createValueFilter = true) : 
+        protected PairConfigurationBase(ICountConfiguration<TCount> configuration, bool createValueFilter = true) : 
             base(configuration, createValueFilter)
         {
             _entityHash = kv => kv.Value;

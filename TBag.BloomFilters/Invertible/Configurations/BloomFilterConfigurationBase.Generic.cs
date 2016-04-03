@@ -1,8 +1,9 @@
-﻿namespace TBag.BloomFilters.Configurations
+﻿namespace TBag.BloomFilters.Invertible.Configurations
 {
     using System;
     using System.Collections.Generic;
-
+    using Invertible;
+    using BloomFilters.Configurations;
     /// <summary>
     /// Base class for a Bloom filter configuration
     /// </summary>
@@ -12,12 +13,12 @@
     /// <typeparam name="TCount">The type of the occurence counter</typeparam>
     public abstract class BloomFilterConfigurationBase<TEntity, TId, THash, TCount> :
         BloomFilterIdConfigurationBase<TEntity, TId, THash>,
-        IBloomFilterConfiguration<TEntity, TId, THash, TCount>
+        IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount>
         where THash : struct
         where TCount : struct
         where TId : struct
     {
-        private IBloomFilterConfiguration<KeyValuePair<TId, THash>, TId, THash, TCount> _subFilterConfiguration;
+        private IInvertibleBloomFilterConfiguration<KeyValuePair<TId, THash>, TId, THash, TCount> _subFilterConfiguration;
 
         /// <summary>
         /// Constructor
@@ -89,7 +90,7 @@
         /// The value filter configuration 
         /// </summary>
         /// <remarks>Only used for hybrid IBFs.</remarks>
-        public virtual IBloomFilterConfiguration<KeyValuePair<TId, THash>, TId, THash, TCount> SubFilterConfiguration
+        public virtual IInvertibleBloomFilterConfiguration<KeyValuePair<TId, THash>, TId, THash, TCount> SubFilterConfiguration
         {
             get { return _subFilterConfiguration; }
             set { _subFilterConfiguration = value; }

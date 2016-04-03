@@ -46,9 +46,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collections\Generics\ListExtensions.cs" />
-    <Compile Include="Configurations\BloomFilterConfigurationBase.Generic.cs" />
-    <Compile Include="Configurations\BloomFilterConfigurationExtensions.cs" />
-    <Compile Include="Configurations\BloomFilterIdConfigurationBase.Generic.cs" />
+    <Compile Include="Configurations\IBloomFilterConfiguration.Generic.cs" />
+    <Compile Include="Estimators\BloomFilterConfigurationExtensions.cs" />
+    <Compile Include="Invertible\Configurations\BloomFilterConfigurationBase.Generic.cs" />
+    <Compile Include="Invertible\Configurations\BloomFilterConfigurationExtensions.cs" />
+    <Compile Include="Invertible\Configurations\BloomFilterIdConfigurationBase.Generic.cs" />
     <Compile Include="Collections\BitArrayExtensions.cs" />
     <Compile Include="Configurations\PowerOfTwoFoldingStrategy.cs" />
     <Compile Include="Configurations\IFoldingStrategy.cs" />
@@ -65,16 +67,16 @@
     <Compile Include="Estimators\IHybridEstimatorFullData.Generic.cs" />
     <Compile Include="HashSetExtensions.cs" />
     <Compile Include="Configurations\IntCountConfiguration.cs" />
-    <Compile Include="Configurations\HybridIbfConfigurationBase.Generic.cs" />
-    <Compile Include="IbfConfigurationEstimatorWrapper.Generic.cs" />
-    <Compile Include="IbfConfigurationKeyValueHashWrapper.Generic.cs" />
+    <Compile Include="Invertible\Configurations\HybridConfigurationBase.Generic.cs" />
+    <Compile Include="Estimators\ConfigurationEstimatorWrapper.Generic.cs" />
+    <Compile Include="Invertible\ConfigurationKeyValueHashWrapper.Generic.cs" />
     <Compile Include="Configurations\ICountConfiguration.Generic..cs" />
-    <Compile Include="IInvertibleBloomFilterDataFactory.cs" />
-    <Compile Include="InvertibleBloomFilterData.Generic.cs" />
-    <Compile Include="InvertibleBloomFilterDataFactory.cs" />
-    <Compile Include="Configurations\ReverseIbfConfigurationBase.Generic.cs" />
-    <Compile Include="Configurations\PairIbfConfigurationBase.Generic.cs" />
-    <Compile Include="Configurations\IbfConfigurationBase.Generic.cs" />
+    <Compile Include="Invertible\IInvertibleBloomFilterDataFactory.cs" />
+    <Compile Include="Invertible\InvertibleBloomFilterData.Generic.cs" />
+    <Compile Include="Invertible\InvertibleBloomFilterDataFactory.cs" />
+    <Compile Include="Invertible\Configurations\ReverseConfigurationBase.Generic.cs" />
+    <Compile Include="Invertible\Configurations\PairConfigurationBase.Generic.cs" />
+    <Compile Include="Invertible\Configurations\ConfigurationBase.Generic.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimator.Generic.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimatorData.Generic.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimatorDataExtensions.cs" />
@@ -92,19 +94,19 @@
     <Compile Include="Estimators\StrataEstimator.Generic..cs" />
     <Compile Include="Estimators\StrataEstimatorData.Generic.cs" />
     <Compile Include="Estimators\StrataEstimatorDataExtensions.cs" />
-    <Compile Include="Configurations\IBloomFilterConfiguration.Generic.cs" />
-    <Compile Include="IBloomFilterSizeConfiguration.cs" />
-    <Compile Include="IInvertibleBloomFilter.Generic.cs" />
-    <Compile Include="IInvertibleBloomFilterData.Generic.cs" />
-    <Compile Include="IInvertibleBloomFilterFactory.cs" />
-    <Compile Include="InvertibleHybridBloomFilter.Generic.cs" />
-    <Compile Include="InvertibleReverseBloomFilter.Generic.cs" />
-    <Compile Include="InvertibleBloomFilter.Generic.cs" />
-    <Compile Include="InvertibleBloomFilterDataExtensions.cs" />
-    <Compile Include="InvertibleBloomFilterFactory.cs" />
+    <Compile Include="Invertible\Configurations\IInvertibleBloomFilterConfiguration.Generic.cs" />
+    <Compile Include="Configurations\IBloomFilterSizeConfiguration.cs" />
+    <Compile Include="Invertible\IInvertibleBloomFilter.Generic.cs" />
+    <Compile Include="Invertible\IInvertibleBloomFilterData.Generic.cs" />
+    <Compile Include="Invertible\IInvertibleBloomFilterFactory.cs" />
+    <Compile Include="Invertible\InvertibleHybridBloomFilter.Generic.cs" />
+    <Compile Include="Invertible\InvertibleReverseBloomFilter.Generic.cs" />
+    <Compile Include="Invertible\InvertibleBloomFilter.Generic.cs" />
+    <Compile Include="Invertible\InvertibleBloomFilterDataExtensions.cs" />
+    <Compile Include="Invertible\InvertibleBloomFilterFactory.cs" />
     <Compile Include="MathExt\MathExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Configurations\KeyValuePairIbfConfigurationBase.Generic.cs" />
+    <Compile Include="Invertible\Configurations\KeyValuePairConfigurationBase.Generic.cs" />
     <Compile Include="SmoothNumberGenerator.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -116,6 +118,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

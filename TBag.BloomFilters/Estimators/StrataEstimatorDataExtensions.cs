@@ -1,15 +1,16 @@
-﻿using System.Linq;
-
-namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Estimators
 {
     using Configurations;
+    using Invertible;
+    using Invertible.Configurations;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Extension methods for the strata estimator data.
     /// </summary>
-    public static class StrataEstimatorDataExtensions
+    internal static class StrataEstimatorDataExtensions
     {
         /// <summary>
         /// Decode the given strata estimators.
@@ -23,9 +24,9 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="maxStrata">The maximum strata</param>
         /// <param name="destructive">When <c>true</c> the <paramref name="data"/> will be altered and no longer usable, else <c>false</c></param>
         /// <returns></returns>
-        public static long? Decode<TEntity, TId, TCount>(this IStrataEstimatorData<int, TCount> data,
+        internal static long? Decode<TEntity, TId, TCount>(this IStrataEstimatorData<int, TCount> data,
             IStrataEstimatorData<int, TCount> otherEstimatorData,
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
             byte maxStrata,
             bool destructive = false)
             where TId : struct
@@ -136,9 +137,9 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="configuration"></param>
         /// <param name="factor"></param>
         /// <returns></returns>
-        public static StrataEstimatorData<int, TCount> Fold<TEntity, TId, TCount>(
+        internal static StrataEstimatorData<int, TCount> Fold<TEntity, TId, TCount>(
             this IStrataEstimatorData<int, TCount> estimatorData,
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
             uint factor)
             where TCount : struct
             where TId : struct
@@ -175,9 +176,9 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="estimatorData"></param>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        public static StrataEstimatorData<int, TCount> Compress<TEntity, TId, TCount>(
+        internal static StrataEstimatorData<int, TCount> Compress<TEntity, TId, TCount>(
             this IStrataEstimatorData<int, TCount> estimatorData,
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration)
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration)
             where TCount : struct
             where TId : struct
         {

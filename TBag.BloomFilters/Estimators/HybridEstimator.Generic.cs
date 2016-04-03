@@ -1,6 +1,7 @@
 ﻿namespace TBag.BloomFilters.Estimators
 {
     using Configurations;
+    using Invertible.Configurations;
     using System;
     using System.Collections.Generic;
     /// <summary>
@@ -62,7 +63,7 @@
         public HybridEstimator(
             long blockSize,
             byte maxStrata,
-            IBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration) : base(
+            IInvertibleBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration) : base(
                 blockSize,
                 configuration,
                 maxStrata)        
@@ -156,27 +157,37 @@
         /// Decode the given hybrid estimator.
         /// </summary>
         /// <param name="estimator">The estimator for the other set.</param>
+        /// <param name="lowerStrata">When <c>true</c> the strata of this estimator can be lowered to match the strata of <paramref name="estimator"/>.</param>
         /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns>An estimate of the number of differences between the two sets that the estimators are based upon.</returns>
         public long? Decode(IHybridEstimator<TEntity, int, TCount> estimator,
+             bool lowerStrata = true,
             bool destructive = false)
          {
             if (estimator == null) return ItemCount;
-            return Decode(estimator.Extract(), destructive);
+            return Decode(estimator.Extract(), lowerStrata, destructive);
         }
 
         /// <summary>
         /// Decode the given hybrid estimator data.
         /// </summary>
         /// <param name="estimator">The estimator for the other set.</param>
+        /// <param name="lowerStrata">When <c>true</c> the strata of this estimator can be lowered to match the strata of <paramref name="estimator"/>.</param>
         /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns>An estimate of the number of differences between the two sets that the estimators are based upon.</returns>
         public long? Decode(IHybridEstimatorData<int, TCount> estimator,
+            bool lowerStrata = true,
             bool destructive = false)
         {
             if (estimator == null) return ItemCount;
-            return ((IHybridEstimator<TEntity, int, TCount>) this)
-                .Extract()
+            var data = FullExtract();
+            if (lowerStrata &&
+                estimator?.StrataEstimator != null)
+            {
+                data.StrataEstimator.LowerStrata(estimator.StrataEstimator.StrataCount);
+            }
+            return data
+                .ToEstimatorData()
                 .Decode(estimator, Configuration);
         }
 

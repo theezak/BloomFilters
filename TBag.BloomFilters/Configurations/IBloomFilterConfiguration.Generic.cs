@@ -2,6 +2,8 @@
 {
     using System.Collections.Generic;
     using System;
+    using Invertible;
+    using BloomFilters.Configurations;
 
     /// <summary>
     /// Interface for configuration of a Bloom filter.
@@ -28,20 +30,9 @@
         EqualityComparer<THash> HashEqualityComparer { get; set; }
         
         /// <summary>
-        /// Configuration for the Bloom filter that hashes values.
-        /// </summary>
-        /// <remarks>Only used by a hybrid IBF that utilizes both an IBF and a reverse IBF (this being the data for the reverse IBF)</remarks>
-        IBloomFilterConfiguration<KeyValuePair<TId,THash>, TId, THash, TCount> SubFilterConfiguration { get;  }
-
-        /// <summary>
         /// Function to create a sequence of given length of hashes.
         /// </summary>
         Func<THash, uint, IEnumerable<THash>> Hashes { get; set; }
-
-        /// <summary>
-        /// Determine if the location in the given data is pure.
-        /// </summary>
-        Func<IInvertibleBloomFilterData<TId, THash, TCount>, long,  bool> IsPure { get; set; }
 
         /// <summary>
         /// Function to create a value hash for a given entity.
@@ -82,11 +73,6 @@
         /// Equality comparer for <typeparamref name="TId"/>.
         /// </summary>
         EqualityComparer<TId> IdEqualityComparer { get; set; }
-
-        /// <summary>
-        /// Data factory
-        /// </summary>
-        IInvertibleBloomFilterDataFactory DataFactory { get; }
 
         /// <summary>
         /// Determine if the configuration supports the given capacity and set size.

@@ -2,6 +2,8 @@
 {
     using Configurations;
     using HashAlgorithms;
+    using Invertible;
+    using Invertible.Configurations;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -50,7 +52,7 @@
         /// <summary>
         /// Configuration
         /// </summary>
-        protected IBloomFilterConfiguration<TEntity, TId,  int, TCount> Configuration { get; }
+        protected IInvertibleBloomFilterConfiguration<TEntity, TId,  int, TCount> Configuration { get; }
 
         /// <summary>
         /// Decode factor.
@@ -67,7 +69,7 @@
         /// <param name="maxStrata">Optional maximum strata</param>
              protected StrataEstimator(
             long blockSize,
-            IBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration,
             byte? maxStrata = null)
         {
             BlockSize = configuration.FoldingStrategy?.ComputeFoldableSize(blockSize, 0) ?? blockSize;

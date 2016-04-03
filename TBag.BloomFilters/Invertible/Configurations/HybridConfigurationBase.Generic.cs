@@ -1,15 +1,16 @@
-﻿namespace TBag.BloomFilters.Configurations
+﻿namespace TBag.BloomFilters.Invertible.Configurations
 {
+    using BloomFilters.Configurations;
     using HashAlgorithms;
     using System;
-  
+
     /// <summary>
     /// A test Bloom filter configuration for hybrid Bloom filter.
     /// </summary>
     /// <typeparam name="TEntity">Type of the entity</typeparam>
     /// <typeparam name="TCount">Type of the occurence count</typeparam>
     /// <remarks>Generates a full entity hash while keeping the standard pure implementation, knowing that the hybrid IBF won't use the entity hash except for internal the reverse IBF.</remarks>
-    public abstract class HybridIbfConfigurationBase<TEntity,TCount> : IbfConfigurationBase<TEntity, TCount>
+    public abstract class HybridConfigurationBase<TEntity,TCount> : ConfigurationBase<TEntity, TCount>
         where TCount : struct
     {
         private readonly IMurmurHash _murmurHash = new Murmur3();
@@ -20,7 +21,7 @@
        /// </summary>
        /// <param name="countConfiguration"></param>
        /// <param name="createFilter"></param>
-       protected HybridIbfConfigurationBase(ICountConfiguration<TCount> countConfiguration,
+       protected HybridConfigurationBase(ICountConfiguration<TCount> countConfiguration,
             bool createFilter = true) : base(countConfiguration, createFilter)
         {
             //set the custom hash: the hybrid IBF will only use the IdHash (with the pure definition that includes count and hashSum)

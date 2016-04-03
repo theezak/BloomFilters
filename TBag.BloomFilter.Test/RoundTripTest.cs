@@ -1,11 +1,11 @@
 ﻿namespace TBag.BloomFilter.Test
 {
-     using System.Collections.Generic;
+    using System.Collections.Generic;
     using System.Linq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-   using TBag.BloomFilters;
+    using TBag.BloomFilters;
     using TBag.BloomFilters.Estimators;
-
+    using BloomFilters.Invertible;
     [TestClass]
     public class RoundTripTest
     {

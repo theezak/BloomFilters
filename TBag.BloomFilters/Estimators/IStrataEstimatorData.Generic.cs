@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters.Estimators
+﻿using TBag.BloomFilters.Invertible;
+
+namespace TBag.BloomFilters.Estimators
 {
     /// <summary>
     /// Interface for strata estimator data.

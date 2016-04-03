@@ -1,9 +1,8 @@
-﻿using System.Threading;
-
-namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters.Invertible
 {
     using System.Collections.Generic;
     using System;
+    using System.Threading;
 
     /// <summary>
     /// Interface for an invertible Bloom filter.

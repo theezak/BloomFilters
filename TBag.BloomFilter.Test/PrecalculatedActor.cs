@@ -8,16 +8,16 @@
     using BloomFilters;
     using BloomFilters.Estimators;
     using BloomFilters.Configurations;
-    
-    /// <summary>
-    /// A full working test harness for creating an estimator, serializing the estimator and receiving the filter.
-    /// </summary>
+    using BloomFilters.Invertible;
+    using BloomFilters.Invertible.Configurations;    /// <summary>
+                                                     /// A full working test harness for creating an estimator, serializing the estimator and receiving the filter.
+                                                     /// </summary>
     internal class PrecalculatedActor
     {
         private readonly RuntimeTypeModel _protobufModel;
         private readonly IList<TestEntity> _dataSet;
         private readonly IHybridEstimatorFactory _hybridEstimatorFactory;
-       private readonly IBloomFilterConfiguration<TestEntity, long, int,  sbyte> _configuration;
+       private readonly IInvertibleBloomFilterConfiguration<TestEntity, long, int,  sbyte> _configuration;
         private readonly IInvertibleBloomFilterFactory _bloomFilterFactory;
         private readonly HybridEstimator<TestEntity, long, sbyte> _estimator;
         /// <summary>
@@ -30,7 +30,7 @@
         public PrecalculatedActor(IList<TestEntity> dataSet,
             IHybridEstimatorFactory hybridEstimatorFactory,
             IInvertibleBloomFilterFactory bloomFilterFactory,
-            IBloomFilterConfiguration<TestEntity, long, int,  sbyte> configuration)           {
+            IInvertibleBloomFilterConfiguration<TestEntity, long, int,  sbyte> configuration)           {
             _protobufModel = TypeModel.Create();
             _protobufModel.UseImplicitZeroDefaults = true;
             _dataSet = dataSet;

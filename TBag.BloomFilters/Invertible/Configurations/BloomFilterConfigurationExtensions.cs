@@ -1,31 +1,16 @@
-﻿namespace TBag.BloomFilters.Configurations
+﻿namespace TBag.BloomFilters.Invertible.Configurations
 {
+    using Estimators;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-
+    using Invertible;
+    using BloomFilters.Configurations;
     /// <summary>
     /// Extension methods for Bloom filter configuration.
     /// </summary>
     internal static class BloomFilterConfigurationExtensions
     {
-        /// <summary>
-        /// Convert a known Bloom filter configuration <paramref name="configuration"/> to a configuration suitable for an estimator.
-        /// </summary>
-        /// <typeparam name="TEntity">The entity type</typeparam>
-        /// <typeparam name="TId">The entity identifier type</typeparam>
-          /// <typeparam name="TCount">The type for the occurrence counter</typeparam>
-        /// <returns></returns>
-        /// <remarks>Remarkably strange plumbing: for estimators, we want to handle the entity hash as the identifier.</remarks>
-        internal static IBloomFilterConfiguration<KeyValuePair<int,int>, int, int, TCount> ConvertToEstimatorConfiguration
-            <TEntity, TId, TCount>(
-            this IBloomFilterConfiguration<TEntity, TId, int,  TCount> configuration)
-            where TCount : struct
-            where TId : struct
-        {
-            if (configuration == null) return null;
-            return new IbfConfigurationEstimatorWrapper<TEntity,TId, TCount>(configuration);
-        }
 
         /// <summary>
         /// Convert the Bloom filter configuration to a configuration for the value Bloom filter.
@@ -36,15 +21,15 @@
         /// <typeparam name="TCount">The type of the occurence count</typeparam>
         /// <param name="configuration">The Bloom filter configuration</param>
         /// <returns>The Bloom filter configuration for the value Bloom filter utilized inside the Bloom filter.</returns>
-        internal static IBloomFilterConfiguration<KeyValuePair<TId,THash>, TId, THash, TCount> ConvertToKeyValueHash
+        internal static IInvertibleBloomFilterConfiguration<KeyValuePair<TId,THash>, TId, THash, TCount> ConvertToKeyValueHash
            <TEntity, TId, THash, TCount>(
-           this IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration)
+           this IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration)
            where TCount : struct
             where TId : struct
             where THash : struct
         {
             if (configuration == null) return null;
-            return new IbfConfigurationKeyValueHashWrapper<TEntity, TId, THash, TCount>(configuration);
+            return new ConfigurationKeyValueHashWrapper<TEntity, TId, THash, TCount>(configuration);
         }
 
         /// <summary>

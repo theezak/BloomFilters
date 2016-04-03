@@ -4,11 +4,11 @@ using System.Runtime.Remoting.Messaging;
 namespace TBag.BloomFilter.Test
 {
     using BloomFilters.Configurations;
- 
+    using BloomFilters.Invertible.Configurations;
     /// <summary>
     /// A test Bloom filter configuration.
     /// </summary>
-    internal class DefaultBloomFilterConfiguration : IbfConfigurationBase<TestEntity, sbyte>
+    internal class DefaultBloomFilterConfiguration : ConfigurationBase<TestEntity, sbyte>
     {
 
         public DefaultBloomFilterConfiguration() : base(new ByteCountConfiguration())

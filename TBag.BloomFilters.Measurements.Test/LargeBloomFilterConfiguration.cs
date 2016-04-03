@@ -1,11 +1,11 @@
 ﻿namespace TBag.BloomFilters.Measurements.Test
 {
     using Configurations;
-
+    using Invertible.Configurations;
     /// <summary>
     /// A test Bloom filter configuration.
     /// </summary>
-    internal class LargeBloomFilterConfiguration : IbfConfigurationBase<TestEntity, int>
+    internal class LargeBloomFilterConfiguration : ConfigurationBase<TestEntity, int>
     {
         public LargeBloomFilterConfiguration() : base(new IntCountConfiguration())
         {}

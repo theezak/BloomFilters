@@ -8,15 +8,16 @@
     using BloomFilters;
     using BloomFilters.Estimators;
     using BloomFilters.Configurations;
-    /// <summary>
-    /// A full working test harness for creating an estimator, serializing the estimator and receiving the filter.
-    /// </summary>
+    using BloomFilters.Invertible;
+    using BloomFilters.Invertible.Configurations;/// <summary>
+                                                 /// A full working test harness for creating an estimator, serializing the estimator and receiving the filter.
+                                                 /// </summary>
     internal class Actor
     {
         private readonly RuntimeTypeModel _protobufModel;
         private readonly IList<TestEntity> _dataSet;
         private readonly IHybridEstimatorFactory _hybridEstimatorFactory;
-       private readonly IBloomFilterConfiguration<TestEntity, long, int,  short> _configuration;
+       private readonly IInvertibleBloomFilterConfiguration<TestEntity, long, int,  short> _configuration;
         private readonly IInvertibleBloomFilterFactory _bloomFilterFactory;
 
         /// <summary>
@@ -29,7 +30,7 @@
         public Actor(IList<TestEntity> dataSet,
             IHybridEstimatorFactory hybridEstimatorFactory,
             IInvertibleBloomFilterFactory bloomFilterFactory,
-            IBloomFilterConfiguration<TestEntity, long, int,  short> configuration)
+            IInvertibleBloomFilterConfiguration<TestEntity, long, int,  short> configuration)
         {
             _protobufModel = TypeModel.Create();
             _protobufModel.UseImplicitZeroDefaults = true;
@@ -56,7 +57,7 @@
             {
                 estimator.Add(item);
             }
-            return estimator.Extract().Decode(otherEstimator, _configuration);
+            return estimator.Decode(otherEstimator);
         }
 
         /// <summary>
@@ -75,7 +76,7 @@
             {
                 estimator.Add(item);
             }
-            var estimate = estimator.Extract().Decode(otherEstimator, _configuration);
+            var estimate = estimator.Decode(otherEstimator);
             if (estimate == null)
             {
                 //additional communication step needed to create a new estimator.

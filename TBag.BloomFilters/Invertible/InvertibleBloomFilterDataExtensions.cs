@@ -1,4 +1,4 @@
-﻿namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters.Invertible
 {
     using Configurations;
     using System;
@@ -24,7 +24,7 @@
         public static bool IsCompatibleWith<TEntity, TId, THash, TCount>(
             this IInvertibleBloomFilterData<TId, THash, TCount> filter,
             IInvertibleBloomFilterData<TId, THash, TCount> otherFilter,
-            IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration)
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration)
             where TId : struct
             where THash : struct
             where TCount : struct
@@ -94,7 +94,7 @@
         internal static IInvertibleBloomFilterData<TId, THash, TCount> Subtract<TEntity, TId, THash, TCount>(
             this IInvertibleBloomFilterData<TId, THash, TCount> filterData,
             IInvertibleBloomFilterData<TId, THash, TCount> subtractedFilterData,
-            IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
             HashSet<TId> listA,
             HashSet<TId> listB,
             Stack<long> pureList = null,
@@ -178,7 +178,7 @@
         /// <returns>The compressed data, or <c>null</c> when compression failed.</returns>
         public static IInvertibleBloomFilterData<TId, THash, TCount> Compress<TEntity, TId, THash, TCount>(
             this IInvertibleBloomFilterData<TId, THash, TCount> filterData,
-            IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration)
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration)
              where TCount : struct
             where TId : struct
             where THash : struct
@@ -206,7 +206,7 @@
         /// <returns><c>true</c> when the decode was successful, else <c>false</c>.</returns>
         internal static bool Decode<TEntity, TId, TCount>(
             this IInvertibleBloomFilterData<TId, int, TCount> filter,
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
             HashSet<TId> listA,
             HashSet<TId> listB,
             HashSet<TId> modifiedEntities = null,
@@ -295,7 +295,7 @@
         /// <returns><c>true</c> when the decode was successful, else <c>false</c>.</returns>
         internal static bool IsCompleteDecode<TEntity, TId, THash, TCount>(
             this IInvertibleBloomFilterData<TId, THash, TCount> filter,
-            IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration)
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration)
             where TCount : struct
             where TId : struct
             where THash : struct
@@ -331,7 +331,7 @@
         /// <remarks>Explicitly does not duplicate the reverse IBF data.</remarks>
         private static InvertibleBloomFilterData<TId, THash, TCount> CreateDummy<TEntity, TId, THash, TCount>(
             this IInvertibleBloomFilterData<TId, THash, TCount> data,
-            IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration)
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration)
             where TCount : struct
             where TId : struct
             where THash : struct
@@ -356,7 +356,7 @@
         /// <param name="position">The position of the cell to remove the identifier and hash from.</param>
         internal static void Remove<TEntity, TId, THash, TCount>(
             this IInvertibleBloomFilterData<TId, THash, TCount> filter,
-            IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
             TId idValue,
             THash hashValue,
             long position)
@@ -384,7 +384,7 @@
         /// <param name="position"></param>
         internal static void Add<TEntity, TId, THash, TCount>(
             this IInvertibleBloomFilterData<TId, THash, TCount> filter,
-            IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
             TId idValue,
             THash hashValue,
             long position)
@@ -413,7 +413,7 @@
         ///<remarks></remarks>
         public static IInvertibleBloomFilterData<TId, THash, TCount> Add<TEntity, TId, THash, TCount>(
             this IInvertibleBloomFilterData<TId, THash, TCount> filterData,
-            IBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
             IInvertibleBloomFilterData<TId, THash, TCount> otherFilterData,
             bool inPlace = true)
             where TCount : struct
@@ -474,7 +474,7 @@
         /// <remarks>Captures the concept of reducing the size of a Bloom filter.</remarks>
         public static IInvertibleBloomFilterData<TId, THash, TCount> Fold<TEntity,TId,THash,TCount>(
             this IInvertibleBloomFilterData<TId, THash, TCount> data, 
-            IBloomFilterConfiguration<TEntity,TId, THash, TCount> configuration, 
+            IInvertibleBloomFilterConfiguration<TEntity,TId, THash, TCount> configuration, 
             uint factor)
             where TId : struct
             where TCount : struct
@@ -528,7 +528,7 @@
         public static bool SubtractAndDecode<TEntity, TId, TCount>(
             this IInvertibleBloomFilterData<TId, int, TCount> filter,
             IInvertibleBloomFilterData<TId, int, TCount> subtractedFilter,
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
             HashSet<TId> listA,
             HashSet<TId> listB,
             HashSet<TId> modifiedEntities,
@@ -593,7 +593,7 @@
         /// <returns></returns>
         internal static InvertibleBloomFilterData<TId, TEntityHash, TCount> ConvertToBloomFilterData<TEntity, TId, TEntityHash, TCount>(
             this IInvertibleBloomFilterData<TId, TEntityHash, TCount> filterData,
-            IBloomFilterConfiguration<TEntity, TId, TEntityHash, TCount> configuration)
+            IInvertibleBloomFilterConfiguration<TEntity, TId, TEntityHash, TCount> configuration)
             where TId : struct
             where TEntityHash : struct
             where TCount : struct

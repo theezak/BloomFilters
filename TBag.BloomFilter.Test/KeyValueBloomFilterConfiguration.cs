@@ -5,10 +5,10 @@
     using BloomFilters;
     using HashAlgorithms;
     using BloomFilters.Configurations;
-    /// <summary>
-    /// A test Bloom filter configuration.
-    /// </summary>
-    internal class KeyValueBloomFilterConfiguration : ReverseIbfConfigurationBase<TestEntity, sbyte>
+    using BloomFilters.Invertible.Configurations;    /// <summary>
+                                                     /// A test Bloom filter configuration.
+                                                     /// </summary>
+    internal class KeyValueBloomFilterConfiguration : ReverseConfigurationBase<TestEntity, sbyte>
     {
         private readonly IMurmurHash _murmurHash = new Murmur3();
 

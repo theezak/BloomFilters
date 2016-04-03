@@ -1,4 +1,4 @@
-﻿namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters.Configurations
 {
     /// <summary>
     /// Interface for Bloom filter size configuration

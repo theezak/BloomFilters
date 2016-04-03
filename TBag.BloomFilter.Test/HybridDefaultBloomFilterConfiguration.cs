@@ -4,6 +4,7 @@ namespace TBag.BloomFilter.Test
 {
     using BloomFilters;
     using BloomFilters.Configurations;
+    using BloomFilters.Invertible.Configurations;
     using HashAlgorithms;
     using System;
     using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace TBag.BloomFilter.Test
     /// A test Bloom filter configuration for hybrid Bloom filter.
     /// </summary>
     /// <remarks>Generates a full entity hash while keeping the standard pure implementation, knowing that the hybrid IBF won't use the entity hash except for internal the reverse IBF.</remarks>
-    internal class HybridDefaultBloomFilterConfiguration : HybridIbfConfigurationBase<TestEntity, sbyte>
+    internal class HybridDefaultBloomFilterConfiguration : HybridConfigurationBase<TestEntity, sbyte>
     {
         private readonly IMurmurHash _murmurHash = new Murmur3();
      

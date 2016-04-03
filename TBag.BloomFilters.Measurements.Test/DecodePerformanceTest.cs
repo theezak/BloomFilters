@@ -7,6 +7,7 @@ using System.Linq;
 using System.IO;
 using System.Threading;
 using ProtoBuf.Meta;
+using TBag.BloomFilters.Invertible;
 
 namespace TBag.BloomFilters.Measurements.Test
 {
