@@ -17,13 +17,13 @@
         /// <param name="otherEstimatorData"></param>
         /// <returns>Similarity (percentage similar, zero is completely different, one is completely the same)</returns>
         /// <remarks>Zero is no similarity, one is completely similar.</remarks>
-        public static double Similarity(this IBitMinwiseHashEstimatorData estimator,
+        public static double? Similarity(this IBitMinwiseHashEstimatorData estimator,
             IBitMinwiseHashEstimatorData otherEstimatorData)
         {
             if (estimator == null ||
                 otherEstimatorData == null ||
                 estimator.BitSize != otherEstimatorData.BitSize ||
-                estimator.HashCount != otherEstimatorData.HashCount) return 0.0D;
+                estimator.HashCount != otherEstimatorData.HashCount) return null;
             if (estimator.Values == null && otherEstimatorData.Values == null) return 1.0D;           
             return ComputeSimilarityFromSignatures(
                 CreateBitArray(estimator),
@@ -165,8 +165,7 @@
         /// <param name="numHashFunctions">The number of hash functions to use</param>
         /// <param name="bitSize">The number of bits for a single cell</param>
         /// <returns></returns>
-        /// <remarks>Handles differences in size between the bit arrays although that is not ideal and will magnify any differences.</remarks>
-        private static double ComputeSimilarityFromSignatures(
+       private static double? ComputeSimilarityFromSignatures(
             BitArray minHashValues1, 
             BitArray minHashValues2,
             int numHashFunctions, 
@@ -176,34 +175,19 @@
                 minHashValues2 == null ||
                 numHashFunctions <= 0 ||
                 bitSize == 0) return 0.0D;
-            if (minHashValues1.Length > minHashValues2.Length)
-            {
-                //swap to ensure minHashValues1 is the smallest.
-                var swap = minHashValues1;
-                minHashValues1 = minHashValues2;
-                minHashValues2 = swap;
-            }
+            if (minHashValues1.Length != minHashValues2.Length) return null;
              uint identicalMinHashes = 0;
             var bitRange = Enumerable.Range(0, bitSize).ToArray();
-            var blockSizeinBits1 = (minHashValues1.Length/numHashFunctions) * bitSize;
             var minHash1Length = minHashValues1.Length/bitSize;
-             var sizeDiffInBitsPerBlock =  bitSize*((minHashValues2.Length - minHashValues1.Length)/numHashFunctions);
             var idx1 = 0;
-            var idx2 = 0;
             for (var i = 0; i < minHash1Length; i++)
             {
                 if (bitRange
-                    .All(b => minHashValues1.Get(idx1 + b) == minHashValues2.Get(idx2 + b)))
+                    .All(b => minHashValues1.Get(idx1 + b) == minHashValues2.Get(idx1 + b)))
                 {
                     identicalMinHashes++;
                 }
                 idx1 += bitSize;
-                idx2 += bitSize;
-                if (sizeDiffInBitsPerBlock > 0 &&
-                    idx1 % blockSizeinBits1 == 0)
-                {
-                    idx2 += sizeDiffInBitsPerBlock;
-                }
             }
              return identicalMinHashes / (1.0D * minHashValues2.Length / bitSize);
         }

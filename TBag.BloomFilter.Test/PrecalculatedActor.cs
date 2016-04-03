@@ -57,7 +57,7 @@
             var otherEstimator =
                (HybridEstimatorData<int, sbyte>)
                    _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, sbyte>));
-           return _hybridEstimatorFactory.FoldAndDecode(_configuration, _estimator, otherEstimator);
+            return _estimator.Decode(otherEstimator);
         }
 
         /// <summary>
@@ -71,7 +71,7 @@
             var otherEstimator =
                 (IHybridEstimatorData<int, sbyte>)
                     _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, sbyte>));
-            var estimate = _hybridEstimatorFactory.FoldAndDecode(_configuration, _estimator, otherEstimator);
+            var estimate = _estimator.Decode(otherEstimator);
             if (estimate == null)
             {
                 //additional communication step needed to create a new estimator.

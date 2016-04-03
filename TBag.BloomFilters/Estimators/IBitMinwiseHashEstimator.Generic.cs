@@ -66,7 +66,7 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="estimatorData">The estimator data to compare to.</param>
         /// <returns>Similarity (percentage similar, zero is completely different, one is completely the same)</returns>
         /// <remarks>Zero is no similarity, one is completely similar.</remarks>
-        double Similarity(IBitMinwiseHashEstimatorData estimatorData);
+        double? Similarity(IBitMinwiseHashEstimatorData estimatorData);
 
         /// <summary>
         /// Determine the similarity with the provided hash estimator.
@@ -74,7 +74,7 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="estimator">The estimator to compare to.</param>
         /// <returns>Similarity (percentage similar, zero is completely different, one is completely the same)</returns>
         /// <remarks>Zero is no similarity, one is completely similar.</remarks>
-        double Similarity(IBitMinwiseHashEstimator<TEntity, TId, TCount> estimator);
+        double? Similarity(IBitMinwiseHashEstimator<TEntity, TId, TCount> estimator);
 
         /// <summary>
         /// The number of items in the estimator.

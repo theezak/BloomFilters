@@ -133,22 +133,5 @@
             where TId : struct
             where THash : struct
             where TCount : struct;
-
-        /// <summary>
-        /// Resize the estimator to fit the other data and decode. 
-        /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <typeparam name="TId"></typeparam>
-        /// <typeparam name="TCount"></typeparam>
-        /// <param name="configuration"></param>
-        /// <param name="estimator"></param>
-        /// <param name="otherData"></param>
-        /// <returns>The estimated difference, or <c>null</c> when decoding was not possible.</returns>
-        long? FoldAndDecode<TEntity, TId, TCount>(
-             IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
-             HybridEstimator<TEntity, TId, TCount> estimator,
-        IHybridEstimatorData<int, TCount> otherData)
-        where TCount : struct
-        where TId : struct;
     }
 }

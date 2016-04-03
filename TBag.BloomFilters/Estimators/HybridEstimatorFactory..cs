@@ -45,26 +45,7 @@
             {
                 data = data.Fold(configuration, (uint)foldFactor);
             }
-            if (data.StrataCount > strata)
-            {
-                var newFilters = new List<IInvertibleBloomFilterData<int,int,TCount>>(data.StrataEstimator.BloomFilters);
-                var indexes = new List<byte>(data.StrataEstimator.BloomFilterStrataIndexes ?? new byte[0]);
-                for(var i = strata; i < data.StrataEstimator.StrataCount; i++)
-                {
-                    var filter = data.StrataEstimator.GetFilterForStrata(i);
-                    if (filter!=null)
-                    {
-                        indexes.Remove(i);
-                        newFilters.Remove(filter);
-                    }
-                }
-                data.StrataEstimator.BloomFilters = newFilters.Cast<InvertibleBloomFilterData<int,int,TCount>>().ToArray();
-                if (data.StrataEstimator.BloomFilterStrataIndexes != null)
-                {
-                    data.StrataEstimator.BloomFilterStrataIndexes = indexes.Count == 0 ? null : indexes.ToArray();
-                }
-                data.StrataCount = data.StrataEstimator.StrataCount = strata;
-            }
+            data.StrataEstimator.LowerStrata(strata);
             if (failedDecodeCount > 1)
             {
                 data.StrataEstimator.DecodeCountFactor = Math.Pow(2, failedDecodeCount);
@@ -247,8 +228,8 @@
             where TId : struct
         {
             var estimator = new HybridEstimator<TEntity, TId, TCount>(
-                data.BlockSize,
-                data.StrataCount,
+                data.StrataEstimator.BlockSize,
+                data.StrataEstimator.StrataCount,
                 configuration)
             {
                 DecodeCountFactor = data.StrataEstimator.DecodeCountFactor
@@ -258,56 +239,6 @@
                 estimator.Initialize(setSize, data.BitMinwiseEstimator.BitSize, data.BitMinwiseEstimator.HashCount);
             }
             return estimator;
-        }
-
-      /// <summary>
-      /// Resize the estimator to match the received data.
-      /// </summary>
-      /// <typeparam name="TEntity"></typeparam>
-      /// <typeparam name="TId"></typeparam>
-      /// <typeparam name="TCount"></typeparam>
-      /// <param name="configuration"></param>
-      /// <param name="estimator"></param>
-      /// <param name="otherData"></param>
-      /// <returns></returns>
-        public long? FoldAndDecode<TEntity, TId, TCount>(
-             IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
-             HybridEstimator<TEntity, TId, TCount> estimator,
-        IHybridEstimatorData<int, TCount> otherData)
-        where TCount : struct
-        where TId : struct
-        {
-            if (estimator == null ||
-                (otherData?.BlockSize ?? 0L) < 1)
-                return estimator?.BlockSize ?? (otherData?.BlockSize ?? 0L);
-            var estimatorFullData = estimator.FullExtract();
-            IHybridEstimatorData<int, TCount> estimatorData;
-             uint foldFactor = 1;
-            if (estimator.BlockSize % otherData.BlockSize == 0)
-            {
-                foldFactor = (uint)(estimator.BlockSize / otherData.BlockSize);
-                estimatorData = estimatorFullData.Fold(configuration, foldFactor).ToEstimatorData();
-            }
-            else if (configuration?.FoldingStrategy != null)
-            {
-                var foldFactors = configuration
-                    .FoldingStrategy
-                   .GetFoldFactors(otherData.BlockSize, estimator.BlockSize);
-               if (foldFactors!=null &&
-                    foldFactors.Item1 == 1)
-                {
-                    estimatorData = estimatorFullData.Fold(configuration, (uint)foldFactors.Item2).ToEstimatorData();
-                }
-               else
-                {
-                    return null;
-                }
-            }
-            else
-            {
-                return null;
-            }
-            return otherData.Decode(estimatorData, configuration);
         }
     }
 }

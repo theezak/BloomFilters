@@ -64,6 +64,37 @@ namespace TBag.BloomFilters.Estimators
         }
 
         /// <summary>
+        /// Lower the strata on the estimator.
+        /// </summary>
+        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="TCount"></typeparam>
+        /// <param name="data"></param>
+        /// <param name="newStrata"></param>
+        internal static void LowerStrata<TId, TCount>(this StrataEstimatorData<TId, TCount> data, byte newStrata)
+            where TId : struct
+            where TCount : struct
+        {
+            if (data == null || newStrata >= data.StrataCount) return;
+            var newFilters = new List<IInvertibleBloomFilterData<TId, int, TCount>>(data.BloomFilters);
+            var indexes = new List<byte>(data.BloomFilterStrataIndexes ?? new byte[0]);
+            for (var i = newStrata; i < data.StrataCount; i++)
+            {
+                var filter = data.GetFilterForStrata(i);
+                if (filter != null)
+                {
+                    indexes.Remove(i);
+                    newFilters.Remove(filter);
+                }
+            }
+            data.BloomFilters = newFilters.Cast<InvertibleBloomFilterData<TId, int, TCount>>().ToArray();
+            if (data.BloomFilterStrataIndexes != null)
+            {
+                data.BloomFilterStrataIndexes = indexes.Count == 0 ? null : indexes.ToArray();
+            }
+            data.StrataCount = newStrata;
+        }
+
+        /// <summary>
         /// Get the Bloom filter for the given strata
         /// </summary>
         /// <typeparam name="TCount"></typeparam>
@@ -71,9 +102,10 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="strata"></param>
         /// <returns></returns>
         /// <remarks>Some serializers (*cough* protobuf) simply drop null values from the array. This is mostly harmless work-around.</remarks>
-        internal static IInvertibleBloomFilterData<int, int, TCount> GetFilterForStrata<TCount>(
-            this IStrataEstimatorData<int, TCount> estimatorData, int strata)
+        internal static IInvertibleBloomFilterData<TId, int, TCount> GetFilterForStrata<TId,TCount>(
+            this IStrataEstimatorData<TId, TCount> estimatorData, int strata)
             where TCount : struct
+            where TId : struct
         {
             if (estimatorData?.BloomFilters == null) return null;
             var indexes = estimatorData?.BloomFilterStrataIndexes;

@@ -22,7 +22,7 @@
             var configuration = new KeyValueBloomFilterConfiguration();
             IHybridEstimatorFactory estimatorFactory = new HybridEstimatorFactory();
             IInvertibleBloomFilterFactory bloomFilterFactory = new InvertibleBloomFilterFactory();
-            var dataSet1 = DataGenerator.Generate().Take(10000).ToList();
+            var dataSet1 = DataGenerator.Generate().Take(8000).ToList();
             //create the actors.
             var actor1 = new PrecalculatedActor(
                 dataSet1,

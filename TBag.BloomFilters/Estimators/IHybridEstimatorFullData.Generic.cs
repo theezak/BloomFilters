@@ -15,20 +15,9 @@
         long ItemCount { get; set; }
 
         /// <summary>
-        /// The capacity
-        /// </summary>
-        long BlockSize { get; set; }
-
-        /// <summary>
         /// Data for the strata estimator component of the hybrid estimator.
         /// </summary>
         IStrataEstimatorData<TId, TCount> StrataEstimator { get; }
-
-        /// <summary>
-        /// The strata count
-        /// </summary>
-        /// <remarks>The hybrid estimator knows a cut off, where the less selective strata go to a minwise estimator. This is the value of that cut off.</remarks>
-        byte StrataCount { get; set; }
 
         /// <summary>
         /// Data for the bit minwise estimator component of the hybrid estimator.

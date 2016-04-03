@@ -198,8 +198,8 @@
             }
             var max = Math.Pow(2, MaxTrailingZeros);
             IHybridEstimator<TEntity, int, TCount> estimator = new HybridEstimator<TEntity, TId, TCount>(
-                res.BlockSize,
-                res.StrataCount, 
+                res.StrataEstimator.BlockSize,
+                res.StrataEstimator.StrataCount, 
                 Configuration);
             if (res.BitMinwiseEstimator != null)
             {
@@ -227,8 +227,8 @@
                 return this;
             }
             IHybridEstimator<TEntity, int, TCount> estimator = new HybridEstimator<TEntity, TId, TCount>(
-                res.BlockSize,
-                res.StrataCount,
+                res.StrataEstimator.BlockSize,
+                res.StrataEstimator.StrataCount,
                 Configuration);
             if (res.BitMinwiseEstimator != null)
             {
@@ -252,10 +252,8 @@
             return new HybridEstimatorData<int, TCount>
             {
                 ItemCount = ItemCount,
-                BlockSize = BlockSize,
                 BitMinwiseEstimator = _minwiseEstimator?.Extract(),
                 StrataEstimator = Extract(),
-                StrataCount = MaxStrata,
             };
         }
 
@@ -269,10 +267,8 @@
             return new HybridEstimatorFullData<int, TCount>
             {
                 ItemCount = ItemCount,
-                BlockSize = BlockSize,
                 BitMinwiseEstimator = _minwiseEstimator?.FullExtract(),
-                StrataEstimator = Extract(),
-                StrataCount = MaxStrata               
+                StrataEstimator = Extract()           
             };
         }
 
@@ -289,8 +285,6 @@
         {
             if (data == null) return;
             _minwiseEstimator?.Rehydrate(data.BitMinwiseEstimator);
-            BlockSize = data.BlockSize;
-            MaxStrata = data.StrataCount;
             Rehydrate(data.StrataEstimator);
             _minwiseReplacementCount = Math.Max(0, data.ItemCount - (base.ItemCount + (_minwiseEstimator?.ItemCount ?? 0L)));
         }
