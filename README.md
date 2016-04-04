@@ -31,7 +31,7 @@ A practial scenario would be that all parties agree upon a pre-determined size f
     - Assume that a failed decode means that the difference is large and close to the total item count of the Bloom filter. You can choose to send the whole Bloom filter (possibly still trading recognized differences versus some level of folding).
 
 When the two estimators provide an estimate, you can send the local Bloom filter, folded to be in the order of size of the estimate. When the two filters cannot be subtracted and decoded, the filters are not compatible. The parties should agree on a new precalculated filter size. It is important to remember in this process that:
-- Estimators are helpful in avoiding over-sized Bloom filters, but you can exchange Bloom filters even without an estimate. There is just a higher risk of either waisting band width or only recognizing a relatively small fraction of the differences.
+- Estimators are helpful in avoiding over-sized Bloom filters, but you can exchange Bloom filters even without an estimate. There is just a higher risk of either wasting band width or only recognizing a relatively small fraction of the differences.
 - Bloom filters that are not under sized will still yield some differences, and thus provide progress toward eliminating the differences.
 - The only major obstacle occurs when the Bloom filters are not compatible, for example because they can't be resized to have the same size (no shared factor), have different hash functions or have different hash counts. A minor obstacle is two estimators that do not have a shared factor, but you could still choose to exchange the Bloom filters.
 
