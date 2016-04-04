@@ -30,9 +30,9 @@ A practial scenario would be that all parties agree upon a pre-determined size f
     - Send their estimator back. This estimator will have the capacity needed.
     - Assume that a failed decode means that the difference is large and close to the total item count of the Bloom filter. You can choose to send the whole Bloom filter (possibly still trading recognized differences versus some level of folding).
 When the two estimators provide an estimate, you can send the local Bloom filter, folded to be in the order of size of the estimate. When the two filters cannot be subtracted and decoded, the filters are not compatible. The parties should agree on a new precalculated filter size. It is important to remember in this process that:
-- Estimators are helpful in avoiding over-sized Bloom filters, but you can exchange Bloom filters even without an estimate.
+- Estimators are helpful in avoiding over-sized Bloom filters, but you can exchange Bloom filters even without an estimate. There is just a higher risk of either waisting band width or only recognizing a relatively small fraction of the differences.
 - Bloom filters that are not under sized will still yield some differences, and thus provide progress toward eliminating the differences.
-- The only major obstacle occurs when the Bloom filters are not compatible, for example because they have no shared factors that they can fold to, because they use different hash functions or different hash counts.
+- The only major obstacle occurs when the Bloom filters are not compatible, for example because they can't be resized to have the same size (no sharedfactor), have different hash functions or have different hash counts.
 
 ## Resizing a Bloom filter
 Bloom filters can be folded through any factor of its size. A strategy is provided for folding, including a strategy that sizes Bloom filter with smooth numbers to increase the folding opportunities. Based upon the folding operator, a compression operator is provided that attempts to reduce the size of a Bloom filter utilized under its capacity without impacting its error rate. The same operators are also provided for the minwise estimator.
