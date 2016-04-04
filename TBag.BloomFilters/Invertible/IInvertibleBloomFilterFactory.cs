@@ -7,6 +7,8 @@ namespace TBag.BloomFilters.Invertible
     /// </summary>
     public interface IInvertibleBloomFilterFactory
     {
+        
+
         /// <summary>
         /// Create an invertible Bloom filter based upon the received Bloom filter data.
         /// </summary>

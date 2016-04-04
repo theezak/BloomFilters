@@ -21,6 +21,8 @@
        private readonly IInvertibleBloomFilterConfiguration<TestEntity, long, int,  sbyte> _configuration;
         private readonly IInvertibleBloomFilterFactory _bloomFilterFactory;
         private readonly HybridEstimator<TestEntity, long, sbyte> _estimator;
+        private readonly IInvertibleBloomFilter<TestEntity, long, sbyte> _filter;
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -31,7 +33,8 @@
         public PrecalculatedActor(IList<TestEntity> dataSet,
             IHybridEstimatorFactory hybridEstimatorFactory,
             IInvertibleBloomFilterFactory bloomFilterFactory,
-            IInvertibleBloomFilterConfiguration<TestEntity, long, int,  sbyte> configuration)           {
+            IInvertibleBloomFilterConfiguration<TestEntity, long, int, sbyte> configuration)
+        {
             _protobufModel = TypeModel.Create();
             _protobufModel.UseImplicitZeroDefaults = true;
             _dataSet = dataSet;
@@ -44,7 +47,11 @@
             {
                 _estimator.Add(itm);
             }
-            _estimator.Remove(_dataSet[0]);
+            _filter = _bloomFilterFactory.Create(_configuration, 100000, 0.001F, true);
+            foreach (var item in _dataSet)
+            {
+                _filter.Add(item);
+            }
         }
 
         /// <summary>
@@ -93,14 +100,8 @@
                     throw new NullReferenceException("Did not negotiate a good estimate");
                 }
             }
-            //TODO: strategy to also fold the filter beyond compress size to the error size.
-             var filter = _bloomFilterFactory.Create(_configuration, estimate.Value, 0.001F, true);
-            foreach (var item in _dataSet)
-            {
-                filter.Add(item);
-            }
             var result = new MemoryStream();
-            _protobufModel.Serialize(result, filter.Extract());
+            _protobufModel.Serialize(result, _configuration.DataFactory.Extract(_configuration, _filter, estimate.Value));
             result.Position = 0;
             return result;
         }
@@ -124,16 +125,10 @@
                 var otherFilter = (IInvertibleBloomFilterData<long, int,sbyte>)
                     _protobufModel.Deserialize(otherFilterStream, null, _configuration.DataFactory.GetDataType<long,int,sbyte>());
                 otherFilterStream.Dispose();
-                var filter = _bloomFilterFactory.CreateMatchingHighUtilizationFilter(_configuration,
-                    _dataSet.LongCount(), otherFilter);
-                foreach (var item in _dataSet)
-                {
-                    filter.Add(item);
-                }
                 var onlyInThisSet = new HashSet<long>();
                 var onlyInOtherSet = new HashSet<long>();
                 var modified = new HashSet<long>();
-                var succes = filter.SubtractAndDecode(onlyInThisSet, onlyInOtherSet, modified, otherFilter);
+                var succes = _filter.SubtractAndDecode(onlyInThisSet, onlyInOtherSet, modified, otherFilter);
                 //note: even when not successfully decoded for sure, the sets will contain info.
                 return new Tuple<HashSet<long>, HashSet<long>, HashSet<long>>(onlyInThisSet, onlyInOtherSet, modified);
             }

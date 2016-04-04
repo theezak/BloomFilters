@@ -46,7 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArrayExtensions.cs" />
-    <Compile Include="Collections\Generics\ListExtensions.cs" />
+    <Compile Include="Collections\Generic\ListExtensions.cs" />
     <Compile Include="Configurations\IBloomFilterConfiguration.Generic.cs" />
     <Compile Include="Invertible\Estimators\BloomFilterConfigurationExtensions.cs" />
     <Compile Include="Invertible\Configurations\BloomFilterConfigurationBase.Generic.cs" />
@@ -61,12 +61,12 @@
     <Compile Include="Configurations\SmoothNumbersFoldingStrategy.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimatorDataFactory.cs" />
     <Compile Include="Estimators\IBitMinwiseHashEstimatorDataFactory.cs" />
-    <Compile Include="LongEnumerable.cs" />
+    <Compile Include="Collections\Generic\LongEnumerable.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimatorFullData.cs" />
     <Compile Include="Invertible\Estimators\HybridEstimatorFullData.Generic.cs" />
     <Compile Include="Estimators\IBitMinwiseHashEstimatorFullData.cs" />
     <Compile Include="Invertible\Estimators\IHybridEstimatorFullData.Generic.cs" />
-    <Compile Include="HashSetExtensions.cs" />
+    <Compile Include="Collections\Generic\HashSetExtensions.cs" />
     <Compile Include="Configurations\IntCountConfiguration.cs" />
     <Compile Include="Invertible\Configurations\HybridConfigurationBase.Generic.cs" />
     <Compile Include="Invertible\Estimators\ConfigurationEstimatorWrapper.Generic.cs" />
@@ -108,7 +108,7 @@
     <Compile Include="MathExt\MathExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Invertible\Configurations\KeyValuePairConfigurationBase.Generic.cs" />
-    <Compile Include="SmoothNumberGenerator.cs" />
+    <Compile Include="Configurations\SmoothNumberGenerator.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TBag.HashAlgorithms\TBag.HashAlgorithms.csproj">

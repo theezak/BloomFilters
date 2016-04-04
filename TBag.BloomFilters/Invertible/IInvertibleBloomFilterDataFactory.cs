@@ -1,5 +1,6 @@
 ﻿namespace TBag.BloomFilters.Invertible
 {
+    using Configurations;
     using System;
 
     /// <summary>
@@ -7,6 +8,23 @@
     /// </summary>
     public interface IInvertibleBloomFilterDataFactory
     {
+        /// <summary>
+        /// Extract filter data from the given <paramref name="precalculatedFilter"/> for capacity <paramref name="capacity"/>.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type</typeparam>
+        /// <typeparam name="TId">The identifier type</typeparam>
+        /// <typeparam name="TCount">The occurence count type</typeparam>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="precalculatedFilter">The pre-calculated filter</param>
+        /// <param name="capacity">The targeted capacity.</param>
+        /// <returns>The IBF data sized for <paramref name="precalculatedFilter"/> for target capacity <paramref name="capacity"/>.</returns>
+        IInvertibleBloomFilterData<TId, int, TCount> Extract<TEntity, TId, TCount>(
+           IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
+            IInvertibleBloomFilter<TEntity, TId, TCount> precalculatedFilter,
+           long? capacity)
+           where TCount : struct
+           where TId : struct;
+
         /// <summary>
         /// Create Bloom filter data
         /// </summary>

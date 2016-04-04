@@ -5,7 +5,7 @@ namespace TBag.BloomFilters.MathExt
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using TBag.BloomFilters.Collections.Generics;
+  
     /// <summary>
     /// Math extensions
     /// </summary>

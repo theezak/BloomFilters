@@ -1,12 +1,53 @@
 ﻿namespace TBag.BloomFilters.Invertible
 {
+    using Configurations;
+    using MathExt;
     using System;
-  
+    using System.Linq;
     /// <summary>
     /// Implementation of <see cref="IInvertibleBloomFilterDataFactory"/>.
     /// </summary>
     public class InvertibleBloomFilterDataFactory : IInvertibleBloomFilterDataFactory
     {
+        /// <summary>
+        /// Extract filter data from the given <paramref name="precalculatedFilter"/> for capacity <paramref name="capacity"/>.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type</typeparam>
+        /// <typeparam name="TId">The identifier type</typeparam>
+        /// <typeparam name="TCount">The occurence count type</typeparam>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="precalculatedFilter">The pre-calculated filter</param>
+        /// <param name="capacity">The targeted capacity.</param>
+        /// <returns>The IBF data sized for <paramref name="precalculatedFilter"/> for target capacity <paramref name="capacity"/>.</returns>
+        public IInvertibleBloomFilterData<TId,int,TCount> Extract<TEntity, TId, TCount>(
+           IInvertibleBloomFilterConfiguration<TEntity, TId, int,TCount> configuration,
+            IInvertibleBloomFilter<TEntity,TId,TCount> precalculatedFilter,
+           long? capacity)
+           where TCount : struct
+           where TId : struct
+        {
+            if (precalculatedFilter == null) return null;
+            if (!capacity.HasValue || capacity < 10)
+            {
+                //set capacity to arbitrary low capacity.
+                capacity = 10;
+            }
+            
+            IInvertibleBloomFilterData<TId,int,TCount> data = precalculatedFilter.Extract();
+            var targetBlockSize = (data.BlockSize * capacity.Value) / data.Capacity;
+            var factors = MathExtensions.GetFactors(data.BlockSize);
+            var foldFactor = capacity > 0L ?
+                (uint)factors
+                .OrderByDescending(f => f)
+                .Where(f => data.BlockSize / f > targetBlockSize)
+                .FirstOrDefault() :
+                0L;
+            if (foldFactor > 1)
+            {
+                data = data.Fold(configuration, (uint)foldFactor);
+            }
+            return data;
+        }
         /// <summary>
         /// Create new Bloom filter data based upon the size and the hash function count.
         /// </summary>
