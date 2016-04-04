@@ -34,14 +34,7 @@
             }
             
             IInvertibleBloomFilterData<TId,int,TCount> data = precalculatedFilter.Extract();
-            var targetBlockSize = (data.BlockSize * capacity.Value) / data.Capacity;
-            var factors = MathExtensions.GetFactors(data.BlockSize);
-            var foldFactor = capacity > 0L ?
-                (uint)factors
-                .OrderByDescending(f => f)
-                .Where(f => data.BlockSize / f > targetBlockSize)
-                .FirstOrDefault() :
-                0L;
+            var foldFactor = configuration.FoldingStrategy?.FindFoldFactor(data.BlockSize, data.Capacity, capacity);
             if (foldFactor > 1)
             {
                 data = data.Fold(configuration, (uint)foldFactor);

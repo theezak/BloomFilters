@@ -1,9 +1,9 @@
 ﻿namespace TBag.BloomFilters
 {
     using System;
-    /// <summary>
-    /// Array extensions.
-    /// </summary>
+    using System.Linq;    /// <summary>
+                          /// Array extensions.
+                          /// </summary>
     internal static class ArrayExtensions
     {
         /// <summary>
