@@ -1,5 +1,6 @@
-﻿namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Invertible.Estimators
 {
+    using BloomFilters.Estimators;
     using System;
     using System.Runtime.Serialization;
 
@@ -44,6 +45,7 @@
         /// The b-bit minwise estimator data as <see cref="IBitMinwiseHashEstimatorData"/>
         /// </summary>
         IBitMinwiseHashEstimatorData IHybridEstimatorData<TId, TCount>.BitMinwiseEstimator => BitMinwiseEstimator;
+
         #endregion
     }
 }

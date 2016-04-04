@@ -1,4 +1,4 @@
-﻿namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Invertible.Estimators
 {
     /// <summary>
     /// Interface for a hybrid estimator.
@@ -30,22 +30,18 @@
         /// Estimate the difference with the given estimator.
         /// </summary>
         /// <param name="estimator"></param>
-        /// <param name="lowerStrata">When <c>true</c> the strata of this estimator can be lowered to match the strata of <paramref name="estimator"/>.</param>
         /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns>An estimated number of items that are different.</returns>
         long? Decode(IHybridEstimator<TEntity, TId, TCount> estimator, 
-            bool lowerStrata = true,
             bool destructive = false);
 
         /// <summary>
         /// Decode the given hybrid estimator data.
         /// </summary>
         /// <param name="estimator">The estimator for the other set.</param>
-        /// <param name="lowerStrata">When <c>true</c> the strata of this estimator can be lowered to match the strata of <paramref name="estimator"/>.</param>
         /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns>An estimate of the number of differences between the two sets that the estimators are based upon.</returns>
         long? Decode(IHybridEstimatorData<int, TCount> estimator,
-            bool lowerStrata = true,
             bool destructive = false);
 
         /// <summary>

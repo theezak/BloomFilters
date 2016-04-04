@@ -51,8 +51,6 @@
                filter.IdSums?.LongLength == otherFilter.IdSums?.LongLength);
         }
 
-    
-
         /// <summary>
         /// <c>true</c> when the filter is valid, else <c>false</c>.
         /// </summary>
@@ -106,25 +104,25 @@
         {
             if (!filterData.IsCompatibleWith(subtractedFilterData, configuration))
                 throw new ArgumentException("Subtracted invertible Bloom filters are not compatible.", nameof(subtractedFilterData));
-           
+
             var foldFactors = configuration.FoldingStrategy?.GetFoldFactors(filterData.BlockSize, subtractedFilterData.BlockSize);
             var result = destructive && foldFactors?.Item1 <= 1 ?
                filterData :
-             (foldFactors==null || foldFactors.Item1 <= 1 ? 
-               filterData.CreateDummy(configuration) : 
-               configuration.DataFactory.Create<TId,THash,TCount>(filterData.Capacity / foldFactors.Item1, filterData.BlockSize / foldFactors.Item1, filterData.HashFunctionCount));
+             (foldFactors == null || foldFactors.Item1 <= 1 ?
+               filterData.CreateDummy(configuration) :
+               configuration.DataFactory.Create<TId, THash, TCount>(filterData.Capacity / foldFactors.Item1, filterData.BlockSize / foldFactors.Item1, filterData.HashFunctionCount));
             var idIdentity = configuration.IdIdentity();
             var hashIdentity = configuration.HashIdentity();
             for (var i = 0L; i < result.BlockSize; i++)
             {
                 var hashSum = configuration.HashXor(
-                   GetFolded(filterData.HashSums, i, foldFactors?.Item1, configuration.HashXor),
-                   GetFolded(subtractedFilterData.HashSums, i, foldFactors?.Item2, configuration.HashXor));
-                var filterIdSum = GetFolded(filterData.IdSums, i, foldFactors?.Item1, configuration.IdXor);
-                var subtractedIdSum = GetFolded(subtractedFilterData.IdSums, i, foldFactors?.Item2, configuration.IdXor);
-                var filterCount = GetFolded(filterData.Counts, i, foldFactors?.Item1, configuration.CountConfiguration.Add);
-                var subtractedCount = GetFolded(subtractedFilterData.Counts, i, foldFactors?.Item2, configuration.CountConfiguration.Add);
-                var idXorResult = configuration.IdXor(filterIdSum,  subtractedIdSum);
+                   filterData.HashSums.GetFolded(i, foldFactors?.Item1, configuration.HashXor),
+                   subtractedFilterData.HashSums.GetFolded(i, foldFactors?.Item2, configuration.HashXor));
+                var filterIdSum = filterData.IdSums.GetFolded(i, foldFactors?.Item1, configuration.IdXor);
+                var subtractedIdSum = subtractedFilterData.IdSums.GetFolded(i, foldFactors?.Item2, configuration.IdXor);
+                var filterCount = filterData.Counts.GetFolded(i, foldFactors?.Item1, configuration.CountConfiguration.Add);
+                var subtractedCount = subtractedFilterData.Counts.GetFolded(i, foldFactors?.Item2, configuration.CountConfiguration.Add);
+                var idXorResult = configuration.IdXor(filterIdSum, subtractedIdSum);
                 if ((!configuration.IdEqualityComparer.Equals(idIdentity, idXorResult) ||
                     !configuration.HashEqualityComparer.Equals(hashIdentity, hashSum)) &&
                     configuration.CountConfiguration.IsPure(filterCount) &&
@@ -149,23 +147,6 @@
             return result;
         }
 
-        private static T GetFolded<T>(T[] values, long position, long? foldFactor, Func<T,T,T> foldOperator)
-        {
-            if ((foldFactor??0L) <= 1L) return values[position];
-           var foldedSize = values.Length / foldFactor.Value;
-            position = position % foldedSize;
-            var val = values[position];
-            foldFactor--;
-            position += foldedSize;
-            while (foldFactor > 0)
-            {
-                val = foldOperator(val, values[position]);
-                foldFactor--;
-                position += foldedSize;
-            }
-            return val;
-        }
-
         /// <summary>
         /// Try to compress the data
         /// </summary>
@@ -184,10 +165,10 @@
             where THash : struct
         {
             if (filterData == null || configuration?.FoldingStrategy == null) return null;
-           var fold = configuration.FoldingStrategy.FindFoldFactor(filterData.BlockSize, filterData.Capacity, filterData.ItemCount);                   
+            var fold = configuration.FoldingStrategy.FindFoldFactor(filterData.BlockSize, filterData.Capacity, filterData.ItemCount);
             var res = fold.HasValue ? filterData.Fold(configuration, fold.Value) : null;
             if (res == null) return null;
-            res.SubFilter = filterData.SubFilter.Compress(configuration).ConvertToBloomFilterData(configuration)??filterData.SubFilter;
+            res.SubFilter = filterData.SubFilter.Compress(configuration).ConvertToBloomFilterData(configuration) ?? filterData.SubFilter;
             return res;
         }
 
@@ -312,7 +293,7 @@
                 }
                 if (!configuration.IdEqualityComparer.Equals(idIdentity, filter.IdSums[position]) ||
                     !configuration.HashEqualityComparer.Equals(hashIdentity, filter.HashSums[position]) ||
-                    configuration.CountConfiguration.Comparer.Compare(filter.Counts[position], countIdentity)!=0)
+                    configuration.CountConfiguration.Comparer.Compare(filter.Counts[position], countIdentity) != 0)
                     return false;
             }
             return true;
@@ -339,7 +320,7 @@
             if (data == null) return null;
             var result = configuration.DataFactory.Create<TId, THash, TCount>(data.Capacity, data.BlockSize, data.HashFunctionCount);
             result.IsReverse = data.IsReverse;
-             return result;
+            return result;
         }
 
         /// <summary>
@@ -434,7 +415,7 @@
             var foldFactors = configuration.FoldingStrategy?.GetFoldFactors(filterData.BlockSize, otherFilterData.BlockSize);
             var res = inPlace && foldFactors?.Item1 <= 1 ?
                 filterData :
-                (foldFactors==null ||foldFactors.Item1 <= 1 ?
+                (foldFactors == null || foldFactors.Item1 <= 1 ?
                 filterData.CreateDummy(configuration) :
                 configuration.DataFactory.Create<TId, THash, TCount>(
                     filterData.Capacity / foldFactors.Item1,
@@ -443,14 +424,14 @@
             for (var i = 0L; i < res.BlockSize; i++)
             {
                 res.Counts[i] = configuration.CountConfiguration.Add(
-                    GetFolded(filterData.Counts, i, foldFactors?.Item1, configuration.CountConfiguration.Add),
-                    GetFolded(otherFilterData.Counts, i, foldFactors?.Item2, configuration.CountConfiguration.Add));
+                    filterData.Counts.GetFolded(i, foldFactors?.Item1, configuration.CountConfiguration.Add),
+                    otherFilterData.Counts.GetFolded(i, foldFactors?.Item2, configuration.CountConfiguration.Add));
                 res.HashSums[i] = configuration.HashXor(
-                    GetFolded(filterData.HashSums, i, foldFactors?.Item1, configuration.HashXor),
-                    GetFolded(otherFilterData.HashSums, i, foldFactors?.Item2, configuration.HashXor));
+                    filterData.HashSums.GetFolded(i, foldFactors?.Item1, configuration.HashXor),
+                   otherFilterData.HashSums.GetFolded(i, foldFactors?.Item2, configuration.HashXor));
                 res.IdSums[i] = configuration.IdXor(
-                    GetFolded(filterData.IdSums, i, foldFactors?.Item1, configuration.IdXor),
-                    GetFolded(otherFilterData.IdSums, i, foldFactors?.Item2, configuration.IdXor));
+                    filterData.IdSums.GetFolded(i, foldFactors?.Item1, configuration.IdXor),
+                    otherFilterData.IdSums.GetFolded(i, foldFactors?.Item2, configuration.IdXor));
             }
             res.SubFilter = filterData
                 .SubFilter
@@ -472,9 +453,9 @@
         /// <param name="factor"></param>
         /// <returns></returns>
         /// <remarks>Captures the concept of reducing the size of a Bloom filter.</remarks>
-        public static IInvertibleBloomFilterData<TId, THash, TCount> Fold<TEntity,TId,THash,TCount>(
-            this IInvertibleBloomFilterData<TId, THash, TCount> data, 
-            IInvertibleBloomFilterConfiguration<TEntity,TId, THash, TCount> configuration, 
+        public static IInvertibleBloomFilterData<TId, THash, TCount> Fold<TEntity, TId, THash, TCount>(
+            this IInvertibleBloomFilterData<TId, THash, TCount> data,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
             uint factor)
             where TId : struct
             where TCount : struct
@@ -488,7 +469,7 @@
             var res = configuration.DataFactory.Create<TId, THash, TCount>(data.Capacity / factor, data.BlockSize / factor, data.HashFunctionCount);
             res.IsReverse = data.IsReverse;
             res.ItemCount = data.ItemCount;
-            for(var i = 0L; i < data.Counts.LongLength; i++)
+            for (var i = 0L; i < data.Counts.LongLength; i++)
             {
                 if (i < res.BlockSize)
                 {
@@ -502,7 +483,7 @@
                     res.Counts[pos] = configuration.CountConfiguration.Add(res.Counts[pos], data.Counts[i]);
                     res.HashSums[pos] = configuration.HashXor(res.HashSums[pos], data.HashSums[i]);
                     res.IdSums[pos] = configuration.IdXor(res.IdSums[pos], data.IdSums[i]);
-               }
+                }
             }
             res.SubFilter = data
                 .SubFilter?
@@ -610,8 +591,8 @@
                 IdSums = filterData.IdSums,
                 IsReverse = filterData.IsReverse,
                 SubFilter = filterData.SubFilter,
-                Capacity =  filterData.Capacity,
-                ItemCount =  filterData.ItemCount
+                Capacity = filterData.Capacity,
+                ItemCount = filterData.ItemCount
             };
         }
     }

@@ -9,9 +9,10 @@
     using BloomFilters.Estimators;
     using BloomFilters.Configurations;
     using BloomFilters.Invertible;
-    using BloomFilters.Invertible.Configurations;    /// <summary>
-                                                     /// A full working test harness for creating an estimator, serializing the estimator and receiving the filter.
-                                                     /// </summary>
+    using BloomFilters.Invertible.Configurations;
+    using BloomFilters.Invertible.Estimators;/// <summary>
+                                             /// A full working test harness for creating an estimator, serializing the estimator and receiving the filter.
+                                             /// </summary>
     internal class PrecalculatedActor
     {
         private readonly RuntimeTypeModel _protobufModel;

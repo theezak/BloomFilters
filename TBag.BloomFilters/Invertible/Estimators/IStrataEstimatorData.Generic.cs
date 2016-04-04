@@ -1,6 +1,4 @@
-﻿using TBag.BloomFilters.Invertible;
-
-namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Invertible.Estimators
 {
     /// <summary>
     /// Interface for strata estimator data.
@@ -26,6 +24,13 @@ namespace TBag.BloomFilters.Estimators
         /// The number of stratas.
         /// </summary>
         byte StrataCount { get; set; }
+
+        /// <summary>
+        /// Estimated size up to the given strata.
+        /// </summary>
+        /// <param name="strata"></param>
+        /// <returns></returns>
+        long StrataItemCount(byte strata);
 
         /// <summary>
         /// The capacity for the estimator.

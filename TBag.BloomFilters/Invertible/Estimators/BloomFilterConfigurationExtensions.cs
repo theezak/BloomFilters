@@ -1,11 +1,11 @@
-﻿
-
-namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Invertible.Estimators
 {
-    using Invertible.Configurations;
+    using Configurations;
     using System.Collections.Generic;
-    using TBag.BloomFilters.Configurations;
-
+   
+    /// <summary>
+    /// Bloom filter configuration extensions
+    /// </summary>
     internal static class BloomFilterConfigurationExtensions
     {
         /// <summary>

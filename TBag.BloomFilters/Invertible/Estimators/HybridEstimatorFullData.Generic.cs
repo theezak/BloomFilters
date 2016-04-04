@@ -1,5 +1,6 @@
-﻿namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Invertible.Estimators
 {
+    using BloomFilters.Estimators;
     using System;
     using System.Runtime.Serialization;
 

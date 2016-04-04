@@ -3,9 +3,9 @@
     using System;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using System.Linq;
-     using System.IO;
+    using System.IO;
     using BloomFilters.Estimators;
-
+    using Invertible.Estimators;
     /// <summary>
     /// Summary description for hybridEstimatorTest
     /// </summary>

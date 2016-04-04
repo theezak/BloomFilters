@@ -3,7 +3,7 @@
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using System.Linq;
     using BloomFilters.Estimators;
-
+    using BloomFilters.Invertible.Estimators;
     /// <summary>
     /// Summary description for hybridEstimatorTest
     /// </summary>

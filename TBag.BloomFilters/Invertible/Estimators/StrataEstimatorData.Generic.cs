@@ -1,10 +1,9 @@
-﻿using System.Linq;
-
-namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Invertible.Estimators
 {
     using Invertible;
     using System;
     using System.Runtime.Serialization;
+    using System.Linq;
 
     /// <summary>
     /// Serializable strata estimator data.
@@ -51,6 +50,16 @@ namespace TBag.BloomFilters.Estimators
         /// The item count
         /// </summary>
         public long ItemCount => BloomFilters?.Sum(filter => filter?.ItemCount ?? 0L)??0L;
+
+        /// <summary>
+        /// The item count up to the given <paramref name="strata"/>.
+        /// </summary>
+        /// <param name="strata"></param>
+        /// <returns></returns>
+        public long StrataItemCount(byte strata)
+        {
+            return Enumerable.Range(0, strata).Sum(i => this.GetFilterForStrata(i)?.ItemCount ?? 0L);
+        }
 
         #region Implementation of IStrataEstimatorData{TId,TCount}
         /// <summary>

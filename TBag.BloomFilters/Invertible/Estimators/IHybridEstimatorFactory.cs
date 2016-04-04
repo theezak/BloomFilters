@@ -1,7 +1,8 @@
-﻿namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Invertible.Estimators
 {
+    using BloomFilters.Estimators;
     using Configurations;
-    using Invertible.Configurations;
+
     /// <summary>
     /// Interface for the hybrid estimator factory.
     /// </summary>

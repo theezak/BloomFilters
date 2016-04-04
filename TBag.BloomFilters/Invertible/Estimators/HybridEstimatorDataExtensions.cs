@@ -1,7 +1,7 @@
-﻿namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Invertible.Estimators
 {
+    using BloomFilters.Estimators;
     using Configurations;
-    using Invertible.Configurations;
     using MathExt;
     using System;
     using System.Collections;
@@ -41,7 +41,7 @@
                 return estimator.ItemCount;
             var decodeFactor = Math.Max(estimator.StrataEstimator?.DecodeCountFactor ?? 1.0D,
                 otherEstimatorData.StrataEstimator?.DecodeCountFactor ?? 1.0D);
-            var strataDecode = estimator
+             var strataDecode = estimator
                 .StrataEstimator
                 .Decode(otherEstimatorData.StrataEstimator, configuration, estimator.StrataEstimator.StrataCount, destructive);
             if (!strataDecode.HasValue) return null;
@@ -51,11 +51,16 @@
                 strataDecode += (long)(decodeFactor * ((1 - similarity) / (1 + similarity)) *
                        (estimator.BitMinwiseEstimator.Capacity + otherEstimatorData.BitMinwiseEstimator.Capacity));
             }
-            var decodedItemCount = estimator.StrataEstimator.ItemCount + (similarity.HasValue ?(estimator.BitMinwiseEstimator?.ItemCount ?? 0L) : 0L);
-            if (decodedItemCount > 0)
+            var strataMin = (byte)Math.Min(
+           otherEstimatorData.StrataEstimator?.StrataCount ?? 0,
+           estimator.StrataEstimator?.StrataCount ?? 0);
+
+            var decodedItemCount = estimator.StrataEstimator.StrataItemCount(strataMin) + (similarity.HasValue ?(estimator.BitMinwiseEstimator?.ItemCount ?? 0L) : 0L) +
+               otherEstimatorData.StrataEstimator.StrataItemCount(strataMin) + (similarity.HasValue ? (otherEstimatorData.BitMinwiseEstimator?.ItemCount ?? 0L) : 0L);
+            if (decodedItemCount > 0) 
             {
                 //assume differences for the items counted, but not in the strata estimator or bit minwise estimator, contribute proportionally.
-                strataDecode = (long)Math.Ceiling(1.0D * strataDecode.Value * estimator.ItemCount / decodedItemCount);
+                strataDecode = (long)Math.Ceiling(1.0D * strataDecode.Value * (estimator.ItemCount+otherEstimatorData.ItemCount) / decodedItemCount);
             }
             //use upperbound on set difference.
             return Math.Min(strataDecode.Value, estimator.ItemCount + otherEstimatorData.ItemCount);

@@ -1,17 +1,19 @@
-﻿namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Invertible.Estimators
 {
     using System;
     using System.Collections.Generic;
     using HashAlgorithms;
     using Configurations;
-    using Invertible.Configurations;
-    using Invertible;    /// <summary>
-                         /// Derived Bloom filter configuration for an estimator
-                         /// </summary>
-                         /// <typeparam name="TEntity"></typeparam>
-                         /// <typeparam name="TId"></typeparam>
-                         /// <typeparam name="TCount"></typeparam>
-                         /// <remarks>Estimators utilize the entity hash as the identifier, so we need to derive a configuration for that,</remarks>
+    using Invertible;
+    using BloomFilters.Configurations;
+
+    /// <summary>
+    /// Derived Bloom filter configuration for an estimator
+    /// </summary>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <typeparam name="TId"></typeparam>
+    /// <typeparam name="TCount"></typeparam>
+    /// <remarks>Estimators utilize the entity hash as the identifier, so we need to derive a configuration for that,</remarks>
     internal class ConfigurationEstimatorWrapper<TEntity, TId, TCount> :
       KeyValuePairConfigurationBase<int,int,TCount>
          where TCount : struct

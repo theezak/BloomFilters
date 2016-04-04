@@ -6,6 +6,7 @@
     using TBag.BloomFilters;
     using TBag.BloomFilters.Estimators;
     using BloomFilters.Invertible;
+    using BloomFilters.Invertible.Estimators;
     [TestClass]
     public class RoundTripTest
     {

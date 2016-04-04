@@ -6,10 +6,10 @@
     using TBag.BloomFilters;
     using TBag.BloomFilters.Estimators;
     using BloomFilters.Invertible;
-    /// <summary>
-    /// Test a precalculated estimator that is folded to match the best size.
-    /// </summary>
-    /// <remarks>Work in progress, since 'best folding' is not available as a service for estimators. Also cutting over between folding and having to calculate a new estimator has not been defined.</remarks>
+    using BloomFilters.Invertible.Estimators;    /// <summary>
+                                                 /// Test a precalculated estimator that is folded to match the best size.
+                                                 /// </summary>
+                                                 /// <remarks>Work in progress, since 'best folding' is not available as a service for estimators. Also cutting over between folding and having to calculate a new estimator has not been defined.</remarks>
     [TestClass]
     public class PreCalculatedRoundTripTest
     {

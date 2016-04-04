@@ -1,11 +1,10 @@
-﻿namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Invertible.Estimators
 {
     using Configurations;
-    using Invertible.Configurations;
     using MathExt;
     using System;
-    using System.Collections.Generic;
     using System.Linq;
+   
     /// <summary>
     /// Encapsulates emperical data for creating hybrid estimators.
     /// </summary>

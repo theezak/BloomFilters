@@ -1,10 +1,9 @@
-﻿namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Invertible.Estimators
 {
     using Configurations;
     using HashAlgorithms;
     using Invertible;
-    using Invertible.Configurations;
-    using System;
+     using System;
     using System.Collections.Generic;
     using System.Linq;
 

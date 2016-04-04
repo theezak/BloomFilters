@@ -1,8 +1,7 @@
-﻿namespace TBag.BloomFilters.Estimators
+﻿namespace TBag.BloomFilters.Invertible.Estimators
 {
     using Configurations;
     using Invertible;
-    using Invertible.Configurations;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -37,7 +36,8 @@
             var decodeFactor = Math.Max(data.DecodeCountFactor, otherEstimatorData.DecodeCountFactor);
             var hasDecoded = false;
             var setA = new HashSet<int>();
-            for (var i = data.StrataCount - 1; i >= 0; i--)
+            var minStrata = Math.Min(data.StrataCount, otherEstimatorData.StrataCount);
+            for (var i = minStrata - 1; i >= 0; i--)
             {
                 var ibf = data.GetFilterForStrata(i);
                 var estimatorIbf = i >= otherEstimatorData.StrataCount
