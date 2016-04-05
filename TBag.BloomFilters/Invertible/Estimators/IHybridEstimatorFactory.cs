@@ -130,7 +130,7 @@
         /// <param name="setSize">Number of items to be added</param>
         /// <param name="failedDecodeCount">Number of times the estimator has failed to decode.</param>
         /// <returns>The recommended capacity for the Bloom filters inside the estimator.</returns>
-        long GetRecommendedCapacity<TEntity, TId, THash, TCount>(
+        long GetRecommendedBlockSize<TEntity, TId, THash, TCount>(
             IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
             long setSize,
             byte failedDecodeCount = 0)

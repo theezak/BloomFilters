@@ -28,17 +28,25 @@
             where TId : struct
         {
             if (precalculatedEstimator == null) return null;
+            //after two failed attempts, don't fold.
+            if (failedDecodeCount > 2) return precalculatedEstimator.HybridExtract();
             var data = precalculatedEstimator.FullExtract();
             var strata = GetRecommendedStrata(configuration, data.ItemCount, failedDecodeCount);
-            var capacity = GetRecommendedCapacity(configuration, data.ItemCount, failedDecodeCount);
+            var blockSize = GetRecommendedBlockSize(configuration, data.ItemCount, failedDecodeCount);
                 var factors = MathExtensions.GetFactors(precalculatedEstimator.BlockSize);
-            var foldFactor = capacity > 0L ?
+            var foldFactor = blockSize > 0L ?
                 (uint)factors
                 .OrderByDescending(f => f)
-                .Where(f => precalculatedEstimator.BlockSize / f > capacity)
+                //for estimators: capacity is the block size.
+                .Where(f => precalculatedEstimator.BlockSize / f > blockSize)
                 .Skip(failedDecodeCount)
                 .FirstOrDefault():
                 0L;
+            if (failedDecodeCount > 1)
+            {
+                //after more than 1 failed attempt, go for the lowest fold factor.
+                foldFactor = (uint)factors.OrderBy(f => f).FirstOrDefault(f => precalculatedEstimator.BlockSize / f > blockSize);
+            }
             if (foldFactor > 1)
             {
                 data = data.Fold(configuration, (uint)foldFactor);
@@ -70,7 +78,7 @@
         {
             var minwiseHashCount = GetRecommendedMinwiseHashCount(configuration, setSize, failedDecodeCount);
             var strata = GetRecommendedStrata(configuration, setSize, failedDecodeCount);
-            var capacity = GetRecommendedCapacity(configuration, setSize, failedDecodeCount);
+            var capacity = GetRecommendedBlockSize(configuration, setSize, failedDecodeCount);
             var bitSize = GetRecommendedBitSize(configuration, setSize, failedDecodeCount);
             var result = new HybridEstimator<TEntity, TId, TCount>(
                 capacity,
@@ -186,7 +194,7 @@
         /// <param name="setSize">Number of items to be added</param>
         /// <param name="failedDecodeCount">Number of times the estimator has failed to decode.</param>
         /// <returns></returns>
-        public long GetRecommendedCapacity<TEntity, TId, THash, TCount>(
+        public long GetRecommendedBlockSize<TEntity, TId, THash, TCount>(
             IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
             long setSize,
             byte failedDecodeCount = 0)
@@ -194,20 +202,20 @@
             where THash : struct
             where TCount : struct
         {
-            var capacity = (long)(50 * Math.Max(1.0D, Math.Log10(setSize)));
+            var blockSize = (long)(50 * Math.Max(1.0D, Math.Log10(setSize)));
             if (setSize > 16000L &&
-                capacity < 1000)
+                blockSize < 1000)
             {
-                capacity = 1000;
+                blockSize = 1000;
             }
             if (failedDecodeCount > 1 &&
-               capacity < (long)0.2D * setSize)
+               blockSize < (long)0.2D * setSize)
             {
-                capacity = failedDecodeCount < 2
+                blockSize = failedDecodeCount < 2
                     ? (long)0.2D * setSize
                     : (long)0.5D * setSize;
             }
-            return capacity;
+            return blockSize;
 
         }
 
