@@ -4,24 +4,21 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
-    using BloomFilters;
-    using BloomFilters.Estimators;
-    using BloomFilters.Configurations;
     using BloomFilters.Invertible;
     using BloomFilters.Invertible.Configurations;
-    using BloomFilters.Invertible.Estimators;/// <summary>
-                                             /// A full working test harness for creating an estimator, serializing the estimator and receiving the filter.
-                                             /// </summary>
-    internal class PrecalculatedActor
+    using BloomFilters.Invertible.Estimators;
+
+    /// <summary>
+    /// A full working test harness for creating an estimator, serializing the estimator and receiving the filter.
+    /// </summary>
+    internal class PrecalculatedActor<TCount>
+        where TCount : struct
     {
         private readonly RuntimeTypeModel _protobufModel;
-        private readonly IList<TestEntity> _dataSet;
         private readonly IHybridEstimatorFactory _hybridEstimatorFactory;
-       private readonly IInvertibleBloomFilterConfiguration<TestEntity, long, int,  sbyte> _configuration;
-        private readonly IInvertibleBloomFilterFactory _bloomFilterFactory;
-        private readonly HybridEstimator<TestEntity, long, sbyte> _estimator;
-        private readonly IInvertibleBloomFilter<TestEntity, long, sbyte> _filter;
+        private readonly IInvertibleBloomFilterConfiguration<TestEntity, long, int, TCount> _configuration;
+        private readonly HybridEstimator<TestEntity, long, TCount> _estimator;
+        private readonly IInvertibleBloomFilter<TestEntity, long, TCount> _filter;
 
         /// <summary>
         /// Constructor
@@ -33,22 +30,21 @@
         public PrecalculatedActor(IList<TestEntity> dataSet,
             IHybridEstimatorFactory hybridEstimatorFactory,
             IInvertibleBloomFilterFactory bloomFilterFactory,
-            IInvertibleBloomFilterConfiguration<TestEntity, long, int, sbyte> configuration)
+            IInvertibleBloomFilterConfiguration<TestEntity, long, int, TCount> configuration)
         {
             _protobufModel = TypeModel.Create();
             _protobufModel.UseImplicitZeroDefaults = true;
-            _dataSet = dataSet;
-            _hybridEstimatorFactory = hybridEstimatorFactory;
-            _bloomFilterFactory = bloomFilterFactory;
+             _hybridEstimatorFactory = hybridEstimatorFactory;
             _configuration = configuration;
             //terribly over size the estimator.
             _estimator = _hybridEstimatorFactory.Create(_configuration, 100000);
-            foreach (var itm in _dataSet)
+            foreach (var itm in dataSet)
             {
                 _estimator.Add(itm);
             }
-            _filter = _bloomFilterFactory.Create(_configuration, 100000, 0.001F, true);
-            foreach (var item in _dataSet)
+            //sized to number of differences it can handle, not to the size of the data.
+            _filter = bloomFilterFactory.Create(_configuration, 5000, 0.001F, true);
+            foreach (var item in dataSet)
             {
                 _filter.Add(item);
             }
@@ -63,8 +59,8 @@
         public long? GetEstimate(MemoryStream estimatorStream)
         {
             var otherEstimator =
-               (HybridEstimatorData<int, sbyte>)
-                   _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, sbyte>));
+                (HybridEstimatorData<int, TCount>)
+                    _protobufModel.Deserialize(estimatorStream, null, typeof (HybridEstimatorData<int, TCount>));
             return _estimator.Decode(otherEstimator);
         }
 
@@ -74,11 +70,11 @@
         /// <param name="estimatorStream">The estimator</param>
         /// <param name="otherActor"></param>
         /// <returns></returns>
-        public MemoryStream RequestFilter(MemoryStream estimatorStream, PrecalculatedActor otherActor)
+        public MemoryStream RequestFilter(MemoryStream estimatorStream, PrecalculatedActor<TCount> otherActor)
         {
             var otherEstimator =
-                (IHybridEstimatorData<int, sbyte>)
-                    _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, sbyte>));
+                (IHybridEstimatorData<int, TCount>)
+                    _protobufModel.Deserialize(estimatorStream, null, typeof (HybridEstimatorData<int, TCount>));
             var estimate = _estimator.Decode(otherEstimator);
             if (estimate == null)
             {
@@ -111,19 +107,18 @@
         /// </summary>
         /// <param name="actor"></param>
         /// <returns></returns>
-        public Tuple<HashSet<long>, HashSet<long>, HashSet<long>> GetDifference(PrecalculatedActor actor)
-        {           
+        public Tuple<HashSet<long>, HashSet<long>, HashSet<long>> GetDifference(PrecalculatedActor<TCount> actor)
+        {
             using (var estimatorStream = new MemoryStream())
             {
-                //TODO: hide in a strategy for compressing the estimator (when more failures, less compresed)
-
                 var data = _hybridEstimatorFactory.Extract(_configuration, _estimator);
                 _protobufModel.Serialize(estimatorStream, data);
                 estimatorStream.Position = 0;
                 //send the estimator to the other actor and receive the filter from that actor.
                 var otherFilterStream = actor.RequestFilter(estimatorStream, this);
-                var otherFilter = (IInvertibleBloomFilterData<long, int,sbyte>)
-                    _protobufModel.Deserialize(otherFilterStream, null, _configuration.DataFactory.GetDataType<long,int,sbyte>());
+                var otherFilter = (IInvertibleBloomFilterData<long, int, TCount>)
+                    _protobufModel.Deserialize(otherFilterStream, null,
+                        _configuration.DataFactory.GetDataType<long, int, TCount>());
                 otherFilterStream.Dispose();
                 var onlyInThisSet = new HashSet<long>();
                 var onlyInOtherSet = new HashSet<long>();
@@ -134,5 +129,4 @@
             }
         }
     }
-
 }

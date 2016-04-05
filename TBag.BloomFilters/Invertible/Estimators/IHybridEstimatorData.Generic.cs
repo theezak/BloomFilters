@@ -1,6 +1,6 @@
 ﻿namespace TBag.BloomFilters.Invertible.Estimators
 {
-    using TBag.BloomFilters.Estimators;
+    using BloomFilters.Estimators;
 
     /// <summary>
     /// Interface for hybrid estimator data.
@@ -12,7 +12,7 @@
         where TCount : struct
     {
         /// <summary>
-        /// Estimated size of the set.
+        ///The number of items in the set.
         /// </summary>
         long ItemCount { get; set; }
 

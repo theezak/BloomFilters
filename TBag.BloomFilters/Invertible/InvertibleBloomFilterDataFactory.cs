@@ -1,9 +1,8 @@
 ﻿namespace TBag.BloomFilters.Invertible
 {
     using Configurations;
-    using MathExt;
     using System;
-    using System.Linq;
+
     /// <summary>
     /// Implementation of <see cref="IInvertibleBloomFilterDataFactory"/>.
     /// </summary>
@@ -31,8 +30,7 @@
             {
                 //set capacity to arbitrary low capacity.
                 capacity = 10;
-            }
-            
+            }            
             IInvertibleBloomFilterData<TId,int,TCount> data = precalculatedFilter.Extract();
             var foldFactor = configuration.FoldingStrategy?.FindFoldFactor(data.BlockSize, data.Capacity, capacity);
             if (foldFactor > 1)

@@ -48,9 +48,10 @@
     <Compile Include="ArrayExtensions.cs" />
     <Compile Include="Collections\Generic\ListExtensions.cs" />
     <Compile Include="Configurations\IBloomFilterConfiguration.Generic.cs" />
+    <Compile Include="Configurations\LongCountConfiguration.cs" />
     <Compile Include="Invertible\Estimators\BloomFilterConfigurationExtensions.cs" />
-    <Compile Include="Invertible\Configurations\BloomFilterConfigurationBase.Generic.cs" />
-    <Compile Include="Invertible\Configurations\BloomFilterConfigurationExtensions.cs" />
+    <Compile Include="Invertible\Configurations\ConfigurationBase.Generic.cs" />
+    <Compile Include="Invertible\Configurations\InvertibleBloomFilterConfigurationExtensions.cs" />
     <Compile Include="Invertible\Configurations\BloomFilterIdConfigurationBase.Generic.cs" />
     <Compile Include="Collections\BitArrayExtensions.cs" />
     <Compile Include="Configurations\PowerOfTwoFoldingStrategy.cs" />
@@ -77,7 +78,7 @@
     <Compile Include="Invertible\InvertibleBloomFilterDataFactory.cs" />
     <Compile Include="Invertible\Configurations\ReverseConfigurationBase.Generic.cs" />
     <Compile Include="Invertible\Configurations\PairConfigurationBase.Generic.cs" />
-    <Compile Include="Invertible\Configurations\ConfigurationBase.Generic.cs" />
+    <Compile Include="Invertible\Configurations\KeyConfigurationBase.Generic.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimator.Generic.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimatorData.Generic.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimatorDataExtensions.cs" />

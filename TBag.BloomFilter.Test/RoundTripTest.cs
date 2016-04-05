@@ -3,10 +3,9 @@
     using System.Collections.Generic;
     using System.Linq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using TBag.BloomFilters;
-    using TBag.BloomFilters.Estimators;
     using BloomFilters.Invertible;
     using BloomFilters.Invertible.Estimators;
+
     [TestClass]
     public class RoundTripTest
     {
@@ -21,14 +20,14 @@
             IInvertibleBloomFilterFactory bloomFilterFactory = new InvertibleBloomFilterFactory();
             var dataSet1 = DataGenerator.Generate().Take(100000).ToList();
             //create the actors.
-            var actor1 = new Actor(
+            var actor1 = new Actor<short>(
                 dataSet1,
                 estimatorFactory,
                 bloomFilterFactory,
                 configuration);
             var dataSet2 = DataGenerator.Generate().Take(70000).ToList();
             dataSet2.Modify(15000);
-            var actor2 = new Actor(
+            var actor2 = new Actor<short>(
                 dataSet2,
                 estimatorFactory,
                 bloomFilterFactory,

@@ -1,7 +1,5 @@
 ﻿namespace TBag.HashAlgorithms
 {
-    using System;
- 
     public abstract class RandomBase
     {
 

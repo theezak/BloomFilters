@@ -4,13 +4,14 @@
     using Configurations;
     using System;
     using System.Collections.Generic;
+
     /// <summary>
     /// A hybrid estimator with a limited strata that cuts over to a bit minwise estimator.
     /// </summary>
     /// <typeparam name="TEntity">The entity type</typeparam>
     /// <typeparam name="TId">The identifier type</typeparam>
     /// <typeparam name="TCount">The type of occurence count.</typeparam>
-    public class HybridEstimator<TEntity, TId, TCount> : 
+    public sealed class HybridEstimator<TEntity, TId, TCount> : 
         StrataEstimator<TEntity, TId, TCount>,
         IHybridEstimator<TEntity, int, TCount> 
         where TCount : struct
@@ -55,10 +56,7 @@
         /// Constructor
         /// </summary>
         /// <param name="blockSize">Capacity for strata estimator (good default is 80)</param>
-        /// <param name="bitSize">The bit size for the bit minwise estimator.</param>
-        /// <param name="minWiseHashCount">number of hash functions for the bit minwise estimator</param>
-        /// <param name="setSize">Estimated maximum set size for the whole estimator</param>
-        /// <param name="maxStrata">Maximum strate for the strata estimator.</param>
+          /// <param name="maxStrata">Maximum strate for the strata estimator.</param>
         /// <param name="configuration">The configuration</param>
         public HybridEstimator(
             long blockSize,
@@ -67,8 +65,7 @@
                 blockSize,
                 configuration,
                 maxStrata)        
-        {
-           
+        {           
             DecodeCountFactor = BlockSize >= 20 ? 1.45D : 1.0D;
         }
         #endregion
@@ -80,7 +77,7 @@
         /// <param name="capacity">The capacity (number of items to be added)</param>
         /// <param name="bitSize">The bit size for the bit minwise estimator</param>
         /// <param name="minWiseHashCount">The minwise hash count</param>
-        public virtual void Initialize(
+        public void Initialize(
             long capacity,
             byte bitSize,
             int minWiseHashCount)
@@ -145,7 +142,7 @@
             var idx = GetStrata(idHash, entityHash);
             if (idx < MaxStrata)
             {
-                base.Remove(idHash, entityHash, idx);
+                Remove(idHash, entityHash, idx);
             }
             else
             {
@@ -181,7 +178,9 @@
                 .Extract()
                 .Decode(estimator, Configuration);
         }
+        #endregion
 
+        #region Implementation of IHybridEstimator{Entity, int, TCount}
         /// <summary>
         /// Fold the hybrid estimator.
         /// </summary>
@@ -191,17 +190,16 @@
         IHybridEstimator<TEntity, int, TCount> IHybridEstimator<TEntity, int, TCount>.Fold(uint factor, bool inPlace)
         {
             IHybridEstimator<TEntity, int, TCount> self = this;
-            
+
             var res = self.FullExtract().Fold(Configuration, factor);
             if (inPlace)
             {
                 self.Rehydrate(res);
                 return this;
             }
-            var max = Math.Pow(2, MaxTrailingZeros);
             IHybridEstimator<TEntity, int, TCount> estimator = new HybridEstimator<TEntity, TId, TCount>(
                 res.StrataEstimator.BlockSize,
-                res.StrataEstimator.StrataCount, 
+                res.StrataEstimator.StrataCount,
                 Configuration);
             if (res.BitMinwiseEstimator != null)
             {
@@ -212,6 +210,20 @@
             }
             estimator.Rehydrate(res);
             return estimator;
+        }
+
+        /// <summary>
+        /// Extract the hybrid estimator in a serializable format.
+        /// </summary>
+        /// <returns></returns>
+        IHybridEstimatorData<int, TCount> IHybridEstimator<TEntity, int, TCount>.Extract()
+        {
+            return new HybridEstimatorData<int, TCount>
+            {
+                ItemCount = ItemCount,
+                BitMinwiseEstimator = _minwiseEstimator?.Extract(),
+                StrataEstimator = Extract(),
+            };
         }
 
         /// <summary>
@@ -241,22 +253,6 @@
             }
             estimator.Rehydrate(res);
             return estimator;
-        }
-        #endregion
-
-        #region Implementation of IHybridEstimator{Entity, int, TCount}
-        /// <summary>
-        /// Extract the hybrid estimator in a serializable format.
-        /// </summary>
-        /// <returns></returns>
-        IHybridEstimatorData<int, TCount> IHybridEstimator<TEntity, int, TCount>.Extract()
-        {
-            return new HybridEstimatorData<int, TCount>
-            {
-                ItemCount = ItemCount,
-                BitMinwiseEstimator = _minwiseEstimator?.Extract(),
-                StrataEstimator = Extract(),
-            };
         }
 
         /// <summary>

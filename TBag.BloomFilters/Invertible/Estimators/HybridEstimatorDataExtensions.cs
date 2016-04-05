@@ -12,7 +12,6 @@
     /// </summary>
     internal static class HybridEstimatorDataExtensions
     {
-   
         /// <summary>
         /// Decode the hybrid estimator data instances.
         /// </summary>
@@ -51,9 +50,9 @@
                 strataDecode += (long)(decodeFactor * ((1 - similarity) / (1 + similarity)) *
                        (estimator.BitMinwiseEstimator.Capacity + otherEstimatorData.BitMinwiseEstimator.Capacity));
             }
-            var strataMin = (byte)Math.Min(
-           otherEstimatorData.StrataEstimator?.StrataCount ?? 0,
-           estimator.StrataEstimator?.StrataCount ?? 0);
+            var strataMin = Math.Min(
+                otherEstimatorData.StrataEstimator?.StrataCount ?? 0,
+                estimator.StrataEstimator?.StrataCount ?? 0);
 
             var decodedItemCount = estimator.StrataEstimator.StrataItemCount(strataMin) + (similarity.HasValue ?(estimator.BitMinwiseEstimator?.ItemCount ?? 0L) : 0L) +
                otherEstimatorData.StrataEstimator.StrataItemCount(strataMin) + (similarity.HasValue ? (otherEstimatorData.BitMinwiseEstimator?.ItemCount ?? 0L) : 0L);
@@ -69,13 +68,13 @@
         /// <summary>
         /// Fold the strata estimator data.
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <typeparam name="TId"></typeparam>
-        /// <typeparam name="TCount"></typeparam>
+        /// <typeparam name="TEntity">The entity type</typeparam>
+        /// <typeparam name="TId">The identifier type</typeparam>
+        /// <typeparam name="TCount">The count type</typeparam>
         /// <param name="estimatorData"></param>
         /// <param name="configuration"></param>
-        /// <param name="factor"></param>
-        /// <returns></returns>
+        /// <param name="factor">The factor to fold by</param>
+        /// <returns>The <paramref name="estimatorData"/> folded by <paramref name="factor"/>.</returns>
         internal static HybridEstimatorFullData<int, TCount> Fold<TEntity, TId, TCount>(
             this IHybridEstimatorFullData<int, TCount> estimatorData,
             IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
@@ -84,8 +83,11 @@
             where TId : struct
         {
             if (estimatorData == null) return null;
-            var minWiseFold = estimatorData.BitMinwiseEstimator == null ? 1L :
-                Math.Max(1L, (MathExtensions.GetFactors(estimatorData.BitMinwiseEstimator.Capacity).OrderBy(f => f).FirstOrDefault(f => f > factor)));
+            var minWiseFold = estimatorData.BitMinwiseEstimator == null ? 
+                1L :
+                Math.Max(
+                    1L, 
+                    MathExtensions.GetFactors(estimatorData.BitMinwiseEstimator.Capacity).OrderBy(f => f).FirstOrDefault(f => f > factor));
             return new HybridEstimatorFullData<int, TCount>
             {
                 ItemCount = estimatorData.ItemCount,
@@ -122,7 +124,6 @@
         /// <summary>
         /// Convert full data to serializable data.
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
         /// <typeparam name="TId"></typeparam>
         /// <typeparam name="TCount"></typeparam>
         /// <param name="estimatorData"></param>

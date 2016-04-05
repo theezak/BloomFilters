@@ -5,7 +5,7 @@
     using System.Collections.Generic;
 
     /// <summary>
-    /// Bloom filter configuration for a value Bloom filter.
+    /// Bloom filter configuration for a sub filter.
     /// </summary>
     /// <typeparam name="TEntity">The entity type</typeparam>
     /// <typeparam name="TId">The entity identifier type</typeparam>
@@ -33,7 +33,7 @@
             base(false)
         {
             _wrappedConfiguration = configuration;
-            //hashSum no longer derived from idSum.
+            //hashSum no longer derived from idSum, so pure definition needs to be changed.
             _isPure = (d, position) => _wrappedConfiguration.CountConfiguration.IsPure(d.Counts[position]);
         }
         #endregion

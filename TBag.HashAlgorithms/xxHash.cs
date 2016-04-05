@@ -1,9 +1,7 @@
-﻿using System;
-using System.Globalization;
-using System.Text;
-
-namespace TBag.HashAlgorithms
+﻿namespace TBag.HashAlgorithms
 {
+    using System;
+
     /// <summary>
     ///     xxHash algorithm.
     /// </summary>
@@ -122,7 +120,7 @@ namespace TBag.HashAlgorithms
                 state.V3 = CalcSubHash(state.V3, state.Memory, index);
                 index += 4;
                 state.V4 = CalcSubHash(state.V4, state.Memory, index);
-                index += 4;
+                //index += 4;
                 index = 0;
                 state.Memsize = 0;
             }
@@ -174,7 +172,7 @@ namespace TBag.HashAlgorithms
         private static uint Digest(XxhState state)
         {
             uint h32;
-            int index = 0;
+            var index = 0;
             if (state.TotalLen >= 16)
             {
                 h32 = RotateLeft(state.V1, 1) +

@@ -71,7 +71,7 @@ namespace TBag.BloomFilters.Measurements.Test
                                 var s1 = new HashSet<long>();
                                 var s2 = new HashSet<long>();
                                 var s3 = new HashSet<long>();
-                                decodeResult[run] = bloomFilter1.SubtractAndDecode(bloomFilter2, s1, s2, s3) ? 1 : 0;
+                                decodeResult[run] = bloomFilter1.SubtractAndDecode(bloomFilter2, s1, s2, s3) == true ? 1 : 0;
                                 var mods = s1.Union(s2).Union(s3).ToArray();                               
                                 modCountResultAggregate[run] = mods.Count(v => onlyInSet1.Contains(v) ||
                                onlyInSet2.Contains(v) || modified.Contains(v));
@@ -159,7 +159,7 @@ namespace TBag.BloomFilters.Measurements.Test
                                 countAggregate[run] = onlyInSet1.Count() + onlyInSet2.Count() + modified.Count();
                                 modCountResultAggregate[run] = s1.Union(s2).Union(s3).Count(v => onlyInSet1.Contains(v) ||
                                 onlyInSet2.Contains(v) || modified.Contains(v));
-                                 decodeResult[run] = success ? 1 : 0;
+                                 decodeResult[run] = success == true ? 1 : 0;
                             }
                             var countAvg = (long)countAggregate.Average();
                             var modCountResult = (long)modCountResultAggregate.Average();
@@ -251,7 +251,7 @@ namespace TBag.BloomFilters.Measurements.Test
                                 listADiff[run] = s1.Count() - onlyInSet1.Count();
                                 listBDiff[run] = s2.Count() - onlyInSet2.Count();
                                 listCDiff[run] = s3.Count() - modified.Count();
-                                decodeResult[run] = success ? 1 : 0;
+                                decodeResult[run] = success == true ? 1 : 0;
                             }
                             var countAvg = (long)countAggregate.Average();
                             var modCountResult = (long)modCountResultAggregate.Average();
@@ -346,7 +346,7 @@ namespace TBag.BloomFilters.Measurements.Test
                                 listADiff[run] = s1.Count() - onlyInSet1.Count();
                                 listBDiff[run] = s2.Count() - onlyInSet2.Count();
                                 listCDiff[run] = s3.Count() - modified.Count();
-                                decodeResult[run] = success ? 1 : 0;
+                                decodeResult[run] = success == true? 1 : 0;
                             }
                             var countAvg = (long)countAggregate.Average();
                             var modCountResult = (long)modCountResultAggregate.Average();

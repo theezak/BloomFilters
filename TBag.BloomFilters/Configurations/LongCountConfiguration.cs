@@ -5,41 +5,41 @@
     using System.Linq;
 
     /// <summary>
-    /// Count configuration with count type <see cref="int"/>.
+    /// Count configuration with count type <see cref="long"/>.
     /// </summary>
-    public class IntCountConfiguration : CountConfigurationBase<int>
+    public class LongCountConfiguration : CountConfigurationBase<long>
     {
         /// <summary>
         /// Decrease the count
         /// </summary>
-        public override Func<int, int> Decrease { get; set; } = DecreaseImpl;
+        public override Func<long,long> Decrease { get; set; } = DecreaseImpl;
 
-        private static int DecreaseImpl(int c)
+        private static long DecreaseImpl(long c)
         {
-            return c == int.MinValue ? int.MinValue : c - 1;
+            return c > long.MinValue ? c - 1 : long.MinValue;
         }
 
         /// <summary>
         /// The count identity value (0)
         /// </summary>
-        public override Func<int> Identity { get; set; } = ()=>0;
+        public override Func<long> Identity { get; set; } = ()=>0L;
 
         /// <summary>
         /// Increase the count
         /// </summary>
-        public override Func<int, int> Increase { get; set; } = IncreaseImpl;
+        public override Func<long,long> Increase { get; set; } = IncreaseImpl;
 
-        private static int IncreaseImpl(int c)
+        private static long IncreaseImpl(long c)
         {
-            return c == int.MaxValue ? int.MaxValue : c + 1;
+            return c < long.MaxValue ? c + 1 : long.MaxValue;
         }
 
         /// <summary>
         /// Subtract counts
         /// </summary>
-        public override Func<int, int, int> Subtract { get; set; } = SubtractImpl;
+        public override Func<long,long,long> Subtract { get; set; } = SubtractImpl;
 
-        private static int SubtractImpl(int c1, int c2)
+        private static long SubtractImpl(long c1, long c2)
         {
             try
             {
@@ -54,29 +54,29 @@
         /// <summary>
         /// The count unity (1)
         /// </summary>
-        public override Func<int> Unity { get; set; } = ()=>1;
+        public override Func<long> Unity { get; set; } = ()=>1L;
 
         /// <summary>
         /// Count comparer
         /// </summary>
-        public override IComparer<int> Comparer { get; set; } = Comparer<int>.Default;
+        public override IComparer<long> Comparer { get; set; } = Comparer<long>.Default;
 
         /// <summary>
         /// Determine if the count is pure.
         /// </summary>
-        public override Func<int, bool> IsPure { get; set; } = IsPureImpl;
+        public override Func<long, bool> IsPure { get; set; } = IsPureImpl;
 
-        private static bool IsPureImpl(int c)
+        private static bool IsPureImpl(long c)
         {
-            return c == 1 || c == -1;
+            return c == 1L || c == -1L;
         }
 
         /// <summary>
         /// Add two counts
         /// </summary>
-        public override Func<int, int, int> Add { get; set; } = AddImpl;
+        public override Func<long,long,long> Add { get; set; } = AddImpl;
 
-        private static int AddImpl(int c1, int c2)
+        private static long AddImpl(long c1, long c2)
         {
             try
             {
@@ -96,7 +96,7 @@
         /// <returns></returns>
         public override bool Supports(long capacity, long size)
         {
-            return (int.MaxValue - 30) * size > capacity;
+            return (long.MaxValue - 60) * size > capacity;
         }
 
         /// <summary>
@@ -105,10 +105,10 @@
         /// <param name="counts"></param>
         /// <param name="hashSize"></param>
         /// <returns></returns>
-        public override long GetEstimatedCount(int[] counts, uint hashSize)
+        public override long GetEstimatedCount(long[] counts, uint hashSize)
         {
             if (counts == null || hashSize <= 0) return 0L;
-            return counts.Select(c => (long)c).Sum(c=>Math.Abs(c)) / hashSize;
+            return counts.Sum(c=>c==long.MinValue ? long.MaxValue : Math.Abs(c)) / hashSize;
         }
     }
 }

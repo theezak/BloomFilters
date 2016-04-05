@@ -2,8 +2,6 @@
 {
     using System.Collections.Generic;
     using System;
-    using Invertible;
-    using BloomFilters.Configurations;
 
     /// <summary>
     /// Interface for configuration of a Bloom filter.

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+
     /// <summary>
     /// Configuration for the counter.
     /// </summary>

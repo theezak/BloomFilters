@@ -2,8 +2,7 @@
 {
     using System.Collections.Generic;
     using System;
-    using System.Threading;
-
+   
     /// <summary>
     /// Interface for an invertible Bloom filter.
     /// </summary>
@@ -14,6 +13,19 @@
         where TId : struct
         where TCount : struct
     {
+        #region Properties
+        /// <summary>
+        /// The number of items in the Bloom filter.
+        /// </summary>
+        long ItemCount { get; }
+
+        /// <summary>
+        /// The capacity of the filter.
+        /// </summary>
+        long Capacity { get; }
+        #endregion
+
+        #region Methods
         /// <summary>
         /// Add an entity to the Bloom filter.
         /// </summary>
@@ -70,7 +82,7 @@
         /// <param name="listB">Items not in this filter, but in <paramref name="filterData"/></param>
         /// <param name="modifiedEntities">Entities in both filters, but with a different value</param>
         /// <returns><c>true</c> when the decode was successful, otherwise <c>false</c></returns>
-        bool SubtractAndDecode(
+        bool? SubtractAndDecode(
             HashSet<TId> listA, 
             HashSet<TId> listB, 
             HashSet<TId> modifiedEntities,
@@ -135,7 +147,7 @@
         /// <param name="listB">Items not in this filter, but in <paramref name="filter"/></param>
         /// <param name="modifiedEntities">Entities in both filters, but with a different value</param>
         /// <returns><c>true</c> when the decode was successful, otherwise <c>false</c></returns>
-        bool SubtractAndDecode(IInvertibleBloomFilter<T, TId, TCount> filter, HashSet<TId> listA,
+        bool? SubtractAndDecode(IInvertibleBloomFilter<T, TId, TCount> filter, HashSet<TId> listA,
             HashSet<TId> listB,
             HashSet<TId> modifiedEntities);
 
@@ -143,11 +155,7 @@
         /// Compress the Bloom filter
         /// </summary>
         IInvertibleBloomFilter<T, TId, TCount> Compress(bool inPlace = false);
-
-        /// <summary>
-        /// The number of items in the Bloom filter.
-        /// </summary>
-        long ItemCount { get; }
+        #endregion
 
     }
 }

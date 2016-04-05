@@ -26,6 +26,11 @@
         /// The item count.
         /// </summary>
         public virtual long ItemCount => Data?.ItemCount ?? 0L;
+
+        /// <summary>
+        /// The capacity.
+        /// </summary>
+        public virtual long Capacity => Data?.Capacity ?? 0L;
       
         /// <summary>
         /// The configuration for the Bloom filter.
@@ -213,7 +218,7 @@
         /// <param name="listB">Items not in this filter, but in <paramref name="filter"/></param>
         /// <param name="modifiedEntities">Entities in both filters, but with a different value</param>
         /// <returns><c>true</c> when the decode was successful, otherwise <c>false</c></returns>
-        public bool SubtractAndDecode(IInvertibleBloomFilter<TEntity, TId, TCount> filter,
+        public bool? SubtractAndDecode(IInvertibleBloomFilter<TEntity, TId, TCount> filter,
             HashSet<TId> listA,
             HashSet<TId> listB,
             HashSet<TId> modifiedEntities)
@@ -229,13 +234,13 @@
         /// <param name="listB">Items not in this filter, but in <paramref name="filterData"/></param>
         /// <param name="modifiedEntities">Entities in both filters, but with a different value</param>
         /// <returns><c>true</c> when the decode was successful, otherwise <c>false</c></returns>
-        public virtual bool SubtractAndDecode(
+        public virtual bool? SubtractAndDecode(
             HashSet<TId> listA,
             HashSet<TId> listB,
             HashSet<TId> modifiedEntities,
             IInvertibleBloomFilterData<TId, int, TCount> filterData)
         {
-            ValidateData();
+            if (!ValidateData()) return null;
             return Data.SubtractAndDecode(filterData, Configuration, listA, listB, modifiedEntities);
         }
 
@@ -371,7 +376,7 @@
         /// <summary>
         /// Validate the data.
         /// </summary>
-        protected virtual void ValidateData()
+        protected virtual bool ValidateData()
         {
             if (Data==null)
             {
@@ -381,6 +386,7 @@
             {
                 throw new InvalidOperationException("An invertible Bloom filter does not accept reverse Bloom filter data. Please use a reverse Bloom filter.");
             }
+            return true;
         }
 
         /// <summary>

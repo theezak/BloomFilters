@@ -3,6 +3,10 @@
     using System;
     using System.Collections.Generic;
 
+    /// <summary>
+    /// Base class for count configurations
+    /// </summary>
+    /// <typeparam name="TCount">The type of the counter.</typeparam>
     public abstract class CountConfigurationBase<TCount> : ICountConfiguration<TCount>
         where TCount : struct
     {

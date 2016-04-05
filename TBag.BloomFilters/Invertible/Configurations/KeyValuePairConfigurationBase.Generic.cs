@@ -4,10 +4,11 @@
     using System.Collections.Generic;
    
     /// <summary>
-    /// A default Bloom filter configuration, well suited for  key/value inveritble Bloom filters that are utilized according to their capacity.
+    /// A default Bloom filter configuration, well suited for  key/value invertible Bloom filters where the key is the identifier and the value is the hash.
     /// </summary>
+    /// <remarks>Only internally used. Does not define most functionality except for the identifier (key) and entity hash (value).</remarks>
    internal abstract class KeyValuePairConfigurationBase<TId, THash, TCount> : 
-        BloomFilterConfigurationBase<KeyValuePair<TId,THash>, TId, THash, TCount>
+        ConfigurationBase<KeyValuePair<TId,THash>, TId, THash, TCount>
         where TId : struct
         where THash : struct
         where TCount : struct
@@ -21,8 +22,9 @@
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="createValueFilter">When <c>true</c> a configuration for the RIBF is created as well.</param>
-        protected KeyValuePairConfigurationBase(bool createValueFilter = true) : base(createValueFilter)
+        /// <param name="createValueFilter">When <c>true</c> a configuration for the reverse IBF is created as well.</param>
+        protected KeyValuePairConfigurationBase(bool createValueFilter = true) 
+            : base(createValueFilter)
         {
             _getId = kv => kv.Key;
             _entityHash = kv => kv.Value;

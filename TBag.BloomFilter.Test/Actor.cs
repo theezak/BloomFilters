@@ -13,12 +13,13 @@
     using BloomFilters.Invertible.Estimators;/// <summary>
                                              /// A full working test harness for creating an estimator, serializing the estimator and receiving the filter.
                                              /// </summary>
-    internal class Actor
+    internal class Actor<TCount>
+        where TCount : struct
     {
         private readonly RuntimeTypeModel _protobufModel;
         private readonly IList<TestEntity> _dataSet;
         private readonly IHybridEstimatorFactory _hybridEstimatorFactory;
-       private readonly IInvertibleBloomFilterConfiguration<TestEntity, long, int,  short> _configuration;
+       private readonly IInvertibleBloomFilterConfiguration<TestEntity, long, int,  TCount> _configuration;
         private readonly IInvertibleBloomFilterFactory _bloomFilterFactory;
 
         /// <summary>
@@ -31,7 +32,7 @@
         public Actor(IList<TestEntity> dataSet,
             IHybridEstimatorFactory hybridEstimatorFactory,
             IInvertibleBloomFilterFactory bloomFilterFactory,
-            IInvertibleBloomFilterConfiguration<TestEntity, long, int,  short> configuration)
+            IInvertibleBloomFilterConfiguration<TestEntity, long, int,  TCount> configuration)
         {
             _protobufModel = TypeModel.Create();
             _protobufModel.UseImplicitZeroDefaults = true;
@@ -50,8 +51,8 @@
         public long? GetEstimate(MemoryStream estimatorStream)
         {
             var otherEstimator =
-               (HybridEstimatorData<int, short>)
-                   _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, short>));
+               (HybridEstimatorData<int, TCount>)
+                   _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, TCount>));
             var estimator = _hybridEstimatorFactory.CreateMatchingEstimator(otherEstimator, _configuration,
                 _dataSet.LongCount());
             foreach (var item in _dataSet)
@@ -65,12 +66,13 @@
         /// Given a serialized estimator (<paramref name="estimatorStream"/>), determine the size of the difference, create a Bloom filter for the difference and return that Bloom filter
         /// </summary>
         /// <param name="estimatorStream">The estimator</param>
+        /// <param name="otherActor">The other party involved</param>
         /// <returns></returns>
-        public MemoryStream RequestFilter(MemoryStream estimatorStream, Actor otherActor)
+        public MemoryStream RequestFilter(MemoryStream estimatorStream, Actor<TCount> otherActor)
         {
             var otherEstimator =
-                (IHybridEstimatorData<int, short>)
-                    _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, short>));
+                (IHybridEstimatorData<int, TCount>)
+                    _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, TCount>));
             var estimator = _hybridEstimatorFactory.CreateMatchingEstimator(otherEstimator, _configuration,
                 _dataSet.LongCount());
             foreach (var item in _dataSet)
@@ -117,7 +119,7 @@
         /// </summary>
         /// <param name="actor"></param>
         /// <returns></returns>
-        public Tuple<HashSet<long>, HashSet<long>, HashSet<long>> GetDifference(Actor actor)
+        public Tuple<HashSet<long>, HashSet<long>, HashSet<long>> GetDifference(Actor<TCount> actor)
         {
             var estimator = _hybridEstimatorFactory.Create(_configuration, _dataSet.LongCount());
             foreach (var item in _dataSet)
@@ -131,8 +133,8 @@
                 estimatorStream.Position = 0;
                 //send the estimator to the other actor and receive the filter from that actor.
                 var otherFilterStream = actor.RequestFilter(estimatorStream, this);
-                var otherFilter = (IInvertibleBloomFilterData<long, int,short>)
-                    _protobufModel.Deserialize(otherFilterStream, null, _configuration.DataFactory.GetDataType<long,int,short>());
+                var otherFilter = (IInvertibleBloomFilterData<long, int,TCount>)
+                    _protobufModel.Deserialize(otherFilterStream, null, _configuration.DataFactory.GetDataType<long,int,TCount>());
                 otherFilterStream.Dispose();
                 var filter = _bloomFilterFactory.CreateMatchingHighUtilizationFilter(_configuration,
                     _dataSet.LongCount(), otherFilter);

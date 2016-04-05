@@ -51,9 +51,7 @@
             var pieces = MathExtensions.GetFactors(blockSize)               
                 .Where(factor => blockSize / factor > 1 &&
                                  (!keyCount.HasValue || capacity / factor > keyCount.Value) &&
-                                 factor < blockSize &&
-                                 //TODO: hack, large fold factors kill performance right now.
-                                 factor < 175)
+                                 factor < blockSize)
                 .DefaultIfEmpty()
                 .Max();
             return pieces > 1 ? (uint?) (uint) pieces : null;

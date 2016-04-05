@@ -1,5 +1,7 @@
 ﻿namespace TBag.BloomFilters.Invertible.Estimators
 {
+    using System;
+
     /// <summary>
     /// Interface for the Strata estimator.
     /// </summary>

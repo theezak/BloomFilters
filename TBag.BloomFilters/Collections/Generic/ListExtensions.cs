@@ -1,6 +1,6 @@
 ﻿namespace System.Collections.Generic
 {
-    using System.Linq;
+    using Linq;
 
     /// <summary>
     /// List extensions

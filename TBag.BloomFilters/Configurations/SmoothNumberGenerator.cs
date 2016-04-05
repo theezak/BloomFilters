@@ -1,14 +1,13 @@
-﻿namespace TBag.BloomFilters
+﻿namespace TBag.BloomFilters.Configurations
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
-    using TBag.BloomFilters.MathExt;
+    using MathExt;
+
     /// <summary>
     /// Generate smooth numbers.
     /// </summary>
-    /// <remarks>TODO: memoize the prime numbers</remarks>
-    public class SmoothNumberGenerator
+   public class SmoothNumberGenerator
     {
      
         /// <summary>

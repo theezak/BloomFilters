@@ -13,7 +13,7 @@ namespace TBag.BloomFilters.Configurations
         /// Find a good folding factor.
         /// </summary>
         /// <param name="blockSize">The size of the Bloom filter.</param>
-         /// <param name="hashFunctionCount">The number of hash functions</param>
+         /// <param name="capacity">The current capacity.</param>
         /// <param name="keyCount">The actual number of keys.</param>
         /// <returns></returns>
         uint? FindFoldFactor(long blockSize, long capacity, long? keyCount = null);

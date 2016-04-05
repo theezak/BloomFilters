@@ -1,9 +1,10 @@
 ﻿namespace TBag.BloomFilters
 {
     using System;
-    using System.Linq;    /// <summary>
-                          /// Array extensions.
-                          /// </summary>
+        
+    /// <summary>
+    /// Array extensions.
+    /// </summary>
     internal static class ArrayExtensions
     {
         /// <summary>
@@ -15,7 +16,11 @@
         /// <param name="foldFactor">Factor to fold by</param>
         /// <param name="foldOperator">The operator to apply during folding</param>
         /// <returns></returns>
-        internal static T GetFolded<T>(this T[] values, long position, long? foldFactor, Func<T, T, T> foldOperator)
+        internal static T GetFolded<T>(
+            this T[] values, 
+            long position, 
+            long? foldFactor, 
+            Func<T, T, T> foldOperator)
         {
             if (values == null) return default(T);
             if ((foldFactor ?? 0L) <= 1L) return values[position];

@@ -5,12 +5,12 @@
     using System;
 
     /// <summary>
-    /// A test Bloom filter configuration for hybrid Bloom filter.
+    /// A Bloom filter configuration for a hybrid Bloom filter.
     /// </summary>
     /// <typeparam name="TEntity">Type of the entity</typeparam>
     /// <typeparam name="TCount">Type of the occurence count</typeparam>
-    /// <remarks>Generates a full entity hash while keeping the standard pure implementation, knowing that the hybrid IBF won't use the entity hash except for internal the reverse IBF.</remarks>
-    public abstract class HybridConfigurationBase<TEntity,TCount> : ConfigurationBase<TEntity, TCount>
+    /// <remarks>Generates a full entity hash while keeping the standard pure implementation, knowing that the hybrid IBF won't use the entity hash except for the internal reverse IBF.</remarks>
+    public abstract class HybridConfigurationBase<TEntity,TCount> : KeyConfigurationBase<TEntity, TCount>
         where TCount : struct
     {
         private readonly IMurmurHash _murmurHash = new Murmur3();

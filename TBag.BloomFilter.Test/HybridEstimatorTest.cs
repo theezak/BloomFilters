@@ -33,7 +33,7 @@
                 //just making sure we do not depend upon the order of adding things.
                 estimator2.Add(element);
             var differenceCount = estimator.Decode(estimator2);
-            Assert.IsTrue(differenceCount >=  (2*halfTheDiff), "Estimate below the difference count.");
+            Assert.IsTrue(differenceCount >=  2*halfTheDiff, "Estimate below the difference count.");
         }
     }
 }

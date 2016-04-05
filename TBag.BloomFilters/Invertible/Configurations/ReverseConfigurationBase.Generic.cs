@@ -8,7 +8,7 @@
     /// A  Bloom filter configuration well suited for Bloom filters that utilize both keys and values.
     /// </summary>
     public abstract class ReverseConfigurationBase<TEntity, TCount> :
-        ConfigurationBase<TEntity, TCount>
+        KeyConfigurationBase<TEntity, TCount>
         where TCount : struct
     {
         #region Fields

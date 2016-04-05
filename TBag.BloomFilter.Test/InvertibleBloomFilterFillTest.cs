@@ -119,8 +119,8 @@ namespace TBag.BloomFilter.Test
             var onlyInSet2 = dataSet2.Where(d => dataSet1.All(d1 => d1.Id != d.Id)).Select(d => d.Id).OrderBy(id => id).ToArray();
             var modified = dataSet1.Where(d => dataSet2.Any(d2 => d2.Id == d.Id && d2.Value != d.Value)).Select(d => d.Id).OrderBy(id => id).ToArray();
             var allModified = onlyInSet1.Union(onlyInSet2).Union(modified).OrderBy(i => i).ToArray();
-            Assert.IsTrue(decoded, "Decoding failed");
-            Assert.IsTrue((allModified.Count() - allFound.Count()) <= 2 ,
+            Assert.IsTrue(decoded == true, "Decoding failed");
+            Assert.IsTrue(allModified.Count() - allFound.Count() <= 2 ,
                 "Number of missed changes across the sets exceeded 2");
         }
 
@@ -153,7 +153,7 @@ namespace TBag.BloomFilter.Test
             var onlyInSet1 = dataSet1.Where(d => dataSet2.All(d2 => d2.Id != d.Id)).Select(d => d.Id).OrderBy(id => id).ToArray();
             var onlyInSet2 = dataSet2.Where(d => dataSet1.All(d1 => d1.Id != d.Id)).Select(d => d.Id).OrderBy(id => id).ToArray();
             var modified = dataSet1.Where(d => dataSet2.Any(d2 => d2.Id == d.Id && d2.Value != d.Value)).Select(d => d.Id).OrderBy(id => id).ToArray();
-            Assert.IsTrue(decoded, "Decoding failed"); 
+            Assert.IsTrue(decoded == true, "Decoding failed"); 
             Assert.IsTrue(onlyInSet1.Length == onlyInFirst.Count, "Incorrect number of changes detected");
             Assert.IsTrue(onlyInSet2.Length == onlyInSecond.Count, "False positive on only in first");
             Assert.IsTrue(changed.Count == modified.Length, "False positive on only in second");
@@ -188,7 +188,7 @@ namespace TBag.BloomFilter.Test
             var onlyInSet1 = dataSet1.Where(d => dataSet2.All(d2 => d2.Id != d.Id)).Select(d => d.Id).OrderBy(id => id).ToArray();
             var onlyInSet2 = dataSet2.Where(d => dataSet1.All(d1 => d1.Id != d.Id)).Select(d => d.Id).OrderBy(id => id).ToArray();
             var modified = dataSet1.Where(d => dataSet2.Any(d2 => d2.Id == d.Id && d2.Value != d.Value)).Select(d => d.Id).OrderBy(id => id).ToArray();
-            Assert.IsTrue(decoded, "Decoding failed"); 
+            Assert.IsTrue(decoded == true, "Decoding failed"); 
             Assert.IsTrue(onlyInSet1.Length == onlyInFirst.Count, "Incorrect number of changes detected");
             Assert.IsTrue(onlyInSet2.Length == onlyInSecond.Count, "False positive on only in first");
             Assert.IsTrue(changed.Count == modified.Length, "False positive on only in second");

@@ -52,11 +52,13 @@
                     }
                     continue;
                 }
-                if (!ibf.SubtractAndDecode(estimatorIbf, strataConfig, setA, setA, setA, destructive))
+                var decodeResult = ibf.SubtractAndDecode(estimatorIbf, strataConfig, setA, setA, setA, destructive);
+                if (decodeResult != true)
                 {
                     if (!hasDecoded) return null;
                     //compensate for the fact that a failed decode can still contribute counts by lowering the i+1 as more decodes succeeded
-                    return (long) (Math.Pow(2, i + (1/Math.Pow(2, data.StrataCount - (i + 1))))*decodeFactor*setA.Count);
+                    var addedFactor = decodeResult.HasValue ? 1 / Math.Pow(2, data.StrataCount - (i + 1)) : 1;
+                    return (long)(Math.Pow(2, i + addedFactor)*decodeFactor*setA.Count);
                 }
                 hasDecoded = true;
             }
@@ -98,7 +100,8 @@
         /// <summary>
         /// Get the Bloom filter for the given strata
         /// </summary>
-        /// <typeparam name="TCount"></typeparam>
+        /// <typeparam name="TCount">The type for the occurence count</typeparam>
+        /// <typeparam name="TId">Type of the identifier</typeparam>
         /// <param name="estimatorData"></param>
         /// <param name="strata"></param>
         /// <returns></returns>
@@ -109,7 +112,7 @@
             where TId : struct
         {
             if (estimatorData?.BloomFilters == null) return null;
-            var indexes = estimatorData?.BloomFilterStrataIndexes;
+            var indexes = estimatorData.BloomFilterStrataIndexes;
             if (indexes != null && indexes.Length > 0)
             {
                 for (var j = indexes.Length - 1; j >= 0; j--)

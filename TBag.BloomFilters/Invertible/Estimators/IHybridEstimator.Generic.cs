@@ -1,5 +1,7 @@
 ﻿namespace TBag.BloomFilters.Invertible.Estimators
 {
+    using System;
+
     /// <summary>
     /// Interface for a hybrid estimator.
     /// </summary>
@@ -13,6 +15,7 @@
         /// <summary>
         /// Block size
         /// </summary>
+        /// <remarks>The size of the Bloom filters used by the estimator.</remarks>
         long BlockSize { get; }
 
         /// <summary>
@@ -23,7 +26,7 @@
         /// <summary>
         /// Add an item to the estimator,
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">The item to add</param>
         void Add(TEntity item);
 
         /// <summary>

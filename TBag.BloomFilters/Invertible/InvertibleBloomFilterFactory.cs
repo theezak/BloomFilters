@@ -7,8 +7,6 @@
     /// </summary>
     public class InvertibleBloomFilterFactory : IInvertibleBloomFilterFactory
     {
-
-
         /// <summary>
         /// Create an invertible Bloom filter that is compatible with the given bloom filter data.
         /// </summary>

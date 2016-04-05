@@ -60,7 +60,7 @@ namespace TBag.BloomFilters.Estimators
             _hashFunctions = GenerateHashes();
            _bitSize = bitSize;
             _capacity = _configuration.FoldingStrategy?.ComputeFoldableSize(capacity, 0) ?? capacity;
-             _entityHash = e => unchecked((int)((ulong)(_configuration.EntityHash(e)+configuration.IdHash(_configuration.GetId(e)))));
+             _entityHash = e => unchecked((int)(ulong)(_configuration.EntityHash(e)+configuration.IdHash(_configuration.GetId(e))));
             _slots = new Lazy<int[]>(()=> GetMinHashSlots(_hashCount, _capacity));
         }
 
@@ -258,7 +258,7 @@ namespace TBag.BloomFilters.Estimators
             var entityHash =_entityHash(element);
             var entityHashes = _hashFunctions(entityHash).ToArray();
             var idx = 0L;
-            var idhash = Math.Abs(unchecked(entityHash % _capacity));
+            var idhash = Math.Abs(entityHash % _capacity);
             for (var i = 0L; i < entityHashes.LongLength; i++)
             {
                  if (entityHashes[i] < _slots.Value[idx+idhash])

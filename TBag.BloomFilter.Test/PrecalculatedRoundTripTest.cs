@@ -3,13 +3,13 @@
     using System.Collections.Generic;
     using System.Linq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using TBag.BloomFilters;
-    using TBag.BloomFilters.Estimators;
     using BloomFilters.Invertible;
-    using BloomFilters.Invertible.Estimators;    /// <summary>
-                                                 /// Test a precalculated estimator that is folded to match the best size.
-                                                 /// </summary>
-                                                 /// <remarks>Work in progress, since 'best folding' is not available as a service for estimators. Also cutting over between folding and having to calculate a new estimator has not been defined.</remarks>
+    using BloomFilters.Invertible.Estimators;
+
+    /// <summary>
+    /// Test a precalculated estimator that is folded to match the best size.
+    /// </summary>
+    /// <remarks>Work in progress, since 'best folding' is not available as a service for estimators. Also cutting over between folding and having to calculate a new estimator has not been defined.</remarks>
     [TestClass]
     public class PreCalculatedRoundTripTest
     {
@@ -19,19 +19,21 @@
         [TestMethod]
         public void TestPrecalculatedRoundTrip()
         {
-            var configuration = new KeyValueBloomFilterConfiguration();
+            //choosing a counter type that is too small will result in many overflows (which manifests itself in horribly slow performance).
+            //Keep the count type large enough, so extreme folds do not cause overflows. Benefit of folds outweighs benefit of small count types.
+            var configuration = new KeyValueLargeBloomFilterConfiguration();
             IHybridEstimatorFactory estimatorFactory = new HybridEstimatorFactory();
             IInvertibleBloomFilterFactory bloomFilterFactory = new InvertibleBloomFilterFactory();
-            var dataSet1 = DataGenerator.Generate().Take(8000).ToList();
+            var dataSet1 = DataGenerator.Generate().Take(0).ToList();
             //create the actors.
-            var actor1 = new PrecalculatedActor(
+            var actor1 = new PrecalculatedActor<short>(
                 dataSet1,
                 estimatorFactory,
                 bloomFilterFactory,
                 configuration);
-            var dataSet2 = DataGenerator.Generate().Take(8001).ToList();
-            //dataSet2.Modify(400);
-            var actor2 = new PrecalculatedActor(
+            var dataSet2 = DataGenerator.Generate().Take(17000).ToList();
+            dataSet2.Modify(1000);
+            var actor2 = new PrecalculatedActor<short>(
                 dataSet2,
                 estimatorFactory,
                 bloomFilterFactory,
@@ -40,12 +42,18 @@
             var result = actor1.GetDifference(actor2);
             var allFound = new HashSet<long>(result.Item1.Union(result.Item2).Union(result.Item3));
             //analyze the result.
-            var onlyInSet1 = dataSet1.Where(d => dataSet2.All(d2 => d2.Id != d.Id)).Select(d=>d.Id).OrderBy(id=>id).ToArray();
-            var onlyInSet2 = dataSet2.Where(d => dataSet1.All(d1 => d1.Id != d.Id)).Select(d => d.Id).OrderBy(id => id).ToArray();
-            var modified = dataSet1.Where(d => dataSet2.Any(d2 => d2.Id == d.Id && d2.Value != d.Value)).Select(d => d.Id).OrderBy(id => id).ToArray();
+            var onlyInSet1 =
+                dataSet1.Where(d => dataSet2.All(d2 => d2.Id != d.Id)).Select(d => d.Id).OrderBy(id => id).ToArray();
+            var onlyInSet2 =
+                dataSet2.Where(d => dataSet1.All(d1 => d1.Id != d.Id)).Select(d => d.Id).OrderBy(id => id).ToArray();
+            var modified =
+                dataSet1.Where(d => dataSet2.Any(d2 => d2.Id == d.Id && d2.Value != d.Value))
+                    .Select(d => d.Id)
+                    .OrderBy(id => id)
+                    .ToArray();
             var falsePositives =
                 allFound.Where(itm => !onlyInSet1.Contains(itm) && !onlyInSet2.Contains(itm) && !modified.Contains(itm))
-                    .ToArray();        
+                    .ToArray();
             var falseNegatives =
                 onlyInSet1.Where(itm => !allFound.Contains(itm))
                     .Union(onlyInSet2.Where(itm => !allFound.Contains(itm)))

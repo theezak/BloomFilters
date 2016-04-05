@@ -1,14 +1,11 @@
-﻿using System;
-using System.Text;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TBag.BloomFilters;
-using TBag.BloomFilters.Configurations;
-using TBag.BloomFilters.Invertible;
-
-namespace TBag.BloomFilter.Test
+﻿namespace TBag.BloomFilter.Test
 {
+    using System.Collections.Generic;
+    using System.Linq;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using BloomFilters.Configurations;
+    using BloomFilters.Invertible;
+
     /// <summary>
     /// Summary description for SmoothNumberTest
     /// </summary>

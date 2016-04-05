@@ -5,7 +5,7 @@
     /// <summary>
     /// A test Bloom filter configuration.
     /// </summary>
-    internal class LargeBloomFilterConfiguration : ConfigurationBase<TestEntity, int>
+    internal class LargeBloomFilterConfiguration : KeyConfigurationBase<TestEntity, int>
     {
         public LargeBloomFilterConfiguration() : base(new IntCountConfiguration())
         {}

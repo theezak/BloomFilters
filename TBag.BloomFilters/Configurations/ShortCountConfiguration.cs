@@ -16,14 +16,7 @@
 
         private static short DecreaseImpl(short c)
         {
-            try
-            {
-                return checked((short)(c - 1));
-            }
-            catch(OverflowException)
-            {
-                return short.MinValue;
-            }
+            return c == short.MinValue ? short.MinValue : (short)(c - 1);
         }
 
         /// <summary>
@@ -38,14 +31,7 @@
 
         private static short IncreaseImpl(short c)
         {
-            try
-            {
-                return checked((short)(c + 1));
-            }
-            catch (OverflowException)
-            {
-                return short.MaxValue;
-            }
+            return c == short.MaxValue ? short.MaxValue : (short)(c + 1);
         }
 
         /// <summary>
@@ -82,14 +68,7 @@
 
         private static bool IsPureImpl(short c)
         {
-            try
-            {
-                return checked(Math.Abs(c) == 1);
-            }
-            catch(OverflowException)
-            {
-                return false;
-            }
+            return c == 1 || c == -1;
         }
 
         /// <summary>

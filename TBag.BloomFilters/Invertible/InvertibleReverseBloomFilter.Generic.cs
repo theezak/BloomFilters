@@ -94,12 +94,13 @@
         /// <summary>
         /// Validate the data.
         /// </summary>
-        protected override void ValidateData()
+        protected override bool ValidateData()
         {
             if (Data == null)
             {
                 throw new InvalidOperationException("The invertible Bloom filter was not initialized or rehydrated.");
             }
+            return true;
         }
 
         #endregion

@@ -17,7 +17,7 @@
         /// <typeparam name="TId">The type of the entity identifier</typeparam>
         /// <typeparam name="TCount">The type of occurence count.</typeparam>
         /// <param name="configuration">Bloom filter configuration</param>
-        /// <param name="setSize">Number of elements in the set that is added.</param>
+        /// <param name="precalculatedEstimator"></param>
         /// <param name="failedDecodeCount">Number of times decoding has failed based upon the provided estimator.</param>
         /// <returns></returns>
         public IHybridEstimatorData<int, TCount> Extract<TEntity, TId, TCount>(
@@ -29,10 +29,8 @@
         {
             if (precalculatedEstimator == null) return null;
             var data = precalculatedEstimator.FullExtract();
-            var minwiseHashCount = GetRecommendedMinwiseHashCount(configuration, data.ItemCount, failedDecodeCount);
             var strata = GetRecommendedStrata(configuration, data.ItemCount, failedDecodeCount);
             var capacity = GetRecommendedCapacity(configuration, data.ItemCount, failedDecodeCount);
-            var bitSize = GetRecommendedBitSize(configuration, data.ItemCount, failedDecodeCount);
                 var factors = MathExtensions.GetFactors(precalculatedEstimator.BlockSize);
             var foldFactor = capacity > 0L ?
                 (uint)factors
@@ -77,8 +75,7 @@
             var result = new HybridEstimator<TEntity, TId, TCount>(
                 capacity,
                 strata,
-                configuration)
-            { };
+                configuration);
             result.Initialize(setSize, bitSize, minwiseHashCount);
             if (failedDecodeCount > 1)
             {
@@ -90,13 +87,13 @@
         /// <summary>
         /// Get the recommended minwise hash count.
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <typeparam name="TId"></typeparam>
-        /// <typeparam name="THash"></typeparam>
-        /// <typeparam name="TCount"></typeparam>
-        /// <param name="configuration"></param>
-        /// <param name="setSize"></param>
-        /// <param name="failedDecodeCount"></param>
+        /// <typeparam name="TEntity">The entity to add</typeparam>
+        /// <typeparam name="TId">The entity identifier type</typeparam>
+        /// <typeparam name="THash">The hash type</typeparam>
+        /// <typeparam name="TCount">The occurence count type.</typeparam>
+        /// <param name="configuration">The Bloom filter configuration</param>
+        /// <param name="setSize">Number of items to be added</param>
+        /// <param name="failedDecodeCount">Number of times the estimator has failed to decode.</param>
         /// <returns></returns>
         public int GetRecommendedMinwiseHashCount<TEntity, TId, THash, TCount>(
             IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
@@ -121,13 +118,13 @@
         /// <summary>
         /// Get the recommended bit size.
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <typeparam name="TId"></typeparam>
-        /// <typeparam name="THash"></typeparam>
-        /// <typeparam name="TCount"></typeparam>
-        /// <param name="configuration"></param>
-        /// <param name="setSize"></param>
-        /// <param name="failedDecodeCount"></param>
+        /// <typeparam name="TEntity">The entity to add</typeparam>
+        /// <typeparam name="TId">The entity identifier type</typeparam>
+        /// <typeparam name="THash">The hash type</typeparam>
+        /// <typeparam name="TCount">The occurence count type.</typeparam>
+        /// <param name="configuration">The Bloom filter configuration</param>
+        /// <param name="setSize">Number of items to be added</param>
+        /// <param name="failedDecodeCount">Number of times the estimator has failed to decode.</param>
         /// <returns></returns>
         public byte GetRecommendedBitSize<TEntity, TId, THash, TCount>(
             IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
@@ -142,15 +139,15 @@
         }
 
         /// <summary>
-        /// Get recommended strata.
+        /// Get recommended strata (number of Bloom filters in an estimator)
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <typeparam name="TId"></typeparam>
-        /// <typeparam name="THash"></typeparam>
-        /// <typeparam name="TCount"></typeparam>
-        /// <param name="configuration"></param>
-        /// <param name="setSize"></param>
-        /// <param name="failedDecodeCount"></param>
+        /// <typeparam name="TEntity">The entity to add</typeparam>
+        /// <typeparam name="TId">The entity identifier type</typeparam>
+        /// <typeparam name="THash">The hash type</typeparam>
+        /// <typeparam name="TCount">The occurence count type.</typeparam>
+        /// <param name="configuration">The Bloom filter configuration</param>
+        /// <param name="setSize">Number of items to be added</param>
+        /// <param name="failedDecodeCount">Number of times the estimator has failed to decode.</param>
         /// <returns></returns>
         public byte GetRecommendedStrata<TEntity, TId, THash, TCount>(
             IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,
@@ -179,15 +176,15 @@
         }
 
         /// <summary>
-        /// Determine the size of the estimator based upon the number of elements and the number of failed attempts.
+        /// Determine the capacity of the estimator based upon the number of elements and the number of failed attempts.
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <typeparam name="TId"></typeparam>
-        /// <typeparam name="THash"></typeparam>
-        /// <typeparam name="TCount"></typeparam>
-        /// <param name="configuration"></param>
-        /// <param name="setSize"></param>
-        /// <param name="failedDecodeCount"></param>
+        /// <typeparam name="TEntity">The entity to add</typeparam>
+        /// <typeparam name="TId">The entity identifier type</typeparam>
+        /// <typeparam name="THash">The hash type</typeparam>
+        /// <typeparam name="TCount">The occurence count type.</typeparam>
+        /// <param name="configuration">The Bloom filter configuration</param>
+        /// <param name="setSize">Number of items to be added</param>
+        /// <param name="failedDecodeCount">Number of times the estimator has failed to decode.</param>
         /// <returns></returns>
         public long GetRecommendedCapacity<TEntity, TId, THash, TCount>(
             IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration,

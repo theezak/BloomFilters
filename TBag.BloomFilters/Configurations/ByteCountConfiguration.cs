@@ -1,10 +1,9 @@
-﻿using System.Linq;
-
-namespace TBag.BloomFilters.Configurations
+﻿namespace TBag.BloomFilters.Configurations
 {
     using System;
     using System.Collections.Generic;
-   
+    using System.Linq;
+
     /// <summary>
     /// Count configuration for type <see cref="sbyte"/>.
     /// </summary>
@@ -17,14 +16,7 @@ namespace TBag.BloomFilters.Configurations
 
         private static sbyte DecreaseImpl(sbyte c)
         {
-            try
-            {
-                return checked((sbyte)(c - 1));
-            }
-            catch (OverflowException)
-            {
-                return sbyte.MinValue;
-            }
+            return c == sbyte.MinValue ? sbyte.MinValue : (sbyte)(c - 1);
         }
 
         /// <summary>
@@ -39,14 +31,7 @@ namespace TBag.BloomFilters.Configurations
 
         private static sbyte IncreaseImpl(sbyte c)
         {
-            try
-            {
-                return checked((sbyte)(c + 1));
-            }
-            catch (OverflowException)
-            {
-                return sbyte.MaxValue;
-            }
+            return c == sbyte.MaxValue ? sbyte.MaxValue : (sbyte)(c + 1);
         }
 
         /// <summary>
@@ -91,7 +76,7 @@ namespace TBag.BloomFilters.Configurations
         public override long GetEstimatedCount(sbyte[] counts, uint hashSize)
         {
             if (counts == null || hashSize <= 0) return 0L;
-            return counts.Select(c => (long) c).Sum(c=>Math.Abs(c))/hashSize;
+            return counts.Select(c => (long)c).Sum(c=>Math.Abs(c))/hashSize;
         }
 
         /// <summary>
@@ -101,14 +86,7 @@ namespace TBag.BloomFilters.Configurations
 
         private static bool IsPureImpl(sbyte c)
         {
-            try
-            {
-                return checked(Math.Abs(c) == 1);
-            }
-            catch (OverflowException)
-            {
-                return false;
-            }
+            return c == 1 || c == -1;
         }
 
         /// <summary>

@@ -8,7 +8,6 @@ namespace TBag.BloomFilters.Invertible
     public interface IInvertibleBloomFilterFactory
     {
         
-
         /// <summary>
         /// Create an invertible Bloom filter based upon the received Bloom filter data.
         /// </summary>
@@ -33,7 +32,6 @@ namespace TBag.BloomFilters.Invertible
         /// <typeparam name="TEntity">The entity type</typeparam>
         /// <typeparam name="TId">The entity identifier type</typeparam>
         /// <typeparam name="TCount">The counter type</typeparam>
-        /// <typeparam name
         /// <param name="bloomFilterConfiguration">The Bloom filter configuration</param>
         /// <param name="capacity">The capacity</param>
         /// <param name="errorRate">The optional error rate (between 0 and 1)</param>

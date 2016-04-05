@@ -127,7 +127,9 @@
                     BitSize = estimator.BitSize,
                     ItemCount = estimator.ItemCount,                   
                 };
-            res.Values = (estimator.Values == null && otherEstimator.Values == null) ? null : new int[res.Capacity];           
+            res.Values = estimator.Values == null && otherEstimator.Values == null ? 
+                null : 
+                new int[res.Capacity];           
             if (res.Values==null) return res;
             for (var i = 0L; i < res.Capacity; i++)
             {

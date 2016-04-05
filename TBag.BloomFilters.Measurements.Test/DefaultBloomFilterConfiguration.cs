@@ -7,7 +7,7 @@ namespace TBag.BloomFilters.Measurements.Test
     /// <summary>
     /// A test Bloom filter configuration.
     /// </summary>
-    internal class DefaultBloomFilterConfiguration : ConfigurationBase<TestEntity, sbyte>
+    internal class DefaultBloomFilterConfiguration : KeyConfigurationBase<TestEntity, sbyte>
     {
         private IInvertibleBloomFilterConfiguration<KeyValuePair<long, int>, long, int, sbyte> _valueFilterConfiguration;
         public DefaultBloomFilterConfiguration() : base(new ByteCountConfiguration(), false)

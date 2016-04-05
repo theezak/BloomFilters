@@ -1,8 +1,7 @@
-﻿using TBag.BloomFilters.MathExt;
-
-namespace TBag.BloomFilters.Configurations
+﻿namespace TBag.BloomFilters.Configurations
 {
     using System;
+    using MathExt;
 
     /// <summary>
     /// Folding strategies. See http://hbase.apache.org/0.94/apidocs/src-html/org/apache/hadoop/hbase/util/ByteBloomFilter.html#line.495
@@ -35,7 +34,7 @@ namespace TBag.BloomFilters.Configurations
         /// Find a good folding factor.
         /// </summary>
         /// <param name="blockSize"></param>
-        /// <param name="hashFunctionCount"></param>
+        /// <param name="capacity"></param>
         /// <param name="keyCount">The actual number of keys.</param>
         /// <returns></returns>
         public uint? FindFoldFactor(long blockSize, long capacity, long? keyCount = null)
@@ -45,7 +44,7 @@ namespace TBag.BloomFilters.Configurations
                 var pieces = 1;
                 var newSize = blockSize;
                 var newCapacity = capacity;
-                while ((newSize & 1) == 0 && (!keyCount.HasValue || (newCapacity > (keyCount.Value << 1))))
+                while ((newSize & 1) == 0 && (!keyCount.HasValue || (newCapacity > keyCount.Value << 1)))
                 {
                     pieces <<= 1;
                     newSize >>= 1;

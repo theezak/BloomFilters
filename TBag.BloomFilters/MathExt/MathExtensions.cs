@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-namespace TBag.BloomFilters.MathExt
+﻿namespace TBag.BloomFilters.MathExt
 {
     using System;
     using System.Collections.Generic;
@@ -16,32 +14,32 @@ namespace TBag.BloomFilters.MathExt
         /// <summary>
         /// Calculate GCD.
         /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></pa?ram>
-        /// <returns></returns>
+        /// <param name="a">First number</param>
+        /// <param name="b">Second number</param>
+        /// <returns>GCD of <paramref name="a"/> and <paramref name="b"/>.</returns>
         public static long? GetGcd(long a, long b)
         {
             if (a == 0L || b == 0L) return null;
-            var _gcd = 1L;
+            var gcd = 1L;
             a = Math.Abs(a);
             b = Math.Abs(b);
             if (a == b) { return a; }
-            else if (a > b && a % b == 0L) { return b; }
-            else if (b > a && b % a == 0L) { return a; }
+            if (a > b && a % b == 0L) { return b; }
+            if (b > a && b % a == 0L) { return a; }
             while (b != 0L)
             {
-                _gcd = b;
+                gcd = b;
                 b = a % b;
-                a = _gcd;
+                a = gcd;
             }
-            return _gcd;
+            return gcd;
         }
 
         /// <summary>
         /// Get the primes
         /// </summary>
         /// <param name="to"></param>
-        /// <returns></returns>
+        /// <returns>All primes up to <paramref name="to"/>.</returns>
         internal static IEnumerable<long> GetPrimes(long to)
         {
             var cached = _primeCache;
@@ -67,7 +65,7 @@ namespace TBag.BloomFilters.MathExt
         }
 
         /// <summary>
-        /// Get the prime factors
+        /// Get the prime factors for <paramref name="number"/>.
         /// </summary>
         /// <param name="number"></param>
         /// <returns></returns>
@@ -87,7 +85,7 @@ namespace TBag.BloomFilters.MathExt
         }
 
         /// <summary>
-        /// Get all factors
+        /// Get all factors for <paramref name="number"/>.
         /// </summary>
         /// <param name="number"></param>
         /// <returns></returns>
