@@ -32,9 +32,9 @@ namespace TBag.BloomFilter.Test
             notFoundCount = testData.Count(itm => !bloomFilter.ContainsKey(itm.Id));
             Assert.IsTrue(notFoundCount == 0, "False negative error rate violated on ContainsKey");
             notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.Contains(itm));
-            Assert.IsTrue(notFoundCount <= 2, "False positive error rate violated");
+            Assert.IsTrue(notFoundCount <= errorRate * addSize, "False positive error rate violated");
             notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.ContainsKey(itm.Id));
-            Assert.IsTrue(notFoundCount <= 2, "False positive error rate violated on ContainsKey");
+            Assert.IsTrue(notFoundCount <= errorRate * addSize, "False positive error rate violated on ContainsKey");
         }
 
         /// <summary>
@@ -57,8 +57,8 @@ namespace TBag.BloomFilter.Test
             var notFoundCount = testData.Count(itm => !bloomFilter.Contains(itm));
             Assert.IsTrue(notFoundCount == 0, "False negative error rate violated");
             notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.Contains(itm));
-            //reverse Bloom filter has a much higher false positive rate.
-            Assert.IsTrue(notFoundCount <= 40, "False positive error rate violated");
+            //reverse Bloom filter has a much higher false positive rate, and is thus not a good choice for membership tests.
+            Assert.IsTrue(notFoundCount <= 20 * errorRate * addSize, "False positive error rate violated");
         }
 
         /// <summary>
@@ -83,9 +83,9 @@ namespace TBag.BloomFilter.Test
             notFoundCount = testData.Count(itm => !bloomFilter.ContainsKey(itm.Id));
             Assert.IsTrue(notFoundCount == 0, "False negative error rate violated on ContainsKey");
             notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.Contains(itm));
-            Assert.IsTrue(notFoundCount <= 2, "False positive error rate violated");
+            Assert.IsTrue(notFoundCount <= errorRate * addSize, "False positive error rate violated");
             notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.ContainsKey(itm.Id));
-            Assert.IsTrue(notFoundCount <= 2, "False positive error rate violated on ContainsKey");
+            Assert.IsTrue(notFoundCount <= errorRate * addSize, "False positive error rate violated on ContainsKey");
         }
 
         [TestMethod]

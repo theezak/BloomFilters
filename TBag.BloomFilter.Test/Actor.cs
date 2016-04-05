@@ -121,14 +121,14 @@
         /// <returns></returns>
         public Tuple<HashSet<long>, HashSet<long>, HashSet<long>> GetDifference(Actor<TCount> actor)
         {
-            var estimator = _hybridEstimatorFactory.Create(_configuration, _dataSet.LongCount());
+           var estimator = _hybridEstimatorFactory.Create(_configuration, _dataSet.LongCount());
             foreach (var item in _dataSet)
             {
                 estimator.Add(item);
             }
             using (var estimatorStream = new MemoryStream())
             {
-                var data = estimator.Extract();
+                var data = estimator.HybridExtract();
                 _protobufModel.Serialize(estimatorStream, data);
                 estimatorStream.Position = 0;
                 //send the estimator to the other actor and receive the filter from that actor.

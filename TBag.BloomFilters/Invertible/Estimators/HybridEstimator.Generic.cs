@@ -64,7 +64,7 @@
             IInvertibleBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration) : base(
                 blockSize,
                 configuration,
-                maxStrata)        
+                maxStrata)       
         {           
             DecodeCountFactor = BlockSize >= 20 ? 1.45D : 1.0D;
         }
@@ -122,6 +122,20 @@
                     _minwiseEstimator.Add(new KeyValuePair<int, int>(idHash, entityHash));
                 }
             }
+        }
+
+        /// <summary>
+        /// Extract the hybrid estimator data.
+        /// </summary>
+        /// <returns></returns>
+        public IHybridEstimatorData<int, TCount> HybridExtract()
+        {
+            return new HybridEstimatorData<int, TCount>
+            {
+                ItemCount = ItemCount,
+                BitMinwiseEstimator = _minwiseEstimator?.Extract(),
+                StrataEstimator = Extract(),
+            };
         }
 
         /// <summary>
@@ -218,12 +232,7 @@
         /// <returns></returns>
         IHybridEstimatorData<int, TCount> IHybridEstimator<TEntity, int, TCount>.Extract()
         {
-            return new HybridEstimatorData<int, TCount>
-            {
-                ItemCount = ItemCount,
-                BitMinwiseEstimator = _minwiseEstimator?.Extract(),
-                StrataEstimator = Extract(),
-            };
+            return HybridExtract();
         }
 
         /// <summary>
