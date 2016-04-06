@@ -10,7 +10,6 @@
     /// <typeparam name="TId">The identifier type</typeparam>
     /// <typeparam name="THash">The hash value type</typeparam>
     /// <typeparam name="TCount">The occurence count type.</typeparam>
-    /// <remarks>Not the most efficient or elegant implementation, but useful for a test bed.</remarks>
     public interface IBloomFilterConfiguration<TEntity, TId, THash, TCount> :
         IBloomFilterSizeConfiguration
         where THash : struct

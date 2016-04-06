@@ -19,18 +19,22 @@
         where TId : struct
     {
         #region Fields
-        protected const byte MaxTrailingZeros = sizeof(int)*8;
+       private const byte MaxTrailingZeros = sizeof(int) * 8;
         private readonly IMurmurHash _murmur = new Murmur3();
         private const float ErrorRate = 0.001F;
         private long _blockSize;
         #endregion
 
         #region Properties
+        /// <summary>
+        /// Limit on the strata
+        /// </summary>
+        public byte StrataLimit = sizeof(int) * MaxTrailingZeros;
 
         /// <summary>
         /// The maximum strata.
         /// </summary>
-        protected byte MaxStrata { get; set; } = MaxTrailingZeros;   
+        public byte MaxStrata { get; protected set; } = MaxTrailingZeros;   
         
         /// <summary>
         /// The block size
@@ -76,7 +80,7 @@
         /// <param name="blockSize">The capacity (size of the set to be added)</param>
         /// <param name="configuration">The Bloom filter configuration</param>
         /// <param name="maxStrata">Optional maximum strata</param>
-             protected StrataEstimator(
+            public StrataEstimator(
             long blockSize,
             IInvertibleBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration,
             byte? maxStrata = null)
@@ -219,6 +223,40 @@
             return estimator;
 
         }
+
+        /// <summary>
+        ///Only adds the identifier and entity hash to the estimator when the number of trailing zeros of their hash falls within the strata range.
+        /// </summary>
+        /// <param name="idHash"></param>
+        /// <param name="entityHash"></param>
+        /// <returns>Returns <c>true</c> when added, else false.</returns>
+        public bool ConditionalAdd(int idHash, int entityHash)
+        {
+            var strata = GetStrata(idHash, entityHash);
+            if (strata < MaxStrata)
+            {
+                Add(idHash, entityHash, strata);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        ///Only removes the identifier and entity hash to the estimator when the number of trailing zeros of their hash falls within the strata range.
+        /// </summary>
+        /// <param name="idHash"></param>
+        /// <param name="entityHash"></param>
+        /// <returns>Returns <c>true</c> when removed, else false.</returns>
+        public bool ConditionalRemove(int idHash, int entityHash)
+        {
+            var strata = GetStrata(idHash, entityHash);
+            if (strata < MaxStrata)
+            {
+                Remove(idHash, entityHash, strata);
+                return true;
+            }
+            return false;
+        }
         #endregion
 
         #region Methods
@@ -228,14 +266,14 @@
         /// <param name="idHash">The idHash</param>
         /// <param name="entityHash">The entity hash</param>
         /// <returns>number of trailing zeros. Determines the strata to add an item to.</returns>
-        protected int GetStrata(int idHash, int entityHash)
+        private byte GetStrata(int idHash, int entityHash)
         {
             idHash = BitConverter.ToInt32(_murmur.Hash(BitConverter.GetBytes(idHash), unchecked((uint)entityHash)), 0);
             var mask = 1;
-            for (var i = 0; i < MaxTrailingZeros; i++, mask <<= 1)
+            for (byte i = 0; i < StrataLimit; i++, mask <<= 1)
                 if ((idHash & mask) != 0)
                     return i;
-            return MaxTrailingZeros;
+            return StrataLimit;
         }
 
        /// <summary>
@@ -244,7 +282,7 @@
        /// <param name="key">The key</param>
        /// <param name="value">The value</param>
        /// <param name="idx">The position</param>
-        protected void Remove(int key, int value, long idx)
+        internal void Remove(int key, int value, long idx)
         {
             StrataFilters[idx]?.Value.Remove(new KeyValuePair<int, int>(key, value));
         }
@@ -255,18 +293,18 @@
      /// <param name="key">The key</param>
      /// <param name="valueHash">The value</param>
      /// <param name="idx">The position</param>
-        protected void Add(int key, int valueHash, long idx)
+        internal void Add(int key, int valueHash, long idx)
         {        
             StrataFilters[idx]?.Value.Add(new KeyValuePair<int, int>(key, valueHash));
         }
 
-      /// <summary>
-      /// Create filters
-      /// </summary>
-      /// <param name="estimatorData">Filter data to rehydrate.</param>
+        /// <summary>
+        /// Create filters
+        /// </summary>
+        /// <param name="estimatorData">Filter data to rehydrate.</param>
         private void CreateFilters(IStrataEstimatorData<int, TCount> estimatorData = null)
         {
-              var configuration = Configuration.ConvertToEstimatorConfiguration();
+            var configuration = Configuration.ConvertToEstimatorConfiguration();
             var hashFunctionCount = configuration.BestHashFunctionCount(BlockSize, ErrorRate);
             for (var idx = 0; idx < StrataFilters.Length; idx++)
             {
@@ -282,12 +320,11 @@
                     var res = new InvertibleBloomFilter<KeyValuePair<int, int>, int, TCount>(configuration);
                     //capacity doesn't really matter, the capacity is basically the block size.
                     res.Initialize(BlockSize, BlockSize, hashFunctionCount);
-                     res.Rehydrate(filterData);
+                    res.Rehydrate(filterData);
                     return res;
-                });               
+                });
             }
         }
-
         #endregion
     }
 }

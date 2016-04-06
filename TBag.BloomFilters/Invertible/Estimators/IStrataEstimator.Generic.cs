@@ -23,6 +23,11 @@
         double DecodeCountFactor { get; set; }
 
         /// <summary>
+        /// The number of items in the estimator.
+        /// </summary>
+        long ItemCount { get; }
+
+        /// <summary>
         /// Add an item to the estimator,
         /// </summary>
         /// <param name="item"></param>
@@ -77,10 +82,5 @@
         /// Compress the estimator.
         /// </summary>
         IStrataEstimator<TEntity, TId, TCount> Compress(bool inPlace = false);
-
-        /// <summary>
-        /// The number of items in the estimator.
-        /// </summary>
-        long ItemCount { get; }
     }
 }

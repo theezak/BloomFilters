@@ -29,18 +29,18 @@
         {
             if (precalculatedEstimator == null) return null;
             //after two failed attempts, don't fold.
-            if (failedDecodeCount > 2) return precalculatedEstimator.HybridExtract();
+            if (failedDecodeCount > 2) return precalculatedEstimator.Extract();
             var data = precalculatedEstimator.FullExtract();
             var strata = GetRecommendedStrata(configuration, data.ItemCount, failedDecodeCount);
             var blockSize = GetRecommendedBlockSize(configuration, data.ItemCount, failedDecodeCount);
-                var factors = MathExtensions.GetFactors(precalculatedEstimator.BlockSize);
+            var factors = MathExtensions.GetFactors(precalculatedEstimator.BlockSize);
             var foldFactor = blockSize > 0L ?
                 (uint)factors
                 .OrderByDescending(f => f)
                 //for estimators: capacity is the block size.
-                .Where(f => precalculatedEstimator.BlockSize / f > blockSize)
+                .Where(f => f > 1 && precalculatedEstimator.BlockSize / f > blockSize)
                 .Skip(failedDecodeCount)
-                .FirstOrDefault():
+                .FirstOrDefault() :
                 0L;
             if (failedDecodeCount > 1)
             {

@@ -13,9 +13,8 @@
         where TCount : struct
     {
         /// <summary>
-        /// Block size
+        /// The block size
         /// </summary>
-        /// <remarks>The size of the Bloom filters used by the estimator.</remarks>
         long BlockSize { get; }
 
         /// <summary>

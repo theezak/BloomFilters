@@ -128,7 +128,7 @@
             }
             using (var estimatorStream = new MemoryStream())
             {
-                var data = estimator.HybridExtract();
+                var data = estimator.Extract();
                 _protobufModel.Serialize(estimatorStream, data);
                 estimatorStream.Position = 0;
                 //send the estimator to the other actor and receive the filter from that actor.

@@ -12,41 +12,41 @@
     /// <typeparam name="TId">The identifier type</typeparam>
     /// <typeparam name="TCount">The type of occurence count.</typeparam>
     public sealed class HybridEstimator<TEntity, TId, TCount> : 
-        StrataEstimator<TEntity, TId, TCount>,
         IHybridEstimator<TEntity, int, TCount> 
         where TCount : struct
         where TId : struct
     {
         #region Fields
         private long _minwiseReplacementCount;
-        private BitMinwiseHashEstimator<KeyValuePair<int,int>, int, TCount> _minwiseEstimator;
+        private readonly IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> _configuration;
+        private BitMinwiseHashEstimator<KeyValuePair<int, int>, int, TCount> _minwiseEstimator;
+        private readonly StrataEstimator<TEntity, TId, TCount> _strataEstimator;
         #endregion
 
         #region Properties
         /// <summary>
         /// The item count for the estimator.
         /// </summary>
-        public override long ItemCount => base.ItemCount + (_minwiseEstimator?.ItemCount ?? 0L) + _minwiseReplacementCount;
+        public long ItemCount => _strataEstimator.ItemCount + (_minwiseEstimator?.ItemCount ?? 0L) + _minwiseReplacementCount;
 
-        long IHybridEstimator<TEntity, int, TCount>.BlockSize
+        /// <summary>
+        /// The block size
+        /// </summary>
+        public long BlockSize
         {
             get
             {
-                throw new NotImplementedException();
+                return _strataEstimator.BlockSize;
             }
         }
 
-        double IHybridEstimator<TEntity, int, TCount>.DecodeCountFactor
+        /// <summary>
+        /// The decode factor.
+        /// </summary>
+        public double DecodeCountFactor
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get { return _strataEstimator.DecodeCountFactor;  }
+            set { _strataEstimator.DecodeCountFactor = value; }
         }
 
         #endregion
@@ -61,12 +61,11 @@
         public HybridEstimator(
             long blockSize,
             byte maxStrata,
-            IInvertibleBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration) : base(
-                blockSize,
-                configuration,
-                maxStrata)       
-        {           
-            DecodeCountFactor = BlockSize >= 20 ? 1.45D : 1.0D;
+            IInvertibleBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration) 
+        {
+            _strataEstimator = new StrataEstimator<TEntity, TId, TCount>(blockSize, configuration, maxStrata);
+            _strataEstimator.DecodeCountFactor = _strataEstimator.BlockSize >= 20 ? 1.45D : 1.0D;
+            _configuration = configuration;
         }
         #endregion
 
@@ -82,15 +81,15 @@
             byte bitSize,
             int minWiseHashCount)
         {
-            var max = Math.Pow(2, MaxTrailingZeros);
+            var max = Math.Pow(2, _strataEstimator.StrataLimit);
             var minWiseCapacity = Math.Max(
-                (uint)(capacity * (1 - (max - Math.Pow(2, MaxTrailingZeros - MaxStrata)) / max)), 1);
-            if (Configuration.FoldingStrategy != null)
+                (uint)(capacity * (1 - (max - Math.Pow(2, _strataEstimator.StrataLimit - _strataEstimator.MaxStrata)) / max)), 1);
+            if (_configuration.FoldingStrategy != null)
             {
-                minWiseCapacity = (uint)Configuration.FoldingStrategy.ComputeFoldableSize(minWiseCapacity, 2);
+                minWiseCapacity = (uint)_configuration.FoldingStrategy.ComputeFoldableSize(minWiseCapacity, 2);
             }
             _minwiseEstimator = new BitMinwiseHashEstimator<KeyValuePair<int, int>, int, TCount>(
-                Configuration.ConvertToEstimatorConfiguration(),
+                _configuration.ConvertToEstimatorConfiguration(),
                 bitSize,
                 minWiseHashCount,
                 minWiseCapacity);
@@ -102,16 +101,11 @@
         /// </summary>
         /// <param name="item">The entity to add</param>
         /// <remarks>based upon the strata, the value is either added to an IBF or to the b-bit minwise estimator.</remarks>
-        public override void Add(TEntity item)
+        public void Add(TEntity item)
         {
-            var idHash = Configuration.IdHash(Configuration.GetId(item));
-            var entityHash = Configuration.EntityHash(item);
-            var idx = GetStrata(idHash, entityHash);
-            if (idx < MaxStrata)
-            {
-                Add(idHash, entityHash, idx);
-            }
-            else 
+            var idHash = _configuration.IdHash(_configuration.GetId(item));
+            var entityHash = _configuration.EntityHash(item);
+            if (!_strataEstimator.ConditionalAdd(idHash, entityHash))
             {
                 if (_minwiseEstimator == null)
                 {
@@ -128,37 +122,32 @@
         /// Extract the hybrid estimator data.
         /// </summary>
         /// <returns></returns>
-        public IHybridEstimatorData<int, TCount> HybridExtract()
+        public IHybridEstimatorData<int, TCount> Extract()
         {
             return new HybridEstimatorData<int, TCount>
             {
                 ItemCount = ItemCount,
                 BitMinwiseEstimator = _minwiseEstimator?.Extract(),
-                StrataEstimator = Extract(),
+                StrataEstimator = _strataEstimator.Extract()
             };
         }
 
         /// <summary>
         /// Remove an item from the estimator
         /// </summary>
-        /// <param name="item"></param>
-        public override void Remove(TEntity item)
+        /// <param name="item">Item to remove</param>
+        public void Remove(TEntity item)
         {
-            if (MaxStrata < MaxTrailingZeros && 
-                _minwiseEstimator!=null)
+            if (_strataEstimator.MaxStrata < _strataEstimator.StrataLimit &&
+                _minwiseEstimator != null)
             {
                 _minwiseReplacementCount += _minwiseEstimator?.ItemCount ?? 0L;
                 //after removal, the bit minwise estimator needs to be dropped since we can't remove from that.
                 _minwiseEstimator = null;
             }
-            var idHash = Configuration.IdHash(Configuration.GetId(item));
-            var entityHash = Configuration.EntityHash(item);
-            var idx = GetStrata(idHash, entityHash);
-            if (idx < MaxStrata)
-            {
-                Remove(idHash, entityHash, idx);
-            }
-            else
+            var idHash = _configuration.IdHash(_configuration.GetId(item));
+            var entityHash = _configuration.EntityHash(item);
+            if (!_strataEstimator.ConditionalRemove(idHash, entityHash))
             {
                 _minwiseReplacementCount--;
             }
@@ -190,7 +179,7 @@
             IHybridEstimator<TEntity, int, TCount> self = this;
             return self
                 .Extract()
-                .Decode(estimator, Configuration);
+                .Decode(estimator, _configuration);
         }
         #endregion
 
@@ -204,8 +193,7 @@
         IHybridEstimator<TEntity, int, TCount> IHybridEstimator<TEntity, int, TCount>.Fold(uint factor, bool inPlace)
         {
             IHybridEstimator<TEntity, int, TCount> self = this;
-
-            var res = self.FullExtract().Fold(Configuration, factor);
+            var res = FullExtract().Fold(_configuration, factor);
             if (inPlace)
             {
                 self.Rehydrate(res);
@@ -214,7 +202,7 @@
             IHybridEstimator<TEntity, int, TCount> estimator = new HybridEstimator<TEntity, TId, TCount>(
                 res.StrataEstimator.BlockSize,
                 res.StrataEstimator.StrataCount,
-                Configuration);
+                _configuration);
             if (res.BitMinwiseEstimator != null)
             {
                 estimator.Initialize(
@@ -227,15 +215,6 @@
         }
 
         /// <summary>
-        /// Extract the hybrid estimator in a serializable format.
-        /// </summary>
-        /// <returns></returns>
-        IHybridEstimatorData<int, TCount> IHybridEstimator<TEntity, int, TCount>.Extract()
-        {
-            return HybridExtract();
-        }
-
-        /// <summary>
         /// Compress the hybrid estimator.
         /// </summary>
         /// <param name="inPlace"></param>
@@ -243,7 +222,7 @@
         IHybridEstimator<TEntity, int, TCount> IHybridEstimator<TEntity, int, TCount>.Compress(bool inPlace)
         {
             IHybridEstimator<TEntity, int, TCount> self = this;
-            var res = self.FullExtract().Compress(Configuration);
+            var res = FullExtract().Compress(_configuration);
             if (inPlace)
             {
                 self.Rehydrate(res);
@@ -252,7 +231,7 @@
             IHybridEstimator<TEntity, int, TCount> estimator = new HybridEstimator<TEntity, TId, TCount>(
                 res.StrataEstimator.BlockSize,
                 res.StrataEstimator.StrataCount,
-                Configuration);
+                _configuration);
             if (res.BitMinwiseEstimator != null)
             {
                 estimator.Initialize(
@@ -275,7 +254,7 @@
             {
                 ItemCount = ItemCount,
                 BitMinwiseEstimator = _minwiseEstimator?.FullExtract(),
-                StrataEstimator = Extract()           
+                StrataEstimator = _strataEstimator.Extract()           
             };
         }
 
@@ -292,8 +271,8 @@
         {
             if (data == null) return;
             _minwiseEstimator?.Rehydrate(data.BitMinwiseEstimator);
-            Rehydrate(data.StrataEstimator);
-            _minwiseReplacementCount = Math.Max(0, data.ItemCount - (base.ItemCount + (_minwiseEstimator?.ItemCount ?? 0L)));
+            _strataEstimator.Rehydrate(data.StrataEstimator);
+            _minwiseReplacementCount = Math.Max(0, data.ItemCount - (_strataEstimator.ItemCount + (_minwiseEstimator?.ItemCount ?? 0L)));
         }
 
         #endregion

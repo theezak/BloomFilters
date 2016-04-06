@@ -12,7 +12,10 @@
         /// <param name="capacity"></param>
         /// <param name="hashCount"></param>
         /// <returns></returns>
-        public IBitMinwiseHashEstimatorData Create(byte bitSize, long capacity, int hashCount)
+        public IBitMinwiseHashEstimatorData Create(
+            byte bitSize, 
+            long capacity, 
+            int hashCount)
         {
             var valuesSize = bitSize*capacity/8;
             if (valuesSize % 8 != 0)
