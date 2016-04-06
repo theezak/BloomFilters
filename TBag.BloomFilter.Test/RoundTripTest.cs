@@ -5,7 +5,7 @@
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using BloomFilters.Invertible;
     using BloomFilters.Invertible.Estimators;
-
+    using Infrastructure;
     [TestClass]
     public class RoundTripTest
     {

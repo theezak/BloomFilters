@@ -1,9 +1,9 @@
 ﻿namespace TBag.BloomFilter.Test.Estimators
 {
-     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using System.Linq;
     using BloomFilters.Estimators;
-
+    using Infrastructure;
     /// <summary>
     /// Summary description for BitMinwiseHashEstimatorTest
     /// </summary>

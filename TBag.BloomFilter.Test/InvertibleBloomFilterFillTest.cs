@@ -7,9 +7,9 @@ namespace TBag.BloomFilter.Test
     using BloomFilters;
     using System.Linq;
     using BloomFilters.Invertible;
-    /// <summary>
-    /// Simple add and lookup test on Bloom filter.
-    /// </summary>
+    using Infrastructure;    /// <summary>
+                             /// Simple add and lookup test on Bloom filter.
+                             /// </summary>
     [TestClass]
     public class InvertibleBloomFilterFillTest
     {

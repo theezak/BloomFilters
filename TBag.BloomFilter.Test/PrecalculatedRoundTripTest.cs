@@ -5,7 +5,7 @@
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using BloomFilters.Invertible;
     using BloomFilters.Invertible.Estimators;
-
+    using Infrastructure;
     /// <summary>
     /// Test a precalculated estimator that is folded to match the best size.
     /// </summary>

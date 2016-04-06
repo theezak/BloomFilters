@@ -1,5 +1,5 @@
 ﻿
-namespace TBag.BloomFilter.Test
+namespace TBag.BloomFilter.Test.Infrastructure
 {
     using System;
     using System.Collections.Generic;

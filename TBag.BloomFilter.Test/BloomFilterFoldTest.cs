@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TBag.BloomFilters;
 using System.Linq;
 using TBag.BloomFilters.Invertible;
+using TBag.BloomFilter.Test.Infrastructure;
 
 namespace TBag.BloomFilter.Test
 {

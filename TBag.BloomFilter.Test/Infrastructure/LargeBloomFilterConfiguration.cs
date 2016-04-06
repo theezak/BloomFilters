@@ -1,4 +1,4 @@
-﻿namespace TBag.BloomFilter.Test
+﻿namespace TBag.BloomFilter.Test.Infrastructure
 {
     using BloomFilters.Configurations;
     using BloomFilters.Invertible.Configurations;

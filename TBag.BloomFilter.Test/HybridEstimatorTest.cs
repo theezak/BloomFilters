@@ -4,9 +4,9 @@
     using System.Linq;
     using BloomFilters.Estimators;
     using BloomFilters.Invertible.Estimators;
-    /// <summary>
-    /// Summary description for hybridEstimatorTest
-    /// </summary>
+    using Infrastructure;    /// <summary>
+                             /// Summary description for hybridEstimatorTest
+                             /// </summary>
     [TestClass]
     public class HybridEstimatorTest
     {

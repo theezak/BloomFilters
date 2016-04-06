@@ -1,6 +1,4 @@
-﻿
-
-namespace TBag.BloomFilter.Test
+﻿namespace TBag.BloomFilter.Test.Infrastructure
 {
     using BloomFilters;
     using BloomFilters.Configurations;

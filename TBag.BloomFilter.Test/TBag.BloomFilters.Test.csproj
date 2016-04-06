@@ -58,24 +58,24 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="PrecalculatedActor.cs" />
-    <Compile Include="Actor.cs" />
+    <Compile Include="Infrastructure\PrecalculatedActor.cs" />
+    <Compile Include="Infrastructure\Actor.cs" />
     <Compile Include="BloomFilterFoldTest.cs" />
-    <Compile Include="HybridDefaultBloomFilterConfiguration.cs" />
-    <Compile Include="KeyValueBloomFilterConfiguration.cs" />
-    <Compile Include="KeyValueLargeBloomFilterConfiguration.cs" />
-    <Compile Include="KeyValuePairBloomFilterConfiguration.cs" />
-    <Compile Include="LargeBloomFilterConfiguration.cs" />
+    <Compile Include="Infrastructure\HybridDefaultBloomFilterConfiguration.cs" />
+    <Compile Include="Infrastructure\KeyValueBloomFilterConfiguration.cs" />
+    <Compile Include="Infrastructure\KeyValueLargeBloomFilterConfiguration.cs" />
+    <Compile Include="Infrastructure\KeyValuePairBloomFilterConfiguration.cs" />
+    <Compile Include="Infrastructure\LargeBloomFilterConfiguration.cs" />
     <Compile Include="HybridEstimatorTest.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimatorTest.cs" />
-    <Compile Include="DataGenerator.cs" />
+    <Compile Include="Infrastructure\DataGenerator.cs" />
     <Compile Include="InvertibleBloomFilterFillTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="DefaultBloomFilterConfiguration.cs" />
+    <Compile Include="Infrastructure\DefaultBloomFilterConfiguration.cs" />
     <Compile Include="PrecalculatedRoundTripTest.cs" />
     <Compile Include="SmoothNumberTest.cs" />
     <Compile Include="StrataEstimatorTest.cs" />
-    <Compile Include="TestEntity.cs" />
+    <Compile Include="Infrastructure\TestEntity.cs" />
     <Compile Include="RoundTripTest.cs" />
   </ItemGroup>
   <ItemGroup>

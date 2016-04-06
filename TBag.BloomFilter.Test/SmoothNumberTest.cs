@@ -5,7 +5,7 @@
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using BloomFilters.Configurations;
     using BloomFilters.Invertible;
-
+    using Infrastructure;
     /// <summary>
     /// Summary description for SmoothNumberTest
     /// </summary>

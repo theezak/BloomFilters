@@ -1,26 +1,24 @@
-﻿namespace TBag.BloomFilter.Test
+﻿namespace TBag.BloomFilter.Test.Infrastructure
 {
     using ProtoBuf.Meta;
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
-    using BloomFilters;
-    using BloomFilters.Estimators;
-    using BloomFilters.Configurations;
     using BloomFilters.Invertible;
     using BloomFilters.Invertible.Configurations;
-    using BloomFilters.Invertible.Estimators;/// <summary>
-                                             /// A full working test harness for creating an estimator, serializing the estimator and receiving the filter.
-                                             /// </summary>
-    internal class Actor<TCount>
+    using BloomFilters.Invertible.Estimators;
+
+    /// <summary>
+    /// A full working test harness for creating an estimator, serializing the estimator and receiving the filter.
+    /// </summary>
+    internal class PrecalculatedActor<TCount>
         where TCount : struct
     {
         private readonly RuntimeTypeModel _protobufModel;
-        private readonly IList<TestEntity> _dataSet;
         private readonly IHybridEstimatorFactory _hybridEstimatorFactory;
-       private readonly IInvertibleBloomFilterConfiguration<TestEntity, long, int,  TCount> _configuration;
-        private readonly IInvertibleBloomFilterFactory _bloomFilterFactory;
+        private readonly IInvertibleBloomFilterConfiguration<TestEntity, long, int, TCount> _configuration;
+        private readonly HybridEstimator<TestEntity, long, TCount> _estimator;
+        private readonly IInvertibleBloomFilter<TestEntity, long, TCount> _filter;
 
         /// <summary>
         /// Constructor
@@ -29,17 +27,27 @@
         /// <param name="hybridEstimatorFactory">Factory for creating estimators</param>
         /// <param name="bloomFilterFactory">Factory for creating Bloom filters</param>
         /// <param name="configuration">Bloom filter configuration to use</param>
-        public Actor(IList<TestEntity> dataSet,
+        public PrecalculatedActor(IList<TestEntity> dataSet,
             IHybridEstimatorFactory hybridEstimatorFactory,
             IInvertibleBloomFilterFactory bloomFilterFactory,
-            IInvertibleBloomFilterConfiguration<TestEntity, long, int,  TCount> configuration)
+            IInvertibleBloomFilterConfiguration<TestEntity, long, int, TCount> configuration)
         {
             _protobufModel = TypeModel.Create();
             _protobufModel.UseImplicitZeroDefaults = true;
-            _dataSet = dataSet;
-            _hybridEstimatorFactory = hybridEstimatorFactory;
-            _bloomFilterFactory = bloomFilterFactory;
+             _hybridEstimatorFactory = hybridEstimatorFactory;
             _configuration = configuration;
+            //terribly over size the estimator.
+            _estimator = _hybridEstimatorFactory.Create(_configuration, 100000);
+            foreach (var itm in dataSet)
+            {
+                _estimator.Add(itm);
+            }
+            //sized to number of differences it can handle, not to the size of the data.
+            _filter = bloomFilterFactory.Create(_configuration, 5000, 0.001F, true);
+            foreach (var item in dataSet)
+            {
+                _filter.Add(item);
+            }
         }
 
         /// <summary>
@@ -51,65 +59,45 @@
         public long? GetEstimate(MemoryStream estimatorStream)
         {
             var otherEstimator =
-               (HybridEstimatorData<int, TCount>)
-                   _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, TCount>));
-            var estimator = _hybridEstimatorFactory.CreateMatchingEstimator(otherEstimator, _configuration,
-                _dataSet.LongCount());
-            foreach (var item in _dataSet)
-            {
-                estimator.Add(item);
-            }
-            return estimator.Decode(otherEstimator);
+                (HybridEstimatorData<int, TCount>)
+                    _protobufModel.Deserialize(estimatorStream, null, typeof (HybridEstimatorData<int, TCount>));
+            return _estimator.Decode(otherEstimator);
         }
 
         /// <summary>
         /// Given a serialized estimator (<paramref name="estimatorStream"/>), determine the size of the difference, create a Bloom filter for the difference and return that Bloom filter
         /// </summary>
         /// <param name="estimatorStream">The estimator</param>
-        /// <param name="otherActor">The other party involved</param>
+        /// <param name="otherActor"></param>
         /// <returns></returns>
-        public MemoryStream RequestFilter(MemoryStream estimatorStream, Actor<TCount> otherActor)
+        public MemoryStream RequestFilter(MemoryStream estimatorStream, PrecalculatedActor<TCount> otherActor)
         {
             var otherEstimator =
                 (IHybridEstimatorData<int, TCount>)
-                    _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, TCount>));
-            var estimator = _hybridEstimatorFactory.CreateMatchingEstimator(otherEstimator, _configuration,
-                _dataSet.LongCount());
-            foreach (var item in _dataSet)
-            {
-                estimator.Add(item);
-            }
-            var estimate = estimator.Decode(otherEstimator);
+                    _protobufModel.Deserialize(estimatorStream, null, typeof (HybridEstimatorData<int, TCount>));
+            var estimate = _estimator.Decode(otherEstimator);
             if (estimate == null)
             {
                 //additional communication step needed to create a new estimator.
                 byte failedDecodeCount = 0;
                 while (estimate == null && failedDecodeCount < 5)
                 {
-                    estimator = _hybridEstimatorFactory.Create(_configuration, _dataSet.Count(), ++failedDecodeCount);
-                    foreach (var item in _dataSet)
-                    {
-                        estimator.Add(item);
-                    }
+                    var estimator = _hybridEstimatorFactory.Extract(_configuration, _estimator, failedDecodeCount);
                     using (var stream = new MemoryStream())
                     {
-                        _protobufModel.Serialize(stream, estimator.Extract());
+                        _protobufModel.Serialize(stream, estimator);
                         stream.Position = 0;
                         estimate = otherActor.GetEstimate(stream);
                     }
+                    failedDecodeCount++;
                 }
                 if (estimate == null)
                 {
                     throw new NullReferenceException("Did not negotiate a good estimate");
                 }
             }
-             var filter = _bloomFilterFactory.Create(_configuration, estimate.Value, 0.001F, true);
-            foreach (var item in _dataSet)
-            {
-                filter.Add(item);
-            }
             var result = new MemoryStream();
-            _protobufModel.Serialize(result, filter.Extract());
+            _protobufModel.Serialize(result, _configuration.DataFactory.Extract(_configuration, _filter, estimate.Value));
             result.Position = 0;
             return result;
         }
@@ -119,37 +107,26 @@
         /// </summary>
         /// <param name="actor"></param>
         /// <returns></returns>
-        public Tuple<HashSet<long>, HashSet<long>, HashSet<long>> GetDifference(Actor<TCount> actor)
+        public Tuple<HashSet<long>, HashSet<long>, HashSet<long>> GetDifference(PrecalculatedActor<TCount> actor)
         {
-           var estimator = _hybridEstimatorFactory.Create(_configuration, _dataSet.LongCount());
-            foreach (var item in _dataSet)
-            {
-                estimator.Add(item);
-            }
             using (var estimatorStream = new MemoryStream())
             {
-                var data = estimator.Extract();
+                var data = _hybridEstimatorFactory.Extract(_configuration, _estimator);
                 _protobufModel.Serialize(estimatorStream, data);
                 estimatorStream.Position = 0;
                 //send the estimator to the other actor and receive the filter from that actor.
                 var otherFilterStream = actor.RequestFilter(estimatorStream, this);
-                var otherFilter = (IInvertibleBloomFilterData<long, int,TCount>)
-                    _protobufModel.Deserialize(otherFilterStream, null, _configuration.DataFactory.GetDataType<long,int,TCount>());
+                var otherFilter = (IInvertibleBloomFilterData<long, int, TCount>)
+                    _protobufModel.Deserialize(otherFilterStream, null,
+                        _configuration.DataFactory.GetDataType<long, int, TCount>());
                 otherFilterStream.Dispose();
-                var filter = _bloomFilterFactory.CreateMatchingHighUtilizationFilter(_configuration,
-                    _dataSet.LongCount(), otherFilter);
-                foreach (var item in _dataSet)
-                {
-                    filter.Add(item);
-                }
                 var onlyInThisSet = new HashSet<long>();
                 var onlyInOtherSet = new HashSet<long>();
                 var modified = new HashSet<long>();
-                var succes = filter.SubtractAndDecode(onlyInThisSet, onlyInOtherSet, modified, otherFilter);
+                var succes = _filter.SubtractAndDecode(onlyInThisSet, onlyInOtherSet, modified, otherFilter);
                 //note: even when not successfully decoded for sure, the sets will contain info.
                 return new Tuple<HashSet<long>, HashSet<long>, HashSet<long>>(onlyInThisSet, onlyInOtherSet, modified);
             }
         }
     }
-
 }

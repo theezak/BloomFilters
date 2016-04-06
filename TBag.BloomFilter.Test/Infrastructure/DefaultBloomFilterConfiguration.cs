@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.Remoting.Messaging;
 
-namespace TBag.BloomFilter.Test
+namespace TBag.BloomFilter.Test.Infrastructure
 {
     using BloomFilters.Configurations;
     using BloomFilters.Invertible.Configurations;
