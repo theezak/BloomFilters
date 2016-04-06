@@ -11,7 +11,7 @@
     {
      
         /// <summary>
-        /// See http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=096966BF3B52058BEBC90A463A806B19?doi=10.1.1.259.4308&rep=rep1&type=pdf
+        /// Get all smooth numbers in the given range.
         /// </summary>
         /// <param name="minimum"></param>
         /// <param name="range"></param>

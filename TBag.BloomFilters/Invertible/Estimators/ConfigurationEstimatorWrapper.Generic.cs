@@ -41,12 +41,11 @@
              _getId = e => BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(e.Value), unchecked((uint) e.Key)), 0);
             //additional hash to ensure Id and IdHash are different.
             _idHash = id => BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(id), 12345678), 0);
-            //entity hash equals identifier hash/
-            _entityHash = e => BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(_getId(e)), 12345678), 0);
+            //entity hash equals identifier hash
+            _entityHash = e => _idHash(_getId(e));
             _idXor = (id1, id2) => id1 ^ id2;
             _isPure = (d, p) => _wrappedConfiguration.CountConfiguration.IsPure(d.Counts[p]) &&
-                                BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(d.IdSums[p]), 12345678), 0) ==
-                                d.HashSums[p];
+                                _idHash(d.IdSums[p]) == d.HashSums[p];
         }   
 
         #region Configuration implementation      
