@@ -48,7 +48,7 @@
             if (similarity.HasValue)
             {
                 strataDecode += (long)(decodeFactor * ((1 - similarity) / (1 + similarity)) *
-                       (estimator.BitMinwiseEstimator.Capacity + otherEstimatorData.BitMinwiseEstimator.Capacity));
+                       (estimator.BitMinwiseEstimator.ItemCount + otherEstimatorData.BitMinwiseEstimator.ItemCount));
             }
             var strataMin = Math.Min(
                 otherEstimatorData.StrataEstimator?.StrataCount ?? 0,

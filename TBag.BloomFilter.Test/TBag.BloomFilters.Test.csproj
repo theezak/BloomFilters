@@ -63,12 +63,11 @@
     <Compile Include="BloomFilterFoldTest.cs" />
     <Compile Include="HybridDefaultBloomFilterConfiguration.cs" />
     <Compile Include="KeyValueBloomFilterConfiguration.cs" />
-    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="KeyValueLargeBloomFilterConfiguration.cs" />
     <Compile Include="KeyValuePairBloomFilterConfiguration.cs" />
     <Compile Include="LargeBloomFilterConfiguration.cs" />
     <Compile Include="HybridEstimatorTest.cs" />
-    <Compile Include="BitMinwiseHashEstimatorTest.cs" />
+    <Compile Include="Estimators\BitMinwiseHashEstimatorTest.cs" />
     <Compile Include="DataGenerator.cs" />
     <Compile Include="InvertibleBloomFilterFillTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

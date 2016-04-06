@@ -1,4 +1,4 @@
-﻿namespace TBag.BloomFilter.Test
+﻿namespace TBag.BloomFilter.Test.Estimators
 {
      using Microsoft.VisualStudio.TestTools.UnitTesting;
     using System.Linq;
@@ -32,8 +32,10 @@
              foreach(var element in data2)
                 //just making sure we do not depend upon the order of adding things.
             estimator2.Add(element);
-            var differenceCount = data.LongCount() - estimator.Similarity(estimator2) * data.LongCount();
-            Assert.IsTrue(differenceCount >= 0.45 * 10000);
+            var totalCount = data.LongCount() + data2.LongCount();
+            var differenceCount = totalCount - estimator.Similarity(estimator2) * totalCount;
+            //bit minwise 
+            Assert.IsTrue(differenceCount >= 0.95 * 10000);
         }
     }
 }
