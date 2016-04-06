@@ -13,7 +13,7 @@ When the estimate for the difference is too large, a Bloom filter will be used t
 
 ## Resizing a Bloom filter
 
-A Bloom filter can be folded through any factor of its size. For example: a Bloom filter with 500 cells can be folded by the following factors: 1, 2, 4, 5, 10, 20, 25, 50, 100, 125, 250, 500. A strategy is provided for folding, including a strategy that sizes Bloom filters with smooth numbers to increase the folding opportunities (see http://cedric.cnam.fr/fichiers/art_2629.pdf, https://en.wikipedia.org/wiki/Smooth_number). Based upon the folding operator, a compression operator is provided that attempts to reduce the size of a Bloom filter utilized under its capacity without impacting its error rate. Similar fold and compress operations are provided for estimators.
+A Bloom filter can be folded through any factor of its size. For example: a Bloom filter with 500 cells can be folded by the following factors: 1, 2, 4, 5, 10, 20, 25, 50, 100, 125, 250, 500. A strategy is provided for folding, including a strategy that sizes Bloom filters with smooth numbers to increase the folding opportunities (see http://cedric.cnam.fr/fichiers/art_2629.pdf, https://en.wikipedia.org/wiki/Smooth_number and http://people.math.gatech.edu/~ecroot/smooth6.pdf, demonstrating that many smooth numbers exist between x and x+sqrt(x)). Based upon the folding operator, a compression operator is provided that attempts to reduce the size of a Bloom filter utilized under its capacity without impacting its error rate. Similar fold and compress operations are provided for estimators.
 
 ## Serialization
 
