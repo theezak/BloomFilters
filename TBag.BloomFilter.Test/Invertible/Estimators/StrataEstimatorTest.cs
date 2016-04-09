@@ -1,4 +1,4 @@
-﻿namespace TBag.BloomFilter.Test
+﻿namespace TBag.BloomFilter.Test.Invertible.Estimators
 {
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 

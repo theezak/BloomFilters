@@ -18,8 +18,10 @@
         {
             var data = DataGenerator.Generate().Take(100000).ToList();
             var data2 = DataGenerator.Generate().Take(100000).ToList();
-            data.Modify(10000);
+            var differences = 10000;
+            data.Modify(differences);
             var configuration = new KeyValueBloomFilterConfiguration();
+            //create the first estimator
             var estimator = new BitMinwiseHashEstimator<TestEntity, long, sbyte>(
                configuration,
                2,
@@ -27,15 +29,16 @@
                 data.LongCount());
             foreach(var element in data)
             estimator.Add(element);
-          
+            //create the second estimator
            var estimator2 = new BitMinwiseHashEstimator<TestEntity,long, sbyte>(configuration, 2, 20, data.LongCount());
              foreach(var element in data2)
                 //just making sure we do not depend upon the order of adding things.
             estimator2.Add(element);
             var totalCount = data.LongCount() + data2.LongCount();
+            //calculate the similarity between the two estimators.
             var differenceCount = totalCount - estimator.Similarity(estimator2) * totalCount;
-            //bit minwise 
-            Assert.IsTrue(differenceCount >= 0.95 * 10000);
+            //within 95% or higher of difference count.
+            Assert.IsTrue(differenceCount >= 0.95 * differences);
         }
     }
 }
