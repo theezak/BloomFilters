@@ -23,13 +23,13 @@ namespace TBag.BloomFilter.Test.Invertible.Hybrid
             dataSet2.Modify(modCount);
             var configuration = new HybridDefaultBloomFilterConfiguration();
             var bloomFilter = new InvertibleHybridBloomFilter<TestEntity, long, sbyte>(configuration);
-            bloomFilter.Initialize(4 * modCount, 0.0001F);
+            bloomFilter.Initialize(10 * modCount, 0.0001F);
             foreach (var itm in dataSet1)
             {
                 bloomFilter.Add(itm);
             }
             var secondBloomFilter = new InvertibleHybridBloomFilter<TestEntity, long, sbyte>(configuration);
-            secondBloomFilter.Initialize(4 * modCount, 0.0001F);
+            secondBloomFilter.Initialize(10 * modCount, 0.0001F);
             foreach (var itm in dataSet2)
             {
                 secondBloomFilter.Add(itm);
@@ -59,13 +59,13 @@ namespace TBag.BloomFilter.Test.Invertible.Hybrid
             var dataSet2 = DataGenerator.Generate().Take(addSize).ToList();
             var configuration = new HybridDefaultBloomFilterConfiguration();
             var bloomFilter = new InvertibleHybridBloomFilter<TestEntity, long, sbyte>(configuration);
-            bloomFilter.Initialize(2 * addSize, 0.0001F);
+            bloomFilter.Initialize(10 * addSize, 0.0001F);
             foreach (var itm in dataSet1)
             {
                 bloomFilter.Add(itm);
             }
             var secondBloomFilter = new InvertibleHybridBloomFilter<TestEntity, long, sbyte>(configuration);
-            secondBloomFilter.Initialize(2 * addSize, 0.0001F);
+            secondBloomFilter.Initialize(10 * addSize, 0.0001F);
             foreach (var itm in dataSet2)
             {
                 secondBloomFilter.Add(itm);
@@ -79,9 +79,9 @@ namespace TBag.BloomFilter.Test.Invertible.Hybrid
             var onlyInSet2 = dataSet2.Where(d => dataSet1.All(d1 => d1.Id != d.Id)).Select(d => d.Id).OrderBy(id => id).ToArray();
             var modified = dataSet1.Where(d => dataSet2.Any(d2 => d2.Id == d.Id && d2.Value != d.Value)).Select(d => d.Id).OrderBy(id => id).ToArray();
             Assert.IsTrue(decoded.HasValue, "Decoding failed");
-            Assert.IsTrue(onlyInSet1.Length == onlyInFirst.Count, "Incorrect number of changes detected");
-            Assert.IsTrue(onlyInSet2.Length == onlyInSecond.Count, "False positive on only in first");
-            Assert.IsTrue(changed.Count == modified.Length, "False positive on only in second");
+            Assert.IsTrue(onlyInSet1.Length == onlyInFirst.Count, "Incorrect number of changes detected on 'only in set 1'");
+            Assert.IsTrue(onlyInSet2.Length == onlyInSecond.Count, "Incorrect number of changes detected on 'only in set 2'");
+            Assert.IsTrue(changed.Count == modified.Length, "Incorrect number of modified items detected");
         }
     }
 }

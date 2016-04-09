@@ -23,13 +23,13 @@ namespace TBag.BloomFilter.Test.Invertible.Reverse
             dataSet2.Modify(modCount);
             var configuration = new KeyValueBloomFilterConfiguration();
             var bloomFilter = new InvertibleReverseBloomFilter<TestEntity, long, sbyte>(configuration);
-            bloomFilter.Initialize(2 * modCount, 0.0001F);
+            bloomFilter.Initialize(10 * modCount, 0.0001F);
             foreach (var itm in dataSet1)
             {
                 bloomFilter.Add(itm);
             }
             var secondBloomFilter = new InvertibleReverseBloomFilter<TestEntity, long, sbyte>(configuration);
-            secondBloomFilter.Initialize(2 * modCount, 0.0001F);
+            secondBloomFilter.Initialize(10 * modCount, 0.0001F);
             foreach (var itm in dataSet2)
             {
                 secondBloomFilter.Add(itm);
@@ -44,9 +44,9 @@ namespace TBag.BloomFilter.Test.Invertible.Reverse
             var modified = dataSet1.Where(d => dataSet2.Any(d2 => d2.Id == d.Id && d2.Value != d.Value)).Select(d => d.Id).OrderBy(id => id).ToArray();
             //fairly sensitive to decoding errors (due to the same reason as Contains is rather unreliable: the pure function does not check the  id value and hash value)
             Assert.IsTrue(decoded.HasValue, "Decoding failed");
-            Assert.IsTrue(onlyInSet1.Length == onlyInFirst.Count, "Incorrect number of changes detected");
-            Assert.IsTrue(onlyInSet2.Length == onlyInSecond.Count, "False positive on only in first");
-            Assert.IsTrue(changed.Count == modified.Length, "False positive on only in second");
+            Assert.IsTrue(onlyInSet1.Length == onlyInFirst.Count, "Incorrect number of changes detected on 'only in set 1");
+            Assert.IsTrue(onlyInSet2.Length == onlyInSecond.Count, "Incorrect number of changes detected on 'only in set 2");
+            Assert.IsTrue(changed.Count == modified.Length, "Incorrect number of modified items detected");
         }
 
         /// <summary>
@@ -62,13 +62,13 @@ namespace TBag.BloomFilter.Test.Invertible.Reverse
             dataSet2.Modify(modCount);
             var configuration = new KeyValueBloomFilterConfiguration();
             var bloomFilter = new InvertibleReverseBloomFilter<TestEntity, long, sbyte>(configuration);
-            bloomFilter.Initialize(2 * modCount, 0.0001F);
+            bloomFilter.Initialize(10 * modCount, 0.0001F);
             foreach (var itm in dataSet1)
             {
                 bloomFilter.Add(itm);
             }
             var secondBloomFilter = new InvertibleReverseBloomFilter<TestEntity, long, sbyte>(configuration);
-            secondBloomFilter.Initialize(2 * modCount, 0.0001F);
+            secondBloomFilter.Initialize(10 * modCount, 0.0001F);
             foreach (var itm in dataSet2)
             {
                 secondBloomFilter.Add(itm);
@@ -83,9 +83,9 @@ namespace TBag.BloomFilter.Test.Invertible.Reverse
             var modified = dataSet1.Where(d => dataSet2.Any(d2 => d2.Id == d.Id && d2.Value != d.Value)).Select(d => d.Id).OrderBy(id => id).ToArray();
             //fairly sensitive to decoding errors (due to the same reason as Contains is rather unreliable: the pure function does not check the  id value and hash value)
             Assert.IsTrue(decoded.HasValue, "Decoding failed");
-            Assert.IsTrue(onlyInSet1.Length == onlyInFirst.Count, "Incorrect number of changes detected");
-            Assert.IsTrue(onlyInSet2.Length == onlyInSecond.Count, "False positive on only in first");
-            Assert.IsTrue(changed.Count == modified.Length, "False positive on only in second");
+            Assert.IsTrue(onlyInSet1.Length == onlyInFirst.Count, "Incorrect number of changes detected on 'only in set 1'");
+            Assert.IsTrue(onlyInSet2.Length == onlyInSecond.Count, "Incorrect number of changes detected on 'only in set 2'");
+            Assert.IsTrue(changed.Count == modified.Length, "Incorrect number of modified items detected");
         }
     }
 }
