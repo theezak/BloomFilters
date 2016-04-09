@@ -54,8 +54,10 @@
                 otherEstimatorData.StrataEstimator?.StrataCount ?? 0,
                 estimator.StrataEstimator?.StrataCount ?? 0);
 
-            var decodedItemCount = estimator.StrataEstimator.StrataItemCount(strataMin) + (similarity.HasValue ?(estimator.BitMinwiseEstimator?.ItemCount ?? 0L) : 0L) +
-               otherEstimatorData.StrataEstimator.StrataItemCount(strataMin) + (similarity.HasValue ? (otherEstimatorData.BitMinwiseEstimator?.ItemCount ?? 0L) : 0L);
+            var decodedItemCount = estimator.StrataEstimator.StrataItemCount(strataMin) + 
+                (similarity.HasValue ?(estimator.BitMinwiseEstimator?.ItemCount ?? 0L) : 0L) +
+               otherEstimatorData.StrataEstimator.StrataItemCount(strataMin) + 
+               (similarity.HasValue ? (otherEstimatorData.BitMinwiseEstimator?.ItemCount ?? 0L) : 0L);
             if (decodedItemCount > 0) 
             {
                 //assume differences for the items counted, but not in the strata estimator or bit minwise estimator, contribute proportionally.
@@ -83,11 +85,13 @@
             where TId : struct
         {
             if (estimatorData == null) return null;
-            var minWiseFold = estimatorData.BitMinwiseEstimator == null ? 
-                1L :
-                Math.Max(
-                    1L, 
-                    MathExtensions.GetFactors(estimatorData.BitMinwiseEstimator.Capacity).OrderBy(f => f).FirstOrDefault(f => f > factor));
+            var minWiseFold = Math.Max(
+                1L, 
+                configuration
+                    .FoldingStrategy?
+                    .GetAllFoldFactors(estimatorData.BitMinwiseEstimator?.Capacity??1L)
+                    .OrderBy(f => f)
+                    .FirstOrDefault(f => f > factor)??1L);
             return new HybridEstimatorFullData<int, TCount>
             {
                 ItemCount = estimatorData.ItemCount,
@@ -113,7 +117,7 @@
            where TId : struct
         {
             if (configuration?.FoldingStrategy == null || estimatorData == null) return null;
-            var fold = configuration.FoldingStrategy.FindFoldFactor(
+            var fold = configuration.FoldingStrategy.FindCompressionFactor(
                 estimatorData.StrataEstimator.BlockSize,
                 estimatorData.StrataEstimator.BlockSize,
                 estimatorData.ItemCount);

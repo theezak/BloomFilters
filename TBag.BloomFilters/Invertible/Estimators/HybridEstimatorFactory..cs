@@ -33,9 +33,9 @@
             var data = precalculatedEstimator.FullExtract();
             var strata = GetRecommendedStrata(configuration, data.ItemCount, failedDecodeCount);
             var blockSize = GetRecommendedBlockSize(configuration, data.ItemCount, failedDecodeCount);
-            var factors = MathExtensions.GetFactors(precalculatedEstimator.BlockSize);
+            var factors = configuration.FoldingStrategy?.GetAllFoldFactors(precalculatedEstimator.BlockSize);
             var foldFactor = blockSize > 0L ?
-                (uint)factors
+                (uint)factors?
                 .OrderByDescending(f => f)
                 //for estimators: capacity is the block size.
                 .Where(f => f > 1 && precalculatedEstimator.BlockSize / f > blockSize)

@@ -37,7 +37,7 @@
             }
             var bloomFilterData = bloomFilter.Extract();
             //find a fold factor based upon the Bloom filter size, the capacity and the actual keys used.          
-            var fold = config.FoldingStrategy.FindFoldFactor(bloomFilterData.BlockSize, bloomFilterData.Capacity, bloomFilterData.ItemCount);
+            var fold = config.FoldingStrategy.FindCompressionFactor(bloomFilterData.BlockSize, bloomFilterData.Capacity, bloomFilterData.ItemCount);
             if (fold.HasValue)
             {
                 var res = bloomFilter.Fold(fold.Value);
@@ -58,7 +58,7 @@
             }
             var bloomFilterData = bloomFilter.Extract();
             //find a fold factor based upon the Bloom filter size, the capacity and the actual keys used.          
-            var fold = config.FoldingStrategy.FindFoldFactor(bloomFilterData.BlockSize, bloomFilterData.Capacity, bloomFilterData.ItemCount);
+            var fold = config.FoldingStrategy.FindCompressionFactor(bloomFilterData.BlockSize, bloomFilterData.Capacity, bloomFilterData.ItemCount);
             var folded = bloomFilter.Compress();
             var hashSet = new HashSet<long>();
             foreach (var itm in DataGenerator.Generate().Skip(500).Take(100).ToArray())

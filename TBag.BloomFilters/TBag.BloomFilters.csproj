@@ -54,7 +54,6 @@
     <Compile Include="Invertible\Configurations\InvertibleBloomFilterConfigurationExtensions.cs" />
     <Compile Include="Invertible\Configurations\BloomFilterIdConfigurationBase.Generic.cs" />
     <Compile Include="Collections\BitArrayExtensions.cs" />
-    <Compile Include="Configurations\PowerOfTwoFoldingStrategy.cs" />
     <Compile Include="Configurations\IFoldingStrategy.cs" />
     <Compile Include="Configurations\ShortCountConfiguration.cs" />
     <Compile Include="Configurations\ByteCountConfiguration.cs" />

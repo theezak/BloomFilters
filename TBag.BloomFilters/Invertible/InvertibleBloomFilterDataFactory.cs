@@ -32,7 +32,7 @@
                 capacity = 10;
             }            
             IInvertibleBloomFilterData<TId,int,TCount> data = precalculatedFilter.Extract();
-            var foldFactor = configuration.FoldingStrategy?.FindFoldFactor(data.BlockSize, data.Capacity, capacity);
+            var foldFactor = configuration.FoldingStrategy?.FindCompressionFactor(data.BlockSize, data.Capacity, capacity);
             if (foldFactor > 1)
             {
                 data = data.Fold(configuration, (uint)foldFactor);

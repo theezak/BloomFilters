@@ -3,6 +3,7 @@
     using System.Linq;
     using System;
     using MathExt;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Folding strategy based upon smooth numbers.
@@ -13,6 +14,7 @@
         private readonly SmoothNumberGenerator _smoothNumberGenerator = new SmoothNumberGenerator();
         private const byte MaxTrials = 5;
         private static readonly double PrimePowFactor = 1.0D / (4.0D *Math.Sqrt(Math.E)) + 0.001D;
+
         /// <summary>
         /// Compute a foldable size of at least <paramref name="blockSize"/>.
         /// </summary>
@@ -45,7 +47,7 @@
         /// <param name="capacity"></param>
         /// <param name="keyCount">The number of keys added to the Bloom filter. When not provided, the fold advice will not take the error rate into consideration and provide a maximal fold given the capacity.</param>
         /// <returns>A fold factor.</returns>
-        public uint? FindFoldFactor(long blockSize, long capacity, long? keyCount = null)
+        public uint? FindCompressionFactor(long blockSize, long capacity, long? keyCount = null)
         {
             if (keyCount.HasValue && !(keyCount > 0)) return null;
             var pieces = MathExtensions.GetFactors(blockSize)               
@@ -70,5 +72,14 @@
             return new Tuple<long, long>(size1 / gcd.Value, size2 / gcd.Value);
         }
 
+        /// <summary>
+        /// Get all fold factors for the given <paramref name="blockSize"/>.
+        /// </summary>
+        /// <param name="blockSize"></param>
+        /// <returns></returns>
+        public IEnumerable<long> GetAllFoldFactors(long blockSize)
+        {
+            return MathExtensions.GetFactors(blockSize);
+        }
     }
 }
