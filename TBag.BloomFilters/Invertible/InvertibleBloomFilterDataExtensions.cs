@@ -2,6 +2,7 @@
 {
     using Configurations;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -198,18 +199,20 @@
                     filterData.Capacity / foldFactors.Item1,
                     filterData.BlockSize / foldFactors.Item1,
                     filterData.HashFunctionCount));
-            for (var i = 0L; i < res.BlockSize; i++)
-            {
-                res.Counts[i] = configuration.CountConfiguration.Add(
-                    filterData.Counts.GetFolded(i, foldFactors?.Item1, configuration.CountConfiguration.Add),
-                    otherFilterData.Counts.GetFolded(i, foldFactors?.Item2, configuration.CountConfiguration.Add));
-                res.HashSums[i] = configuration.HashXor(
-                    filterData.HashSums.GetFolded(i, foldFactors?.Item1, configuration.HashXor),
-                   otherFilterData.HashSums.GetFolded(i, foldFactors?.Item2, configuration.HashXor));
-                res.IdSums[i] = configuration.IdXor(
-                    filterData.IdSums.GetFolded(i, foldFactors?.Item1, configuration.IdXor),
-                    otherFilterData.IdSums.GetFolded(i, foldFactors?.Item2, configuration.IdXor));
-            }
+            LongEnumerable.Range(0L, res.BlockSize)
+                 .AsParallel()
+                 .ForAll(i =>
+                 {
+                     res.Counts[i] = configuration.CountConfiguration.Add(
+                        filterData.Counts.GetFolded(i, foldFactors?.Item1, configuration.CountConfiguration.Add),
+                        otherFilterData.Counts.GetFolded(i, foldFactors?.Item2, configuration.CountConfiguration.Add));
+                     res.HashSums[i] = configuration.HashXor(
+                        filterData.HashSums.GetFolded(i, foldFactors?.Item1, configuration.HashXor),
+                       otherFilterData.HashSums.GetFolded(i, foldFactors?.Item2, configuration.HashXor));
+                     res.IdSums[i] = configuration.IdXor(
+                        filterData.IdSums.GetFolded(i, foldFactors?.Item1, configuration.IdXor),
+                        otherFilterData.IdSums.GetFolded(i, foldFactors?.Item2, configuration.IdXor));
+                 });
             res.SubFilter = filterData
                 .SubFilter
                 .Add(configuration.SubFilterConfiguration, otherFilterData.SubFilter, inPlace)
@@ -246,22 +249,15 @@
             var res = configuration.DataFactory.Create<TId, THash, TCount>(data.Capacity / factor, data.BlockSize / factor, data.HashFunctionCount);
             res.IsReverse = data.IsReverse;
             res.ItemCount = data.ItemCount;
-            for (var i = 0L; i < data.Counts.LongLength; i++)
-            {
-                if (i < res.BlockSize)
+            LongEnumerable
+                .Range(0L, res.BlockSize)
+                .AsParallel()
+                .ForAll(i =>
                 {
-                    res.Counts[i] = data.Counts[i];
-                    res.HashSums[i] = data.HashSums[i];
-                    res.IdSums[i] = data.IdSums[i];
-                }
-                else
-                {
-                    var pos = i % res.BlockSize;
-                    res.Counts[pos] = configuration.CountConfiguration.Add(res.Counts[pos], data.Counts[i]);
-                    res.HashSums[pos] = configuration.HashXor(res.HashSums[pos], data.HashSums[i]);
-                    res.IdSums[pos] = configuration.IdXor(res.IdSums[pos], data.IdSums[i]);
-                }
-            }
+                    res.Counts[i] = res.Counts.GetFolded(i, factor, configuration.CountConfiguration.Add);
+                    res.HashSums[i] = res.HashSums.GetFolded(i, factor, configuration.HashXor);
+                    res.IdSums[i] = res.IdSums.GetFolded(i, factor, configuration.IdXor);
+                });
             res.SubFilter = data
                 .SubFilter?
                 .Fold(configuration.SubFilterConfiguration, factor)
@@ -508,37 +504,58 @@
                configuration.DataFactory.Create<TId, THash, TCount>(filterData.Capacity / foldFactors.Item1, filterData.BlockSize / foldFactors.Item1, filterData.HashFunctionCount));
             var idIdentity = configuration.IdIdentity();
             var hashIdentity = configuration.HashIdentity();
+            //conccurent place holders
+            var listABag = new ConcurrentBag<TId>();
+            var listBBag = new ConcurrentBag<TId>();
+            var pureListBag = pureList==null? default(ConcurrentBag<long>) : new ConcurrentBag<long>();
+            LongEnumerable.Range(0, result.BlockSize)
+                 .AsParallel()
+                 .ForAll(i =>
+             {
+                 var hashSum = configuration.HashXor(
+                    filterData.HashSums.GetFolded(i, foldFactors?.Item1, configuration.HashXor),
+                    subtractedFilterData.HashSums.GetFolded(i, foldFactors?.Item2, configuration.HashXor));
+                 var filterIdSum = filterData.IdSums.GetFolded(i, foldFactors?.Item1, configuration.IdXor);
+                 var subtractedIdSum = subtractedFilterData.IdSums.GetFolded(i, foldFactors?.Item2, configuration.IdXor);
+                 var filterCount = filterData.Counts.GetFolded(i, foldFactors?.Item1, configuration.CountConfiguration.Add);
+                 var subtractedCount = subtractedFilterData.Counts.GetFolded(i, foldFactors?.Item2, configuration.CountConfiguration.Add);
+                 var idXorResult = configuration.IdXor(filterIdSum, subtractedIdSum);
+                 if ((!configuration.IdEqualityComparer.Equals(idIdentity, idXorResult) ||
+                     !configuration.HashEqualityComparer.Equals(hashIdentity, hashSum)) &&
+                     configuration.CountConfiguration.IsPure(filterCount) &&
+                     configuration.CountConfiguration.IsPure(subtractedCount))
+                 {
+                     //pure count went to zero: both filters were pure at the given position.
+                     listABag.Add(filterIdSum);
+                     listBBag.Add(subtractedIdSum);
+                     idXorResult = idIdentity;
+                     hashSum = hashIdentity;
+                 }
+                 result.Counts[i] = configuration.CountConfiguration.Subtract(filterCount, subtractedCount);
+                 result.HashSums[i] = hashSum;
+                 result.IdSums[i] = idXorResult;
 
-            for (var i = 0L; i < result.BlockSize; i++)
+                 if (configuration.IsPure(result, i))
+                 {
+                     pureListBag?.Add(i);
+                 }
+             });
+            //move back to non concurrent data types.
+            foreach(var itm in listABag)
             {
-                var hashSum = configuration.HashXor(
-                   filterData.HashSums.GetFolded(i, foldFactors?.Item1, configuration.HashXor),
-                   subtractedFilterData.HashSums.GetFolded(i, foldFactors?.Item2, configuration.HashXor));
-                var filterIdSum = filterData.IdSums.GetFolded(i, foldFactors?.Item1, configuration.IdXor);
-                var subtractedIdSum = subtractedFilterData.IdSums.GetFolded(i, foldFactors?.Item2, configuration.IdXor);
-                var filterCount = filterData.Counts.GetFolded(i, foldFactors?.Item1, configuration.CountConfiguration.Add);
-                var subtractedCount = subtractedFilterData.Counts.GetFolded(i, foldFactors?.Item2, configuration.CountConfiguration.Add);
-                var idXorResult = configuration.IdXor(filterIdSum, subtractedIdSum);
-                if ((!configuration.IdEqualityComparer.Equals(idIdentity, idXorResult) ||
-                    !configuration.HashEqualityComparer.Equals(hashIdentity, hashSum)) &&
-                    configuration.CountConfiguration.IsPure(filterCount) &&
-                    configuration.CountConfiguration.IsPure(subtractedCount))
+                listA.Add(itm);
+            }
+            foreach (var itm in listBBag)
+            {
+                listB.Add(itm);
+            }
+            if (pureList!=null)
+            {
+                foreach(var item in pureListBag)
                 {
-                    //pure count went to zero: both filters were pure at the given position.
-                    listA.Add(filterIdSum);
-                    listB.Add(subtractedIdSum);
-                    idXorResult = idIdentity;
-                    hashSum = hashIdentity;
-                }
-                result.Counts[i] = configuration.CountConfiguration.Subtract(filterCount, subtractedCount);
-                result.HashSums[i] = hashSum;
-                result.IdSums[i] = idXorResult;
-                if (configuration.IsPure(result, i))
-                {
-                    pureList?.Push(i);
+                    pureList.Push(item);
                 }
             }
-            //no longer really meaningful.
             result.ItemCount = configuration.CountConfiguration.GetEstimatedCount(result.Counts, result.HashFunctionCount);
             return result;
         }
