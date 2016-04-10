@@ -74,21 +74,9 @@
                 Values = estimator.Values==null?null:new int[estimator.Capacity / factor]
             };
             if ((res.Values?.Length??0L) == 0L) return res;
-            for (var i = 0L; i < estimator.Values.LongLength; i++)
-            {
-                if (i < res.Values.LongLength)
-                {
-                    res.Values[i] = estimator.Values[i];
-                }
-                else
-                {
-                    var pos = i % res.Values.LongLength;
-                    if (res.Values[pos] > estimator.Values[i])
-                    {
-                        res.Values[pos] = estimator.Values[i];
-                    }
-                }
-            }
+            LongEnumerable.Range(0, res.Values.LongLength)
+                .AsParallel()
+                .ForAll(i => res.Values[i] = res.Values.GetFolded(i, factor, Math.Min));
             return res;
         }
 
@@ -131,12 +119,14 @@
                 null : 
                 new int[res.Capacity];           
             if (res.Values==null) return res;
-            for (var i = 0L; i < res.Capacity; i++)
+            LongEnumerable.Range(0L, res.Capacity)
+            .AsParallel()
+            .ForAll(i =>
             {
                 var estimatorValue = GetFolded(estimator.Values, i, foldingFactors?.Item1, Math.Min, int.MaxValue);
-                var otherEstimatorValue = GetFolded(otherEstimator.Values, i, foldingFactors?.Item1, Math.Min, int.MaxValue);
+                var otherEstimatorValue = GetFolded(otherEstimator.Values, i, foldingFactors?.Item2, Math.Min, int.MaxValue);
                 res.Values[i] = Math.Min(estimatorValue, otherEstimatorValue);
-            }
+            });
             res.ItemCount += otherEstimator.ItemCount;
             return res;
         }
