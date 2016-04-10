@@ -46,8 +46,7 @@
         {
             if (configuration?.FoldingStrategy == null || estimator == null) return null;
             var fold = configuration.FoldingStrategy.FindCompressionFactor(estimator.Capacity, estimator.Capacity, estimator.ItemCount);
-            var res = fold.HasValue ? estimator.Fold(fold.Value) : null;
-            return res;
+            return fold.HasValue ? estimator.Fold(fold.Value) : null;
         }
 
         /// <summary>
