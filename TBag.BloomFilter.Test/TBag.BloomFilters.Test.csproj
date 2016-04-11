@@ -72,9 +72,12 @@
     <Compile Include="Invertible\Hybrid\ContainsTest.cs" />
     <Compile Include="Invertible\Hybrid\SetDiffTest.cs" />
     <Compile Include="Invertible\Hybrid\CompressTest.cs" />
+    <Compile Include="Invertible\Hybrid\AddTest.cs" />
+    <Compile Include="Invertible\Reverse\AddTest.cs" />
     <Compile Include="Invertible\Reverse\CompressTest.cs" />
     <Compile Include="Invertible\Reverse\ContainsTest.cs" />
     <Compile Include="Invertible\Reverse\SetDiffTest.cs" />
+    <Compile Include="Invertible\Standard\AddTest.cs" />
     <Compile Include="Invertible\Standard\CompressTest.cs" />
     <Compile Include="Invertible\Standard\ContainsTest.cs" />
     <Compile Include="Invertible\Standard\SetDiffTest.cs" />
