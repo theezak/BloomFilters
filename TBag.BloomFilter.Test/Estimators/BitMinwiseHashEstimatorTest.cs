@@ -11,6 +11,14 @@
     public class BitMinwiseHashEstimatorTest
     {
         /// <summary>
+        /// Add two estimators.
+        /// </summary>
+        [TestMethod]
+        public void BitMinwiseAdd()
+        {
+        }
+
+        /// <summary>
         /// Add items and estimate a difference utilizing a b-bit minwise estimator.
         /// </summary>
         [TestMethod]

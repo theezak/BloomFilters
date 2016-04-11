@@ -66,7 +66,7 @@
     <Compile Include="Infrastructure\KeyValueLargeBloomFilterConfiguration.cs" />
     <Compile Include="Infrastructure\KeyValuePairBloomFilterConfiguration.cs" />
     <Compile Include="Infrastructure\LargeBloomFilterConfiguration.cs" />
-    <Compile Include="Invertible\HybridEstimatorTest.cs" />
+    <Compile Include="Invertible\Estimators\HybridEstimatorTest.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimatorTest.cs" />
     <Compile Include="Infrastructure\DataGenerator.cs" />
     <Compile Include="Invertible\Hybrid\ContainsTest.cs" />
