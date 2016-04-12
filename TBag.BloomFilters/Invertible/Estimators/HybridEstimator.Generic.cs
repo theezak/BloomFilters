@@ -190,7 +190,7 @@
         /// <param name="factor"></param>
         /// <param name="inPlace"></param>
         /// <returns></returns>
-        IHybridEstimator<TEntity, int, TCount> IHybridEstimator<TEntity, int, TCount>.Fold(uint factor, bool inPlace)
+        public IHybridEstimator<TEntity, int, TCount> Fold(uint factor, bool inPlace)
         {
             IHybridEstimator<TEntity, int, TCount> self = this;
             var res = FullExtract().Fold(_configuration, factor);
@@ -219,7 +219,7 @@
         /// </summary>
         /// <param name="inPlace"></param>
         /// <returns></returns>
-        IHybridEstimator<TEntity, int, TCount> IHybridEstimator<TEntity, int, TCount>.Compress(bool inPlace)
+        public IHybridEstimator<TEntity, int, TCount> Compress(bool inPlace)
         {
             IHybridEstimator<TEntity, int, TCount> self = this;
             var res = FullExtract().Compress(_configuration);
@@ -267,7 +267,7 @@
         /// Rehydrate the hybrid estimator from full data.
         /// </summary>
         /// <param name="data">The data to restore</param>
-        void IHybridEstimator<TEntity, int, TCount>.Rehydrate(IHybridEstimatorFullData<int, TCount> data)
+        public void Rehydrate(IHybridEstimatorFullData<int, TCount> data)
         {
             if (data == null) return;
             _minwiseEstimator?.Rehydrate(data.BitMinwiseEstimator);

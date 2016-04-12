@@ -45,7 +45,7 @@
             if (failedDecodeCount > 1)
             {
                 //after more than 1 failed attempt, go for the lowest fold factor.
-                foldFactor = (uint)factors.OrderBy(f => f).FirstOrDefault(f => precalculatedEstimator.BlockSize / f > blockSize);
+                foldFactor = (uint)factors.OrderBy(f => f).FirstOrDefault(f => f > 1 && precalculatedEstimator.BlockSize / f > blockSize);
             }
             if (foldFactor > 1)
             {

@@ -41,14 +41,10 @@
 
         private static sbyte SubtractImpl(sbyte c1, sbyte c2)
         {
-            try
-            {
-                return checked((sbyte)(c1 - c2));
-            }
-            catch (OverflowException)
-            {
-                return c2 > 0 ? sbyte.MinValue : sbyte.MaxValue;
-            }
+            var res = (long) c1 - c2;
+            if (res > sbyte.MaxValue) return sbyte.MaxValue;
+            if (res < sbyte.MinValue) return sbyte.MinValue;
+            return (sbyte) res;
         }
 
         /// <summary>
@@ -96,14 +92,10 @@
 
         private static sbyte AddImpl(sbyte c1, sbyte c2)
         {
-            try
-            {
-                return checked((sbyte)(c1 + c2));
-            }
-            catch (OverflowException)
-            {
-                return c2 > 0 ? sbyte.MaxValue : sbyte.MinValue;
-            }
+            var res = (long)c1 + c2;
+            if (res > sbyte.MaxValue) return sbyte.MaxValue;
+            if (res < sbyte.MinValue) return sbyte.MinValue;
+            return (sbyte)res;
         }
     }
 }

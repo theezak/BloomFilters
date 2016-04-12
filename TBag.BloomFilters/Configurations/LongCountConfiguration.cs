@@ -39,8 +39,15 @@
         /// </summary>
         public override Func<long,long,long> Subtract { get; set; } = SubtractImpl;
 
+        /// <summary>
+        /// Implementation of subtract
+        /// </summary>
+        /// <param name="c1"></param>
+        /// <param name="c2"></param>
+        /// <returns></returns>
+        /// <remarks>Overflow exception will kill performance, but when you are overflowing longs, you are in for that.</remarks>
         private static long SubtractImpl(long c1, long c2)
-        {
+        {            
             try
             {
                 return checked(c1 - c2);
@@ -76,6 +83,13 @@
         /// </summary>
         public override Func<long,long,long> Add { get; set; } = AddImpl;
 
+        /// <summary>
+        /// Implementation of addition
+        /// </summary>
+        /// <param name="c1"></param>
+        /// <param name="c2"></param>
+        /// <returns></returns>
+        /// <remarks>Overflow exception will kill performance, but when you are overflowing longs, you are in for that.</remarks>
         private static long AddImpl(long c1, long c2)
         {
             try

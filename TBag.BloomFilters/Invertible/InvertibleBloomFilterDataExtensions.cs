@@ -199,6 +199,7 @@
                     filterData.Capacity / foldFactors.Item1,
                     filterData.BlockSize / foldFactors.Item1,
                     filterData.HashFunctionCount));
+            res.IsReverse = filterData.IsReverse;
             LongEnumerable.Range(0L, res.BlockSize)
                  .AsParallel()
                  .ForAll(i =>

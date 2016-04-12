@@ -41,14 +41,10 @@
 
         private static int SubtractImpl(int c1, int c2)
         {
-            try
-            {
-                return checked(c1 - c2);
-            }
-            catch (OverflowException)
-            {
-                return c2 > 0 ? int.MinValue : int.MaxValue;
-            }
+            var res = (long)c1 - c2;
+            if (res > int.MaxValue) return int.MaxValue;
+            if (res < int.MinValue) return int.MinValue;
+            return (int)res;
         }
 
         /// <summary>
@@ -78,14 +74,10 @@
 
         private static int AddImpl(int c1, int c2)
         {
-            try
-            {
-                return checked(c1 + c2);
-            }
-            catch (OverflowException)
-            {
-                return c2 > 0 ? int.MaxValue : int.MinValue;
-            }
+            var res = (long)c1 + c2;
+            if (res > int.MaxValue) return int.MaxValue;
+            if (res < int.MinValue) return int.MinValue;
+            return (int)res;
         }
 
         /// <summary>

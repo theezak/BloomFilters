@@ -119,13 +119,11 @@
                 new int[res.Capacity];           
             if (res.Values==null) return res;
             LongEnumerable.Range(0L, res.Capacity)
-            .AsParallel()
-            .ForAll(i =>
-            {
-                var estimatorValue = GetFolded(estimator.Values, i, foldingFactors?.Item1, Math.Min, int.MaxValue);
-                var otherEstimatorValue = GetFolded(otherEstimator.Values, i, foldingFactors?.Item2, Math.Min, int.MaxValue);
-                res.Values[i] = Math.Min(estimatorValue, otherEstimatorValue);
-            });
+            .AsParallel()                     
+            .ForAll(i => res.Values[i] = Math.Min(
+                    GetFolded(estimator.Values, i, foldingFactors?.Item1, Math.Min, int.MaxValue),
+                    GetFolded(otherEstimator.Values, i, foldingFactors?.Item2, Math.Min, int.MaxValue))
+            );
             res.ItemCount += otherEstimator.ItemCount;
             return res;
         }

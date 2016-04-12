@@ -23,13 +23,13 @@ namespace TBag.BloomFilter.Test.Invertible.Hybrid
             dataSet2.Modify(modCount);
             var configuration = new HybridDefaultBloomFilterConfiguration();
             var bloomFilter = new InvertibleHybridBloomFilter<TestEntity, long, sbyte>(configuration);
-            bloomFilter.Initialize(10 * modCount, 0.0001F);
+            bloomFilter.Initialize(15 * modCount, 0.0001F);
             foreach (var itm in dataSet1)
             {
                 bloomFilter.Add(itm);
             }
             var secondBloomFilter = new InvertibleHybridBloomFilter<TestEntity, long, sbyte>(configuration);
-            secondBloomFilter.Initialize(10 * modCount, 0.0001F);
+            secondBloomFilter.Initialize(15 * modCount, 0.0001F);
             foreach (var itm in dataSet2)
             {
                 secondBloomFilter.Add(itm);

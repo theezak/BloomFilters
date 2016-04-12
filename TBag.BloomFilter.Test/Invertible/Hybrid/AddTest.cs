@@ -51,9 +51,9 @@ namespace TBag.BloomFilter.Test.Invertible.Hybrid
                 bloomFilter.Add(itm);
             }
             var bloomFilter2 = new InvertibleHybridBloomFilter<TestEntity, long, sbyte>(configuration);
-            //We have to create a foldable version.
+            //We should create a foldable counter part.
             var data = bloomFilter.Extract();
-            var foldFactor = configuration.FoldingStrategy.GetAllFoldFactors(data.BlockSize).OrderBy(f=> f).First();
+            var foldFactor = configuration.FoldingStrategy.GetAllFoldFactors(data.BlockSize).Where(f=>f>1).OrderBy(f=> f).First();
             bloomFilter2.Initialize(addSize, data.BlockSize / foldFactor,  data.HashFunctionCount);
             foreach (var itm in testData2)
             {

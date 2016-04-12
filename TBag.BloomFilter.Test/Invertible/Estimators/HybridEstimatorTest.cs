@@ -2,14 +2,18 @@
 {
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using System.Linq;
-    using BloomFilters.Estimators;
     using BloomFilters.Invertible.Estimators;
-    using Infrastructure;    /// <summary>
-                             /// Summary description for hybridEstimatorTest
-                             /// </summary>
+    using Infrastructure;    
+    
+    /// <summary>
+    /// Summary description for hybridEstimatorTest
+    /// </summary>
     [TestClass]
     public class HybridEstimatorTest
     {
+        /// <summary>
+        /// Fill two estimators and determine the number of differences.
+        /// </summary>
         [TestMethod]
         public void HybridEstimatorBasicFillAndEstimate()
         {
@@ -34,6 +38,31 @@
                 estimator2.Add(element);
             var differenceCount = estimator.Decode(estimator2);
             Assert.IsTrue(differenceCount >=  2*halfTheDiff, "Estimate below the difference count.");
+        }
+
+        /// <summary>
+        /// Compress an estimator.
+        /// </summary>
+        [TestMethod]
+        public void HybridEstimatorCompressTest()
+        {
+            var data = DataGenerator.Generate().Take(10000).ToArray();
+            var configuration = new KeyValueLargeBloomFilterConfiguration();
+            var factory = new HybridEstimatorFactory();
+            var estimator = factory.Create(configuration, 2000*data.Length);
+            Assert.AreEqual(estimator.BlockSize, 1170, "Unexpected block size before compression.");
+            foreach (var element in data.Take(50))
+                estimator.Add(element);
+            var estimator2 = factory.Create(configuration, 2000*data.Length);
+            foreach (var element in data.Skip(50).Take(50))
+                estimator2.Add(element);
+            var estimateBeforeCompression = estimator.Decode(estimator2);
+            estimator.Compress(true);          
+            Assert.AreEqual(estimator.BlockSize, 65, "Compression resulted in unexpected block size.");
+            var estimateAfterCompression = estimator.Decode(estimator2);
+            //note: rather tricky. Both estimators should have the same item count, otherwise compression does impact the result,
+            //since one estimator no longer fits in the compressed one.
+            Assert.AreEqual(estimateAfterCompression, estimateBeforeCompression, "Estimate changed due to compression.");
         }
     }
 }

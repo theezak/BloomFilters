@@ -41,14 +41,10 @@
 
         private static short SubtractImpl(short c1, short c2)
         {
-            try
-            {
-                return checked((short)(c1 - c2));
-            }
-            catch (OverflowException)
-            {
-                return c2 > 0  ?short.MinValue : short.MaxValue;
-            }
+            var res = (long)c1 - c2;
+            if (res > short.MaxValue) return short.MaxValue;
+            if (res < short.MinValue) return short.MinValue;
+            return (short)res;
         }
 
         /// <summary>
@@ -78,14 +74,10 @@
 
         private static short AddImpl(short c1, short c2)
         {
-            try
-            {
-                return checked((short)(c1 + c2));
-            }
-            catch (OverflowException)
-            {
-                return c2 > 0 ? short.MaxValue : short.MinValue;
-            }
+            var res = (long)c1 + c2;
+            if (res > short.MaxValue) return short.MaxValue;
+            if (res < short.MinValue) return short.MinValue;
+            return (short)res;
         }
 
         /// <summary>

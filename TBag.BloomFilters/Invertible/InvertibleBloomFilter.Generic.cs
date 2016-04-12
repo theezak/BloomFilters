@@ -126,6 +126,7 @@
             {
                 throw new ArgumentException("An incompatible Bloom filter cannot be added.", nameof(bloomFilter));
             }
+            Rehydrate(result);
         }
 
         /// <summary>
@@ -141,6 +142,7 @@
             {
                 throw new ArgumentException("An incompatible Bloom filter cannot be added.", nameof(bloomFilterData));
             }
+            Rehydrate(result);
         }
         /// <summary>
         /// Extract the Bloom filter in a serializable format.
