@@ -64,5 +64,30 @@
             //since one estimator no longer fits in the compressed one.
             Assert.AreEqual(estimateAfterCompression, estimateBeforeCompression, "Estimate changed due to compression.");
         }
+
+        /// <summary>
+        /// Test for removing items from the hybrid estimator.
+        /// </summary>
+        [TestMethod]
+        public void HybridEstimatorRemoveTest()
+        {
+            var data = DataGenerator.Generate().Take(10000).ToArray();
+            var configuration = new KeyValueLargeBloomFilterConfiguration();
+            var factory = new HybridEstimatorFactory();
+            var estimator = factory.Create(configuration, data.Length);
+            foreach (var element in data)
+                estimator.Add(element);
+            var estimator2 = factory.Create(configuration, data.Length);
+            foreach (var element in data)
+                estimator2.Add(element);
+            var estimateBeforeRemoval = estimator.Decode(estimator2);
+            Assert.AreEqual(estimateBeforeRemoval, 0, "Unexpected number of differences before removing items.");
+            foreach (var item in data.Take(100))
+            {
+                estimator.Remove(item);
+            }
+            var estimateAfterRemoval = estimator.Decode(estimator2);
+            Assert.IsTrue(estimateAfterRemoval > 100, "Removal from estimator resulted in not enough differences.");
+        }
     }
 }

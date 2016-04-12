@@ -20,12 +20,11 @@
         public static long? GetGcd(long a, long b)
         {
             if (a == 0L || b == 0L) return null;
-            var gcd = 1L;
             a = Math.Abs(a);
             b = Math.Abs(b);
-            if (a == b) { return a; }
+            if (a == b || (b > a && b % a == 0L)) { return a; }
             if (a > b && a % b == 0L) { return b; }
-            if (b > a && b % a == 0L) { return a; }
+            var gcd = 1L;
             while (b != 0L)
             {
                 gcd = b;

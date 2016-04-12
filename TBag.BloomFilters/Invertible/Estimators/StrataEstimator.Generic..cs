@@ -22,7 +22,6 @@
        private const byte MaxTrailingZeros = sizeof(int) * 8;
         private readonly IMurmurHash _murmur = new Murmur3();
         private const float ErrorRate = 0.001F;
-        private long _blockSize;
         #endregion
 
         #region Properties
@@ -39,12 +38,9 @@
         /// <summary>
         /// The block size
         /// </summary>
-        public virtual long BlockSize {
-            get
-            {
-                return _blockSize;                
-            }
-            protected set { _blockSize = value; }
+        public long BlockSize
+        {
+            get; protected set;
         }
 
         /// <summary>
@@ -85,7 +81,7 @@
             IInvertibleBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration,
             byte? maxStrata = null)
         {
-            _blockSize = configuration.FoldingStrategy?.ComputeFoldableSize(blockSize, 0) ?? blockSize;
+            BlockSize = configuration.FoldingStrategy?.ComputeFoldableSize(blockSize, 0) ?? blockSize;
             if (maxStrata.HasValue)
             {
                 if (maxStrata <= 0 || maxStrata > MaxTrailingZeros)
@@ -97,7 +93,7 @@
                 MaxStrata = maxStrata.Value;
             }
             Configuration = configuration;
-            DecodeCountFactor = _blockSize >= 20 ? 1.39D : 1.0D;
+            DecodeCountFactor = BlockSize >= 20 ? 1.39D : 1.0D;
             CreateFilters();
         }
         #endregion

@@ -75,7 +75,7 @@
             if ((res.Values?.Length??0L) == 0L) return res;
             LongEnumerable.Range(0, res.Values.LongLength)
                 .AsParallel()
-                .ForAll(i => res.Values[i] = res.Values.GetFolded(i, factor, Math.Min));
+                .ForAll(i => res.Values[i] = estimator.Values.GetFolded(i, factor, Math.Min));
             return res;
         }
 
