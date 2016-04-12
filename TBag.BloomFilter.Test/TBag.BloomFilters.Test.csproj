@@ -60,7 +60,6 @@
   <ItemGroup>
     <Compile Include="Infrastructure\PrecalculatedActor.cs" />
     <Compile Include="Infrastructure\Actor.cs" />
-    <Compile Include="Invertible\BloomFilterFoldTest.cs" />
     <Compile Include="Infrastructure\HybridDefaultBloomFilterConfiguration.cs" />
     <Compile Include="Infrastructure\KeyValueBloomFilterConfiguration.cs" />
     <Compile Include="Infrastructure\KeyValueLargeBloomFilterConfiguration.cs" />
@@ -69,6 +68,7 @@
     <Compile Include="Invertible\Estimators\HybridEstimatorTest.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimatorTest.cs" />
     <Compile Include="Infrastructure\DataGenerator.cs" />
+    <Compile Include="Invertible\Hybrid\FoldTest.cs" />
     <Compile Include="Invertible\Hybrid\ContainsTest.cs" />
     <Compile Include="Invertible\Hybrid\SetDiffTest.cs" />
     <Compile Include="Invertible\Hybrid\CompressTest.cs" />
@@ -76,15 +76,16 @@
     <Compile Include="Invertible\Reverse\AddTest.cs" />
     <Compile Include="Invertible\Reverse\CompressTest.cs" />
     <Compile Include="Invertible\Reverse\ContainsTest.cs" />
+    <Compile Include="Invertible\Reverse\FoldTest.cs" />
     <Compile Include="Invertible\Reverse\SetDiffTest.cs" />
     <Compile Include="Invertible\Standard\AddTest.cs" />
     <Compile Include="Invertible\Standard\CompressTest.cs" />
     <Compile Include="Invertible\Standard\ContainsTest.cs" />
+    <Compile Include="Invertible\Standard\FoldTest.cs" />
     <Compile Include="Invertible\Standard\SetDiffTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\DefaultBloomFilterConfiguration.cs" />
     <Compile Include="Invertible\PrecalculatedRoundTripTest.cs" />
-    <Compile Include="Invertible\SmoothNumberTest.cs" />
     <Compile Include="Invertible\Estimators\StrataEstimatorTest.cs" />
     <Compile Include="Infrastructure\TestEntity.cs" />
     <Compile Include="Invertible\RoundTripTest.cs" />
