@@ -58,6 +58,7 @@
         /// <remarks>Needed only when the first estimate fails. An alternative is now calculating the filter here and sending it to the other actor (depends upon which actor wants to know the difference).</remarks>
         public long? GetEstimate(MemoryStream estimatorStream)
         {
+            Console.WriteLine($"Estimator size: {estimatorStream.Length} ");
             var otherEstimator =
                 (HybridEstimatorData<int, TCount>)
                     _protobufModel.Deserialize(estimatorStream, null, typeof (HybridEstimatorData<int, TCount>));
@@ -72,6 +73,7 @@
         /// <returns></returns>
         public MemoryStream RequestFilter(MemoryStream estimatorStream, PrecalculatedActor<TCount> otherActor)
         {
+            Console.WriteLine($"Estimator size: {estimatorStream.Length} ");
             var otherEstimator =
                 (IHybridEstimatorData<int, TCount>)
                     _protobufModel.Deserialize(estimatorStream, null, typeof (HybridEstimatorData<int, TCount>));
@@ -99,6 +101,7 @@
             var result = new MemoryStream();
             _protobufModel.Serialize(result, _configuration.DataFactory.Extract(_configuration, _filter, estimate.Value));
             result.Position = 0;
+            Console.WriteLine($"Filter size: {result.Length} ");
             return result;
         }
 

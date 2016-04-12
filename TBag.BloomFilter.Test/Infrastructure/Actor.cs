@@ -10,9 +10,10 @@
     using BloomFilters.Configurations;
     using BloomFilters.Invertible;
     using BloomFilters.Invertible.Configurations;
-    using BloomFilters.Invertible.Estimators;/// <summary>
-                                             /// A full working test harness for creating an estimator, serializing the estimator and receiving the filter.
-                                             /// </summary>
+    using BloomFilters.Invertible.Estimators;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;/// <summary>
+                                                       /// A full working test harness for creating an estimator, serializing the estimator and receiving the filter.
+                                                       /// </summary>
     internal class Actor<TCount>
         where TCount : struct
     {
@@ -50,6 +51,7 @@
         /// <remarks>Needed only when the first estimate fails. An alternative is now calculating the filter here and sending it to the other actor (depends upon which actor wants to know the difference).</remarks>
         public long? GetEstimate(MemoryStream estimatorStream)
         {
+            Console.WriteLine($"Estimator size: {estimatorStream.Length} ");
             var otherEstimator =
                (HybridEstimatorData<int, TCount>)
                    _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, TCount>));
@@ -70,6 +72,7 @@
         /// <returns></returns>
         public MemoryStream RequestFilter(MemoryStream estimatorStream, Actor<TCount> otherActor)
         {
+            Console.WriteLine($"Estimator size: {estimatorStream.Length} ");
             var otherEstimator =
                 (IHybridEstimatorData<int, TCount>)
                     _protobufModel.Deserialize(estimatorStream, null, typeof(HybridEstimatorData<int, TCount>));
@@ -111,6 +114,7 @@
             var result = new MemoryStream();
             _protobufModel.Serialize(result, filter.Extract());
             result.Position = 0;
+            Console.WriteLine($"Filter size: {result.Length} ");
             return result;
         }
 
