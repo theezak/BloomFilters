@@ -36,7 +36,7 @@ namespace TBag.BloomFilter.Test.Invertible.Standard
         }
 
         [TestMethod]
-        public void HybridAddDifferentSizesTest()
+        public void InvertibleAddDifferentSizesTest()
         {
             var addSize = 10000;
             var testData = DataGenerator.Generate().Take(addSize).ToArray();

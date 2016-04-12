@@ -15,7 +15,7 @@
         /// False positive rates.
         /// </summary>
         [TestMethod]
-        public void StandardFalsePositiveTest()
+        public void InvertibleFalsePositiveTest()
         {
             var addSize = 10000;
             var testData = DataGenerator.Generate().Take(addSize).ToArray();

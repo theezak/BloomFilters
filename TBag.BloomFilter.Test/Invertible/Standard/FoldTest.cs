@@ -9,7 +9,7 @@
     public class FoldTest
     {
         [TestMethod]
-        public void StandardSimpleFold()
+        public void InvertibleSimpleFold()
         {
             var addSize = 50;
             var testData = DataGenerator.Generate().Take(addSize).ToArray();

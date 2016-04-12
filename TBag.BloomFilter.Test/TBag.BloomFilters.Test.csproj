@@ -68,6 +68,7 @@
     <Compile Include="Invertible\Estimators\HybridEstimatorTest.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimatorTest.cs" />
     <Compile Include="Infrastructure\DataGenerator.cs" />
+    <Compile Include="Invertible\Hybrid\RemoveTest.cs" />
     <Compile Include="Invertible\Hybrid\FoldTest.cs" />
     <Compile Include="Invertible\Hybrid\ContainsTest.cs" />
     <Compile Include="Invertible\Hybrid\SetDiffTest.cs" />
@@ -77,11 +78,13 @@
     <Compile Include="Invertible\Reverse\CompressTest.cs" />
     <Compile Include="Invertible\Reverse\ContainsTest.cs" />
     <Compile Include="Invertible\Reverse\FoldTest.cs" />
+    <Compile Include="Invertible\Reverse\RemoveTest.cs" />
     <Compile Include="Invertible\Reverse\SetDiffTest.cs" />
     <Compile Include="Invertible\Standard\AddTest.cs" />
     <Compile Include="Invertible\Standard\CompressTest.cs" />
     <Compile Include="Invertible\Standard\ContainsTest.cs" />
     <Compile Include="Invertible\Standard\FoldTest.cs" />
+    <Compile Include="Invertible\Standard\RemoveTest.cs" />
     <Compile Include="Invertible\Standard\SetDiffTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\DefaultBloomFilterConfiguration.cs" />

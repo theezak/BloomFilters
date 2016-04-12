@@ -13,7 +13,7 @@ namespace TBag.BloomFilter.Test.Invertible.Standard
     public class CompressTest
     {
         [TestMethod]
-        public void HybridCompressTest()
+        public void InvertibleCompressTest()
         {
             var addSize = 10000;
             var errorRate = 0.001F;
