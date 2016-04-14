@@ -31,11 +31,17 @@
         /// <typeparam name="TId">Type of the entity identifier</typeparam>
         /// <typeparam name="THash">Type of the hash</typeparam>
         /// <typeparam name="TCount">Type of the count occurence</typeparam>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="configuration"></param>
         /// <param name="capacity"></param>
         /// <param name="m">The size (per hash function)</param>
         /// <param name="k">The number of hash functions</param>
         /// <returns>The Bloom filter data.</returns>
-        InvertibleBloomFilterData<TId, THash, TCount> Create<TId, THash, TCount>(long capacity, long m, uint k)
+        InvertibleBloomFilterData<TId, THash, TCount> Create<TEntity,TId, THash, TCount>(
+            IInvertibleBloomFilterConfiguration<TEntity,TId,THash,TCount> configuration,
+            long capacity, 
+            long m, 
+            uint k)
             where TId : struct
             where TCount : struct
             where THash : struct;

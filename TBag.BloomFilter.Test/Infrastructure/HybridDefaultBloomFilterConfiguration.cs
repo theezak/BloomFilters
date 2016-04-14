@@ -30,7 +30,9 @@
 
         protected override int GetEntityHashImpl(TestEntity entity)
         {
-            return BitConverter.ToInt32(_murmurHash.Hash(Encoding.UTF32.GetBytes(entity.Value)), 0);
+            var res = BitConverter.ToInt32(_murmurHash.Hash(Encoding.UTF32.GetBytes(entity.Value)), 0);
+            //extremely unlikely, but avoid zero at all cost for the hash value.
+            return res == 0 ? 1 : res;
         }
 
         public override IFoldingStrategy FoldingStrategy { get; set; } = new SmoothNumbersFoldingStrategy();

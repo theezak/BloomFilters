@@ -162,6 +162,9 @@
             };
             for (var j = 0L; j < res.BloomFilters.Length; j++)
             {
+                estimatorData
+                   .BloomFilters[j]
+                   .SyncCompressionProviders(filterConfig);
                 res.BloomFilters[j] = estimatorData
                     .BloomFilters[j]
                     .Fold(filterConfig, factor)

@@ -28,7 +28,7 @@
         protected PairConfigurationBase(ICountConfiguration<TCount> configuration, bool createValueFilter = true) : 
             base(configuration, createValueFilter)
         {
-            _entityHash = kv => kv.Value;
+            _entityHash = kv => kv.Value == 0 ? 1 : kv.Value;
             //by changing the entity hash, the pure function needs to be redefined (which increases the potential error rate)
             _isPure = (d, p) => CountConfiguration.IsPure(d.Counts[p]);
         }

@@ -15,11 +15,9 @@
         /// <returns></returns>
        public static IEnumerable<IEnumerable<T>> GetPowerSet<T>(this IList<T> list)
         {
-            return from m in Enumerable.Range(0, 1 << list.Count)
-                   select
-                       from i in Enumerable.Range(0, list.Count)
-                       where (m & (1 << i)) != 0
-                       select list[i];
+            return Enumerable
+                .Range(0, 1 << list.Count)
+                .Select(m => Enumerable.Range(0, list.Count).Where(i => (m & (1 << i)) != 0).Select(i => list[i]));
         }
     }
 }

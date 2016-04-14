@@ -47,7 +47,7 @@
         /// <summary>
         /// The identity value for <typeparamref name="TId"/> (for example 0 when the identifier is a number).
         /// </summary>
-        public virtual Func<TId> IdIdentity { get; set; }
+        public virtual TId IdIdentity { get; set; }
 
         /// <summary>
         /// Determine the XOR of two identifiers.

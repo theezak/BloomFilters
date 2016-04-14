@@ -19,8 +19,8 @@
         private Func<TEntity, long> _getId;
         private Func<TEntity, int> _entityHash;
         private Func<long, long, long> _idXor;
-        private Func<int> _hashIdentity;
-        private Func<long> _idIdentity;
+        private int _hashIdentity;
+        private long _idIdentity;
         private Func<int, int, int> _hashXor;
         private Func<IInvertibleBloomFilterData<long, int, TCount>, long, bool> _isPure;
         private EqualityComparer<long> _idEqualityComparer;
@@ -39,14 +39,19 @@
         {
             _countConfiguration = configuration;
             _getId = GetIdImpl;
-            _idHash = id => BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(id)), 0);
+            _idHash = id =>
+            {
+                var res = BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(id)), 0);
+                return res == 0 ? 1 : res;
+            };
             _hashes = (hash, hashCount) =>  ComputeHash(hash, BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(hash), 912345678), 0), hashCount, 1);
             //the hashSum value is an identity hash.
             _entityHash = e => IdHash(GetId(e));
-            _isPure = (d, p) => CountConfiguration.IsPure(d.Counts[p]) && HashEqualityComparer.Equals(d.HashSums[p], IdHash(d.IdSums[p]));
+            _isPure = (d, p) => CountConfiguration.IsPure(d.Counts[p]) && 
+            HashEqualityComparer.Equals(d.HashSumProvider[p], IdHash(d.IdSumProvider[p]));
             _idXor = (id1, id2) => id1 ^ id2;
-            _hashIdentity = () => 0;
-            _idIdentity = () => 0L;
+            _hashIdentity = 0;
+            _idIdentity = 0L;
             _hashXor = (h1, h2) => h1 ^ h2;
             _idEqualityComparer = EqualityComparer<long>.Default;
             _hashEqualityComparer = EqualityComparer<int>.Default;
@@ -131,7 +136,7 @@
             set { _hashEqualityComparer = value; }
         }
 
-        public override Func<int> HashIdentity
+        public override int HashIdentity
         {
             get { return _hashIdentity; }
             set { _hashIdentity = value; }
@@ -149,7 +154,7 @@
             set { _idEqualityComparer = value; }
         }       
 
-        public override Func<long> IdIdentity
+        public override long IdIdentity
         {
             get { return _idIdentity; }
             set { _idIdentity = value; }

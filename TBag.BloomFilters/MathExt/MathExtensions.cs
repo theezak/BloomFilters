@@ -68,7 +68,7 @@
         /// </summary>
         /// <param name="number"></param>
         /// <returns></returns>
-        internal static List<long> GetPrimeFactors(long number)
+        private static List<long> GetPrimeFactors(long number)
         {
             var factors = new List<long>();
             foreach (var prime in GetPrimes(number))

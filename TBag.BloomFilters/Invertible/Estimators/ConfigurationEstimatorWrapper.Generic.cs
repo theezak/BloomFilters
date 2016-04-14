@@ -45,7 +45,7 @@
             _entityHash = e => _idHash(_getId(e));
             _idXor = (id1, id2) => id1 ^ id2;
             _isPure = (d, p) => _wrappedConfiguration.CountConfiguration.IsPure(d.Counts[p]) &&
-                                _idHash(d.IdSums[p]) == d.HashSums[p];
+                                _idHash(d.IdSumProvider[p]) == d.HashSumProvider[p];
         }   
 
         #region Configuration implementation      
@@ -112,7 +112,7 @@
             }
         }
 
-        public override Func<int> HashIdentity
+        public override int HashIdentity
         {
             get
             {
@@ -164,7 +164,7 @@
             }
         }
 
-        public override Func<int> IdIdentity
+        public override int IdIdentity
         { 
             get
             {

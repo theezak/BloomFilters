@@ -47,8 +47,13 @@
   <ItemGroup>
     <Compile Include="ArrayExtensions.cs" />
     <Compile Include="Collections\Generic\ListExtensions.cs" />
+    <Compile Include="CompressedArray.Generic.cs" />
+    <Compile Include="CompressedArrayFactory.cs" />
     <Compile Include="Configurations\IBloomFilterConfiguration.Generic.cs" />
     <Compile Include="Configurations\LongCountConfiguration.cs" />
+    <Compile Include="CompressedArrayrExtensions.cs" />
+    <Compile Include="ICompressedArray.cs" />
+    <Compile Include="ICompressedArrayFactory.cs" />
     <Compile Include="Invertible\Estimators\BloomFilterConfigurationExtensions.cs" />
     <Compile Include="Invertible\Configurations\ConfigurationBase.Generic.cs" />
     <Compile Include="Invertible\Configurations\InvertibleBloomFilterConfigurationExtensions.cs" />

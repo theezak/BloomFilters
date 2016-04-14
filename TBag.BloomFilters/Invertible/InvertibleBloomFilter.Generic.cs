@@ -41,7 +41,8 @@
         /// The Bloom filter data.
         /// </summary>
         protected InvertibleBloomFilterData<TId, int, TCount> Data { get; private set; }
-        #endregion
+
+         #endregion
 
         #region Constructors
 
@@ -100,7 +101,7 @@
                 throw new ArgumentOutOfRangeException(
                     $"The size {m} of the Bloom filter is not large enough to hold {capacity} items.");
             }
-            Data = Configuration.DataFactory.Create<TId, int, TCount>(capacity, m, k);
+            Data = Configuration.DataFactory.Create(Configuration, capacity, m, k);
         }
 
         /// <summary>
@@ -137,6 +138,7 @@
         public void Add(IInvertibleBloomFilterData<TId, int, TCount> bloomFilterData)
         {
             if (bloomFilterData == null) return;
+            bloomFilterData.SyncCompressionProviders(Configuration);
             var result = Extract().Add(Configuration, bloomFilterData);
             if (result == null)
             {
@@ -243,6 +245,7 @@
             IInvertibleBloomFilterData<TId, int, TCount> filterData)
         {
             if (!ValidateData()) return null;
+            filterData?.SyncCompressionProviders(Configuration);
             return Data.SubtractAndDecode(filterData, Configuration, listA, listB, modifiedEntities);
         }
 
@@ -324,15 +327,15 @@
             {
                 IsValidConfiguration(Configuration.IdHash(key), hash);
             }
-            var countIdentity = Configuration.CountConfiguration.Identity();
+            var countIdentity = Configuration.CountConfiguration.Identity;
             var countUnity = Configuration.CountConfiguration.Unity();
             var countConfiguration = Configuration.CountConfiguration;
             foreach (var position in Configuration.Probe(Data,  hash))
             {
                 var count = Data.Counts[position];
-                if (Configuration.IsPure(Data, position) &&
-                     (!Configuration.IdEqualityComparer.Equals(Data.IdSums[position], key) ||
-                         !Configuration.HashEqualityComparer.Equals(Data.HashSums[position], hash)))
+               if (Configuration.IsPure(Data, position) &&
+                     (!Configuration.IdEqualityComparer.Equals(Data.IdSumProvider[position], key) ||
+                         !Configuration.HashEqualityComparer.Equals(Data.HashSumProvider[position], hash)))
                 {
                     return false;
                 }

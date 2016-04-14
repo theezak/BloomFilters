@@ -22,7 +22,7 @@
         /// <summary>
         /// Identity for the count (0).
         /// </summary>
-        public override Func<sbyte> Identity { get; set; } = ()=>0;
+        public override sbyte Identity { get; set; } = 0;
 
         /// <summary>
         /// Increase the count

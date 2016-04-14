@@ -13,7 +13,8 @@
     /// <typeparam name="THash">The hash value type</typeparam>
     /// <typeparam name="TCount">The occurence count type.</typeparam>
     /// <remarks>Not the most efficient or elegant implementation, but useful for a test bed.</remarks>
-    public interface IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> : IBloomFilterConfiguration<TEntity, TId, THash, TCount>
+    public interface IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> : 
+        IBloomFilterConfiguration<TEntity, TId, THash, TCount>
         where THash : struct
         where TCount : struct
         where TId : struct

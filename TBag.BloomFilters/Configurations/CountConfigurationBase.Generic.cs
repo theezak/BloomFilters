@@ -28,7 +28,7 @@
         /// <summary>
         /// Count identity.
         /// </summary>
-        public virtual Func<TCount> Identity { get; set; }
+        public virtual TCount Identity { get; set; }
 
         /// <summary>
         /// Subtract two counts.
@@ -60,7 +60,12 @@
         /// <param name="counts"></param>
         /// <param name="hashSize"></param>
         /// <returns></returns>
-        public abstract long GetEstimatedCount(TCount[] counts, uint hashSize);     
+        public abstract long GetEstimatedCount(TCount[] counts, uint hashSize);
+
+        /// <summary>
+        /// The counter provider.
+        /// </summary>
+        public Func<ICompressedArray<TCount>> CounterProviderFactory { get; set; } = ()=>new CompressedArray<TCount>();
 
         /// <summary>
         /// Add two counts.

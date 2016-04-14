@@ -34,6 +34,11 @@
         }
 
         /// <summary>
+        /// Compressed array factory
+        /// </summary>
+        public virtual ICompressedArrayFactory CompressedArrayFactory { get; set; } = new CompressedArrayFactory();
+        
+        /// <summary>
         /// The count configuration.
         /// </summary>
         public virtual ICountConfiguration<TCount> CountConfiguration
@@ -66,7 +71,7 @@
         /// <summary>
         /// Identity value for the hash (for example 0 when the hash type is numeric).
         /// </summary>
-        public virtual Func<THash> HashIdentity
+        public virtual THash HashIdentity
         {
             get; set;
         }

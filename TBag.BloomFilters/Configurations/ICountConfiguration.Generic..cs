@@ -28,7 +28,7 @@
         /// <summary>
         /// Count identity.
         /// </summary>
-        Func<TCount> Identity { get; set; }
+       TCount Identity { get; set; }
 
         /// <summary>
         /// Subtract two counts.
@@ -38,7 +38,7 @@
         /// <summary>
         /// Add two counts
         /// </summary>
-        Func<TCount,TCount,TCount> Add { get; set; }
+        Func<TCount, TCount, TCount> Add { get; set; }
 
         /// <summary>
         /// Increase the count.
@@ -48,7 +48,7 @@
         /// <summary>
         /// A comparer for the count.
         /// </summary>
-        IComparer<TCount>  Comparer { get; set; }
+        IComparer<TCount> Comparer { get; set; }
 
         /// <summary>
         /// Determine if, given the size of the Bloom filter, this count configuration is expected to be able to support the capacity.
@@ -65,5 +65,6 @@
         /// <param name="hashSize"></param>
         /// <returns></returns>
         long GetEstimatedCount(TCount[] counts, uint hashSize);
+
     }
 }

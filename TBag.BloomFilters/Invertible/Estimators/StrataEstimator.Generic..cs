@@ -182,7 +182,7 @@
         /// <param name="estimator">Estimator data to subtract.</param>
         /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
         /// <returns></returns>
-        public virtual long? Decode(IStrataEstimatorData<int, TCount> estimator,
+        private long? Decode(IStrataEstimatorData<int, TCount> estimator,
             bool destructive = false)
         {
             return Extract()

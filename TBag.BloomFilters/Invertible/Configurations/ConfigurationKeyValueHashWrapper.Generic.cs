@@ -106,7 +106,7 @@
             }
         }
 
-        public override Func<THash> HashIdentity
+        public override THash HashIdentity
         {
             get
             {
@@ -145,7 +145,7 @@
             }
         }
 
-        public override Func<TId> IdIdentity
+        public override TId IdIdentity
         {
             get
             {

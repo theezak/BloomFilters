@@ -42,16 +42,7 @@
         long? Decode(IStrataEstimator<TEntity, TId, TCount> estimator,
             bool destructive = false);
 
-        /// <summary>
-        /// Decode utilizing the given estimator, returning an estimate for the difference
-        /// </summary>
-        /// <param name="estimator">The estimator to compare against</param>
-        /// <param name="destructive">When <c>true</c> the values in this estimator will be altered and rendered useless, else <c>false</c>.</param>
-        /// <returns>Estimated difference as the number of elements, or <c>null</c> when the estimate fails.</returns>
-        long? Decode(IStrataEstimatorData<TId, TCount> estimator,
-            bool destructive = false);
-
-        /// <summary>
+         /// <summary>
         /// Extract the serializable data from the estimator.
         /// </summary>
         /// <returns></returns>

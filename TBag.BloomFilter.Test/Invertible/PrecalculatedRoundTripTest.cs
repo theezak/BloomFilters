@@ -1,4 +1,8 @@
-﻿namespace TBag.BloomFilter.Test.Invertible
+﻿using System;
+using System.Diagnostics;
+using System.Threading;
+
+namespace TBag.BloomFilter.Test.Invertible
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -41,7 +45,11 @@
                 bloomFilterFactory,
                 configuration);
             //have actor 1 determine the difference with actor 2.
+            var timer = new Stopwatch();
+            timer.Start();         
             var result = actor1.GetDifference(actor2);
+            timer.Stop();
+            Console.WriteLine($"Time: {timer.ElapsedMilliseconds} ms");
             //analyze results
             var allFound = new HashSet<long>(result.Item1.Union(result.Item2).Union(result.Item3));
             Assert.IsTrue(allFound.Count() > 3000, "Less than the expected number of diffferences found.");
@@ -64,7 +72,7 @@
                     .Union(onlyInSet2.Where(itm => !allFound.Contains(itm)))
                     .Union(modified.Where(itm => !allFound.Contains(itm)))
                     .ToArray();
-            Assert.IsTrue(falseNegatives.Count() < 20, "Too many false negatives found");
+            Assert.IsTrue(falseNegatives.Count() < 25, "Too many false negatives found");
         }
     }
 }

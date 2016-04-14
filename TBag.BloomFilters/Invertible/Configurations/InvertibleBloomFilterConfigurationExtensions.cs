@@ -49,7 +49,7 @@
         {
             return configuration
                 .Hashes(value, data.HashFunctionCount)
-                .Select(p => Math.Abs(p%data.Counts.LongLength));
+                .Select(p => Math.Abs(p%data.BlockSize));
         }
     }
 }

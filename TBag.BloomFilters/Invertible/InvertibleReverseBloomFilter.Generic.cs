@@ -10,7 +10,7 @@
     /// <typeparam name="TId">The entity identifier type</typeparam>
     /// <typeparam name="TCount">The occurence count</typeparam>
     public class InvertibleReverseBloomFilter<TEntity, TId,TCount> : 
-        InvertibleBloomFilter<TEntity, TId,TCount>
+        InvertibleBloomFilter<TEntity, TId, TCount>
         where TCount : struct
         where TId : struct
     {

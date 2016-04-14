@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters.Invertible
+﻿using TBag.BloomFilters.Invertible.Configurations;
+
+namespace TBag.BloomFilters.Invertible
 {
     /// <summary>
     /// interface for invertible Bloom filter data.
@@ -56,5 +58,23 @@
         /// The capacity
         /// </summary>
         long Capacity { get; set; }
+
+        /// <summary>
+        /// The hashSum provider.
+        /// </summary>
+        ICompressedArray<THash> HashSumProvider { get; }
+
+        /// <summary>
+        /// The IdSum provider.
+        /// </summary>
+        ICompressedArray<TId> IdSumProvider { get; }
+
+        /// <summary>
+        /// Set the compression providers.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="configuration"></param>
+        void SyncCompressionProviders<TEntity>(
+            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration);
     }
 }

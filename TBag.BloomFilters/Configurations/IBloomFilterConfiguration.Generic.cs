@@ -17,6 +17,11 @@
         where TId : struct
     {
         /// <summary>
+        /// Factory for creating compressed arrays
+        /// </summary>
+        ICompressedArrayFactory CompressedArrayFactory { get; set; }
+
+        /// <summary>
         /// Count configuration.
         /// </summary>
         ICountConfiguration<TCount> CountConfiguration { get; set; }
@@ -54,12 +59,12 @@
         /// <summary>
         /// The identity value for <typeparamref name="TId"/> (for example 0 when the identifier is a number).
         /// </summary>
-        Func<TId> IdIdentity { get; set; }
+        TId IdIdentity { get; set; }
 
         /// <summary>
         /// The identity value for <typeparamref name="THash"/> (for example 0 when the identifier is a number).
         /// </summary>
-        Func<THash> HashIdentity { get; set; }
+        THash HashIdentity { get; set; }
 
         /// <summary>
         /// Function to get the identifier for a given entity.
