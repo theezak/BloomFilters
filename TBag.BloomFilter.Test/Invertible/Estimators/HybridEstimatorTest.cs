@@ -23,6 +23,7 @@
             var estimator = factory.Create(configuration, data.Length);
             foreach (var element in data)
                 estimator.Add(element);
+            Assert.AreEqual(estimator.ItemCount, data.LongLength, "Estimator item count is wrong");
             var estimator2 = factory.Create(configuration, data.Length);
             var halfTheDiff = 100;
             foreach (var elt in data.Take(halfTheDiff))
@@ -36,8 +37,10 @@
             foreach (var element in data)
                 //just making sure we do not depend upon the order of adding things.
                 estimator2.Add(element);
+            Assert.AreEqual(estimator2.ItemCount, data.LongLength, "Second estimator item count is wrong");
             var differenceCount = estimator.Decode(estimator2);
             Assert.IsTrue(differenceCount >=  2*halfTheDiff, "Estimate below the difference count.");
+            
         }
 
         /// <summary>
