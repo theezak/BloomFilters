@@ -7,7 +7,7 @@ namespace TBag.BloomFilters.Standard
     using System.Runtime.Serialization;
 
     [Serializable,DataContract]
-    public class BloomFilterData
+    internal class BloomFilterData
     {
         [DataMember(Order =1)]
         public long BlockSize { get; set; }

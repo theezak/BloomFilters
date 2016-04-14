@@ -6,7 +6,7 @@ namespace TBag.BloomFilters.Standard
     /// </summary>
     /// <typeparam name="TKey"></typeparam>
     /// <typeparam name="THash"></typeparam>
-    public interface IBloomFilter<TKey,THash>
+   internal interface IBloomFilter<TKey,THash>
         where TKey : struct
         where THash : struct
     {

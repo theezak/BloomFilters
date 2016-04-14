@@ -8,7 +8,8 @@
     /// <summary>
     /// A simple Bloom filter
     /// </summary>
-    public class BloomFilter<TKey> : IBloomFilter<TKey,int>
+    /// <remarks>Not public for now</remarks>
+    internal class BloomFilter<TKey> : IBloomFilter<TKey,int>
         where TKey : struct
     {
         private readonly IBloomFilterConfiguration<TKey, int> _configuration;
