@@ -5,9 +5,11 @@
     using System;
     using Configurations;
     using System.Threading.Tasks;
-    using System.Collections.Concurrent;    /// <summary>
-                                            /// Extension methods for bit minwise hash estimator data
-                                            /// </summary>
+    using System.Collections.Concurrent;    
+    
+    /// <summary>
+    /// Extension methods for bit minwise hash estimator data
+    /// </summary>
     internal static class BitMinwiseHashEstimatorDataExtensions
     {
         /// <summary>
@@ -17,7 +19,8 @@
         /// <param name="otherEstimatorData"></param>
         /// <returns>Similarity (percentage similar, zero is completely different, one is completely the same)</returns>
         /// <remarks>Zero is no similarity, one is completely similar.</remarks>
-        internal static double? Similarity(this IBitMinwiseHashEstimatorData estimator,
+        internal static double? Similarity(
+            this IBitMinwiseHashEstimatorData estimator,
             IBitMinwiseHashEstimatorData otherEstimatorData)
         {
             if (estimator == null ||
@@ -38,9 +41,9 @@
         /// <param name="estimator"></param>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        internal static IBitMinwiseHashEstimatorFullData Compress<TEntity, TId, TCount>(
+        internal static IBitMinwiseHashEstimatorFullData Compress<TId, TCount>(
             this IBitMinwiseHashEstimatorFullData estimator,
-           IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration)
+           IBloomFilterConfiguration<TId, int> configuration)
             where TId : struct
             where TCount : struct
         {

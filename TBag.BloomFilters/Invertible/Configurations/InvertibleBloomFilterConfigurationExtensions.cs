@@ -40,8 +40,8 @@
         /// <param name="data">The invertible Bloom filter data</param>
         /// <param name="value">The hash value</param>
         /// <returns>A sequence of positions to hash the data to (length equals the number of hash functions configured).</returns>
-        internal static IEnumerable<long> Probe<TEntity, TId, TCount>(
-            this IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
+        internal static IEnumerable<long> Probe<TId, TCount>(
+            this IBloomFilterConfiguration<TId, int> configuration,
             IInvertibleBloomFilterData<TId, int, TCount> data,
             int value)
             where TCount : struct

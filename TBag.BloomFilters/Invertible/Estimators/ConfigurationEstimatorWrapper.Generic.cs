@@ -19,7 +19,7 @@
          where TCount : struct
         where TId : struct
     {
-        private readonly IBloomFilterConfiguration<TEntity, TId,  int, TCount> _wrappedConfiguration;
+        private readonly IInvertibleBloomFilterConfiguration<TEntity, TId,  int, TCount> _wrappedConfiguration;
         private Func<KeyValuePair<int, int>, int> _getId;
         private readonly IMurmurHash _murmurHash = new Murmur3();
         private Func<int, int, int> _idXor;
@@ -33,7 +33,7 @@
         /// </summary>
         /// <param name="configuration">The original configuration.</param>
         public ConfigurationEstimatorWrapper(
-            IBloomFilterConfiguration<TEntity, TId, int, TCount> configuration)
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration)
         {
             _wrappedConfiguration = configuration;
             _idEqualityComparer = EqualityComparer<int>.Default;

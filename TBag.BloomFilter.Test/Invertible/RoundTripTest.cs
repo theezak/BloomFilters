@@ -8,6 +8,10 @@
     using Infrastructure;
     using System.Diagnostics;
     using System;
+
+    /// <summary>
+    /// Test a full round trip: exchange an estimator followed by exchanging a Bloom filter.
+    /// </summary>
     [TestClass]
     public class RoundTripTest
     {
@@ -17,7 +21,7 @@
         [TestMethod]
         public void TestRoundTrip()
         {
-            //choosing a counter type that is too small will result in many overflows (which manifests itself in horribly slow performance).
+            //choosing a counter type that is too small will result in many overflows
             //Keep the count type large enough, so extreme folds do not cause overflows. Benefit of folds outweighs benefit of small count types.
             var configuration = new KeyValueLargeBloomFilterConfiguration();
             IHybridEstimatorFactory estimatorFactory = new HybridEstimatorFactory();
@@ -37,16 +41,17 @@
                 estimatorFactory,
                 bloomFilterFactory,
                 configuration);
+            
             //have actor 1 determine the difference with actor 2.
             var timer = new Stopwatch();
             timer.Start();
             var result = actor1.GetDifference(actor2);
             timer.Stop();
             Console.WriteLine($"Time: {timer.ElapsedMilliseconds} ms");
+            
             //analyze results
             var allFound = new HashSet<long>(result.Item1.Union(result.Item2).Union(result.Item3));
             Assert.IsTrue(allFound.Count() > 3000, "Less than the expected number of diffferences found.");
-            //analyze the result.
             var onlyInSet1 =
                 dataSet1.Where(d => dataSet2.All(d2 => d2.Id != d.Id)).Select(d => d.Id).OrderBy(id => id).ToArray();
             var onlyInSet2 =

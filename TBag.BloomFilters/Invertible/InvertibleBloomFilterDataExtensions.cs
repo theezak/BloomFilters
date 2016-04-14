@@ -1,5 +1,6 @@
 ﻿namespace TBag.BloomFilters.Invertible
 {
+    using BloomFilters.Configurations;
     using Configurations;
     using System;
     using System.Collections.Concurrent;
@@ -357,13 +358,12 @@
         /// <typeparam name="TId">The identifier type</typeparam>
         /// <typeparam name="THash">The entity hash type</typeparam>
         /// <typeparam name="TCount">The occurence count type</typeparam>
-        /// <typeparam name="TEntity"></typeparam>
         /// <param name="filterData">The IBF data</param>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        internal static InvertibleBloomFilterData<TId, THash, TCount> ConvertToBloomFilterData<TEntity, TId, THash, TCount>(
+        internal static InvertibleBloomFilterData<TId, THash, TCount> ConvertToBloomFilterData<TId, THash, TCount>(
             this IInvertibleBloomFilterData<TId,THash,TCount> filterData,
-            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration)
+            ICountingBloomFilterConfiguration<TId, THash, TCount> configuration)
             where TId : struct
             where TCount : struct
             where THash : struct

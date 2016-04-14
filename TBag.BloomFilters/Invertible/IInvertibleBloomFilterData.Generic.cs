@@ -1,4 +1,5 @@
-﻿using TBag.BloomFilters.Invertible.Configurations;
+﻿using TBag.BloomFilters.Configurations;
+using TBag.BloomFilters.Invertible.Configurations;
 
 namespace TBag.BloomFilters.Invertible
 {
@@ -72,9 +73,8 @@ namespace TBag.BloomFilters.Invertible
         /// <summary>
         /// Set the compression providers.
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
         /// <param name="configuration"></param>
-        void SyncCompressionProviders<TEntity>(
-            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration);
+        void SyncCompressionProviders(
+            ICountingBloomFilterConfiguration<TId, THash, TCount> configuration);
     }
 }

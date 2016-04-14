@@ -5,7 +5,7 @@ namespace TBag.BloomFilters.Invertible
     using System.Linq;
     using System.Runtime.Serialization;
     using Configurations;
-
+    using BloomFilters.Configurations;
     /// <summary>
     /// Implementation of <see cref="IInvertibleBloomFilterData{TId, TEntityHash, TCount}"/>
     /// </summary>
@@ -128,10 +128,9 @@ namespace TBag.BloomFilters.Invertible
         /// <summary>
         /// Set the counter provider.
         /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
          /// <param name="configuration"></param>
-        public void SyncCompressionProviders<TEntity>(
-            IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration)
+        public void SyncCompressionProviders(
+            ICountingBloomFilterConfiguration<TId, THash, TCount> configuration)
         {
             if (configuration == null)
                 throw new ArgumentException("Configuration is null", nameof(configuration));

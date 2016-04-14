@@ -1,6 +1,7 @@
 namespace TBag.BloomFilters.Estimators
 {
     using Configurations;
+    using Invertible.Configurations;
     using System;
     using System.Collections;
     using System.Collections.Generic;
@@ -26,7 +27,7 @@ namespace TBag.BloomFilters.Estimators
         private long _capacity;
         private Lazy<int[]> _slots ;
         private long _itemCount;
-        private readonly IBloomFilterConfiguration<TEntity, TId, int, TCount> _configuration;
+        private readonly IInvertibleBloomFilterConfiguration<TEntity,TId, int, TCount> _configuration;
 
         #endregion
 
@@ -50,7 +51,7 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="capacity">The capacity (should be a close approximation of the number of elements added)</param>
         /// <remarks>By using bitSize = 1 or bitSize = 2, the accuracy is decreased, thus the hashCount needs to be increased. However, when resemblance is not too small, for example > 0.5, bitSize = 1 can yield similar results as bitSize = 64 with only 3 times the hash count.</remarks>
         public BitMinwiseHashEstimator(
-            IBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration,
+            IInvertibleBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration,
             byte bitSize,
             int hashCount,
             long capacity)
@@ -162,7 +163,7 @@ namespace TBag.BloomFilters.Estimators
         /// <returns></returns>
         public IBitMinwiseHashEstimator<TEntity, TId, TCount> Compress(bool inPlace = false)
         {
-            var res = FullExtract().Compress(_configuration);
+            var res = FullExtract().Compress<TId,int>(_configuration);
             if (inPlace)
             {
                 Rehydrate(res);
