@@ -10,7 +10,8 @@
     /// </summary>
     /// <typeparam name="TCount"></typeparam>
     /// <remarks>Based upon a membership test, reduce the number of value stored. We don't actually reduce memory usage (utilizing a dictionary impacts performance and payback is low, since IBFs get utilized beyond their regular capacity for set differences), but we do reduce the serialized size.</remarks>
-    internal class CompressedArray<TCount> : ICompressedArray<TCount> where TCount : struct
+    internal class CompressedArray<TCount> : ICompressedArray<TCount> 
+        where TCount : struct
     {
         private static readonly TCount[] Empty = new TCount[0];
          private Func<long, bool> _membershipTest;
