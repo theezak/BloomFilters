@@ -40,16 +40,16 @@
 
         #region Configuration implementation      
 
-        public override Func<TId, TId, TId> IdXor
+        public override Func<TId, TId, TId> IdAdd
         {
             get
             {
-                return _wrappedConfiguration.IdXor;
+                return _wrappedConfiguration.IdAdd;
             }
 
             set
             {
-                _wrappedConfiguration.IdXor = value;
+                _wrappedConfiguration.IdAdd = value;
             }
         }
 
@@ -119,16 +119,16 @@
             }
         }
 
-        public override Func<THash, THash, THash> HashXor
+        public override Func<THash, THash, THash> HashAdd
         {
             get
             {
-                return _wrappedConfiguration.HashXor;
+                return _wrappedConfiguration.HashAdd;
             }
 
             set
             {
-                _wrappedConfiguration.HashXor = value;
+                _wrappedConfiguration.HashAdd = value;
             }
         }
 

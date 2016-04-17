@@ -54,7 +54,7 @@
             get { return _idHash; }
             set { _idHash = value; } }
 
-        public override Func<int, int, int> IdXor
+        public override Func<int, int, int> IdAdd
         {
             get
             {
@@ -125,16 +125,16 @@
             }
         }
 
-        public override Func<int, int, int> HashXor
+        public override Func<int, int, int> HashAdd
         {
             get
             {
-                return _wrappedConfiguration.HashXor;
+                return _wrappedConfiguration.HashAdd;
             }
 
             set
             {
-                _wrappedConfiguration.HashXor = value;
+                _wrappedConfiguration.HashAdd = value;
             }
         }
 

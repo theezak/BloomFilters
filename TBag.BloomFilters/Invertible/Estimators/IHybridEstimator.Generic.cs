@@ -1,8 +1,6 @@
 ﻿namespace TBag.BloomFilters.Invertible.Estimators
 {
-    using System;
-
-    /// <summary>
+  /// <summary>
     /// Interface for a hybrid estimator.
     /// </summary>
     /// <typeparam name="TEntity">Type of the entity stored in the estimator</typeparam>
@@ -13,9 +11,24 @@
         where TCount : struct
     {
         /// <summary>
-        /// The block size
+        /// The actual block size for a single strata.
         /// </summary>
         long BlockSize { get; }
+
+        /// <summary>
+        /// Block size that the estimator behaves to.
+        /// </summary>
+        long VirtualBlockSize { get; }
+
+        /// <summary>
+        /// The number of hash functions used.
+        /// </summary>
+        uint HashFunctionCount { get; }
+
+        /// <summary>
+        /// The hybrid estimator item count.
+        /// </summary>
+        long ItemCount { get; }
 
         /// <summary>
         /// The decode count factor.
@@ -27,6 +40,13 @@
         /// </summary>
         /// <param name="item">The item to add</param>
         void Add(TEntity item);
+
+        /// <summary>
+        /// Determine if the estimator contains the item
+        /// </summary>
+        /// <param name="item"></param>
+        /// <remarks>Except a much higher false positive and false negative rate.</remarks>
+        bool Contains(TEntity item);
 
         /// <summary>
         /// Estimate the difference with the given estimator.
@@ -47,6 +67,18 @@
             bool destructive = false);
 
         /// <summary>
+        /// Intersect with the given estimator
+        /// </summary>
+        /// <param name="estimator"></param>
+        void Intersect(IHybridEstimator<TEntity, TId, TCount> estimator);
+
+        /// <summary>
+        /// Intersect with the given estimator
+        /// </summary>
+        /// <param name="estimator"></param>
+        void Intersect(IHybridEstimatorFullData<int, TCount> estimator);
+
+        /// <summary>
         /// Extract a serializable version of the estimator data.
         /// </summary>
         /// <returns></returns>
@@ -63,6 +95,13 @@
         /// </summary>
         /// <returns></returns>
         void Rehydrate(IHybridEstimatorFullData<TId, TCount> data);
+
+      /// <summary>
+      /// Rehydrate the hybrid estimator 
+      /// </summary>
+      /// <param name="data">The data to restore</param>
+      /// <remarks>This rehydrate is lossy, since it can't restore the bit minwise estimator.</remarks>
+      void Rehydrate(IHybridEstimatorData<int, TCount> data);
 
         /// <summary>
         /// Fold the strata estimator by the given <paramref name="factor"/>.

@@ -67,6 +67,63 @@
         }
 
         /// <summary>
+        /// Intersect the given strata estimators.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type</typeparam>
+        /// <typeparam name="TId">The type of the entity identifier</typeparam>
+        /// <typeparam name="TCount">The type of the Bloom filter occurence count</typeparam>
+        /// <param name="data">Estimator data</param>
+        /// <param name="otherEstimatorData">The other estimate</param>
+        /// <param name="configuration">The Bloom filter configuration</param>
+        /// <param name="maxStrata">The maximum strata</param>
+        /// <param name="destructive">When <c>true</c> the <paramref name="data"/> will be altered and no longer usable, else <c>false</c></param>
+        /// <returns></returns>
+        internal static StrataEstimatorData<int, TCount> Intersect<TEntity, TId, TCount>(this IStrataEstimatorData<int, TCount> data,
+            IStrataEstimatorData<int, TCount> otherEstimatorData,
+            IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration)
+            where TId : struct
+            where TCount : struct
+        {
+            if (data == null && otherEstimatorData == null) return null;
+            if (data ==null)
+            {
+                return new StrataEstimatorData<int, TCount>
+                {
+                    BlockSize = otherEstimatorData.BlockSize,
+                    DecodeCountFactor = otherEstimatorData.DecodeCountFactor,
+                    HashFunctionCount = otherEstimatorData.HashFunctionCount,
+                    StrataCount = otherEstimatorData.StrataCount
+                };
+            }
+            var strataConfig = configuration.ConvertToEstimatorConfiguration();
+            var fold = configuration.FoldingStrategy?.GetFoldFactors(data.BlockSize, otherEstimatorData?.BlockSize ?? data.BlockSize);
+          var res =  new StrataEstimatorData<int, TCount>
+                 {
+                     BlockSize = data.BlockSize/(fold?.Item1??1L),
+                     BloomFilterStrataIndexes = data.BloomFilterStrataIndexes,
+                     BloomFilters = data.BloomFilters?.Select(b=>b.ConvertToBloomFilterData(strataConfig)).ToArray(),
+                     DecodeCountFactor = data.DecodeCountFactor,
+                     HashFunctionCount = data.HashFunctionCount,
+                     StrataCount = data.StrataCount
+                 };
+          var minStrata = Math.Min(data.StrataCount, otherEstimatorData.StrataCount);
+            for (var i = minStrata - 1; i >= 0; i--)
+            {
+                var ibf = data.GetFilterForStrata(i);
+                var estimatorIbf = i >= otherEstimatorData.StrataCount
+                    ? null
+                    : otherEstimatorData.GetFilterForStrata(i);
+                if (ibf == null &&
+                    estimatorIbf == null)
+                {
+                    continue;
+                }
+                res.BloomFilters[i] = ibf.Intersect(strataConfig, estimatorIbf);
+            }
+            return res;
+        }
+
+        /// <summary>
         /// Lower the strata on the estimator.
         /// </summary>
         /// <typeparam name="TId"></typeparam>
@@ -189,7 +246,7 @@
             where TId : struct
         {
             if (configuration?.FoldingStrategy == null || estimatorData == null) return null;
-            var fold = configuration.FoldingStrategy.FindCompressionFactor(estimatorData.BlockSize, estimatorData.BlockSize,
+            var fold = configuration.FoldingStrategy?.FindCompressionFactor(estimatorData.BlockSize, estimatorData.BlockSize,
                 estimatorData.ItemCount);
             var res = fold.HasValue ? estimatorData.Fold(configuration, fold.Value) : null;
             return res;

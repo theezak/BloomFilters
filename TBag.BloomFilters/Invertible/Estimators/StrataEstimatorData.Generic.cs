@@ -34,16 +34,22 @@
         public byte StrataCount { get; set; }
 
         /// <summary>
-        /// The Bloom filters that are part of the strata estimator.
+        /// The number of hash functions used.
         /// </summary>
         [DataMember(Order = 4)]
+        public uint HashFunctionCount { get; set; }
+
+        /// <summary>
+        /// The Bloom filters that are part of the strata estimator.
+        /// </summary>
+        [DataMember(Order = 5)]
         public InvertibleBloomFilterData<TId,int,TCount>[] BloomFilters { get; set; }
 
         /// <summary>
         /// The strata indexes for the Bloom filters.
         /// </summary>
         /// <remarks>used as a work around for serializers that ignore null values.</remarks>
-        [DataMember(Order = 5)]
+        [DataMember(Order = 6)]
         public byte[] BloomFilterStrataIndexes { get; set; }
 
         /// <summary>

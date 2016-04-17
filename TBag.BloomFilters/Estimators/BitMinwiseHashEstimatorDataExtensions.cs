@@ -5,8 +5,8 @@
     using System;
     using Configurations;
     using System.Threading.Tasks;
-    using System.Collections.Concurrent;    
-    
+    using System.Collections.Concurrent;
+    using System.Threading;
     /// <summary>
     /// Extension methods for bit minwise hash estimator data
     /// </summary>
@@ -73,7 +73,7 @@
                 Capacity = estimator.Capacity / factor,
                 HashCount = estimator.HashCount,
                 ItemCount = estimator.ItemCount,
-                Values = estimator.Values == null ? null : new int[estimator.Capacity / factor]
+                Values = estimator.Values == null ? null : new int[(estimator.Capacity / factor)*estimator.HashCount]
             };
             if ((res.Values?.Length ?? 0L) == 0L) return res;
             Parallel.ForEach(
@@ -125,10 +125,10 @@
                 };
             res.Values = estimator.Values == null && otherEstimator.Values == null ?
                 null :
-                new int[res.Capacity];
+                new int[res.Capacity*res.HashCount];
             if (res.Values == null) return res;
             Parallel.ForEach(
-                Partitioner.Create(0L, res.Capacity),
+                Partitioner.Create(0L, res.Values.LongLength),
                 (range, state) =>
                 {
                     for (var i = range.Item1; i < range.Item2; i++)
@@ -139,6 +139,76 @@
                     }
                 });
             res.ItemCount += otherEstimator.ItemCount;
+            return res;
+        }
+
+        /// <summary>
+        /// Intersect two estimators
+        /// </summary>
+        /// <param name="estimator"></param>
+        /// <param name="otherEstimator"></param>
+        /// <param name="foldingStrategy"></param>
+        /// <param name="inPlace"></param>
+        /// <returns></returns>
+        /// <remarks>Logically possible, but the item count is pretty much useless after this operation.</remarks>
+        internal static BitMinwiseHashEstimatorFullData Intersect(
+           this IBitMinwiseHashEstimatorFullData estimator,
+           IBitMinwiseHashEstimatorFullData otherEstimator,
+           IFoldingStrategy foldingStrategy)
+        {
+            if (estimator == null &&
+                otherEstimator == null) return null;
+            var foldingFactors = estimator==null||otherEstimator==null? 
+                null : 
+                foldingStrategy?.GetFoldFactors(estimator.Capacity, otherEstimator.Capacity);
+            if (estimator==null)
+            {
+                return new BitMinwiseHashEstimatorFullData
+                {
+                    BitSize = otherEstimator.BitSize,
+                    Capacity = otherEstimator.Capacity,
+                    HashCount = otherEstimator.HashCount,
+                    ItemCount = 0
+                };
+            }
+            
+            if (otherEstimator != null &&
+                ((estimator.Capacity != otherEstimator.Capacity &&
+                (foldingFactors?.Item1 ?? 0L) <= 1 &&
+                 (foldingFactors?.Item2 ?? 0L) <= 1) ||
+                estimator.HashCount != otherEstimator.HashCount))
+            {
+                throw new ArgumentException("Minwise estimators with different capacity or hash count cannot be intersected.");
+            }
+            var res = new BitMinwiseHashEstimatorFullData
+                {
+                    Capacity = estimator.Capacity / (foldingFactors?.Item1 ?? 1L),
+                    HashCount = estimator.HashCount,
+                    BitSize = estimator.BitSize,
+                    ItemCount = otherEstimator==null?0:estimator.ItemCount,
+                    Values = estimator.Values==null || otherEstimator?.Values == null ? null : new int[(estimator.Capacity / (foldingFactors?.Item1 ?? 1L))*estimator.HashCount]
+                };
+           if (res.Values == null) return res;
+            var dropped = 0;
+            Parallel.ForEach(
+                Partitioner.Create(0L, res.Values.LongLength),
+                (range, state) =>
+                {
+                    for (var i = range.Item1; i < range.Item2; i++)
+                    {
+                        var estimatorValue = GetFolded(estimator.Values, i, foldingFactors?.Item1, Math.Min, int.MaxValue);
+                        var otherEstimatorValue = GetFolded(otherEstimator.Values, i, foldingFactors?.Item2, Math.Min, int.MaxValue);
+                        if (estimatorValue == int.MaxValue ||
+                            otherEstimatorValue == int.MaxValue ||
+                            otherEstimatorValue != estimatorValue)
+                        {
+                            Interlocked.Increment(ref dropped);
+                        }
+                        res.Values[i] = Math.Max(estimatorValue, otherEstimatorValue);
+                    }
+                });
+            //wildly wrong, but about as good as it gets. 
+            res.ItemCount = Math.Max(0, Math.Min(estimator.ItemCount, otherEstimator.ItemCount) - (long)Math.Ceiling((double)dropped/(0.5D*res.HashCount)));
             return res;
         }
 

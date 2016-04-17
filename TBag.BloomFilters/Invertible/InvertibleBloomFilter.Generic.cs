@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters.Invertible
+﻿using System.Linq;
+
+namespace TBag.BloomFilters.Invertible
 {
     using Configurations;
     using System;
@@ -41,6 +43,11 @@
         /// The Bloom filter data.
         /// </summary>
         protected InvertibleBloomFilterData<TId, int, TCount> Data { get; private set; }
+
+        /// <summary>
+        /// The block size.
+        /// </summary>
+        public virtual long BlockSize => Data?.BlockSize ?? 0L;
 
          #endregion
 
@@ -231,6 +238,34 @@
         }
 
         /// <summary>
+        /// Intersect a Bloom filter with the current Bloom filter.
+        /// </summary>
+        /// <param name="bloomFilter"></param>
+        public void Intersect(IInvertibleBloomFilter<TEntity,TId,TCount> bloomFilter)
+        {
+            var result = Extract().Intersect(Configuration, bloomFilter.Extract());
+            if (result == null)
+            {
+                throw new ArgumentException("An incompatible Bloom filter cannot be intersected.", nameof(bloomFilter));
+            }
+            Rehydrate(result);
+        }
+
+        /// <summary>
+        /// Intersect a Bloom filter with the current Bloom filter.
+        /// </summary>
+        /// <param name="otherFilterData"></param>
+        public void Intersect(IInvertibleBloomFilterData<TId, int, TCount> otherFilterData)
+        {
+            var result = Extract().Intersect(Configuration, otherFilterData);
+            if (result == null)
+            {
+                throw new ArgumentException("An incompatible Bloom filter cannot be intersected.", nameof(otherFilterData));
+            }
+            Rehydrate(result);
+        }
+
+        /// <summary>
         /// Subtract and then decode.
         /// </summary>
         /// <param name="filterData">Bloom filter to subtract</param>
@@ -321,43 +356,44 @@
         /// <param name="key">The key to add</param>
         /// <param name="hash">The entity hash</param>
         /// <returns></returns>
-       protected virtual bool ContainsKey(TId key, int hash)
+        protected virtual bool ContainsKey(TId key, int hash)
         {
             if (ValidateConfiguration)
             {
                 IsValidConfiguration(Configuration.IdHash(key), hash);
             }
             var countIdentity = Configuration.CountConfiguration.Identity;
-            var countUnity = Configuration.CountConfiguration.Unity();
+            var countUnity = Configuration.CountConfiguration.Unity;
             var countConfiguration = Configuration.CountConfiguration;
-            foreach (var position in Configuration.Probe(Data,  hash))
-            {
-                var count = Data.Counts[position];
-               if (Configuration.IsPure(Data, position) &&
-                     (!Configuration.IdEqualityComparer.Equals(Data.IdSumProvider[position], key) ||
+            return Configuration
+                .Probe(Data, hash)
+                .All(position =>
+                {
+                    var count = Data.Counts[position];
+                    if (Configuration.IsPure(Data, position) &&
+                        (!Configuration.IdEqualityComparer.Equals(Data.IdSumProvider[position], key) ||
                          !Configuration.HashEqualityComparer.Equals(Data.HashSumProvider[position], hash)))
-                {
-                    return false;
-                }
-                var countComparedToIdentity = countConfiguration.Comparer.Compare(count, countIdentity);
-                if (countComparedToIdentity == 0)
-                {
-                    return false;
-                }
-                if (countComparedToIdentity > 0 &&
-                     countConfiguration.IsPure(countConfiguration.Subtract(count, countUnity)))
-                {
-                    Data.Remove(Configuration, key, hash, position);
-                    var pureAfterRemoval = Configuration.IsPure(Data, position);
-                    Data.Add(Configuration, key, hash, position);
-                    if (!pureAfterRemoval)
                     {
                         return false;
                     }
-                }
-
-            }
-            return true;
+                    var countComparedToIdentity = countConfiguration.Comparer.Compare(count, countIdentity);
+                    if (countComparedToIdentity == 0)
+                    {
+                        return false;
+                    }
+                    if (countComparedToIdentity > 0 &&
+                        countConfiguration.IsPure(countConfiguration.Subtract(count, countUnity)))
+                    {
+                        Data.Remove(Configuration, key, hash, position);
+                        var pureAfterRemoval = Configuration.IsPure(Data, position);
+                        Data.Add(Configuration, key, hash, position);
+                        if (!pureAfterRemoval)
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
         }
 
         /// <summary>

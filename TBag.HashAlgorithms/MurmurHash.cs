@@ -61,7 +61,7 @@ namespace TBag.HashAlgorithms
         /// <returns></returns>
         private static byte[] ComputeMurmurHash(byte[] bb, uint seed = 0)
         {
-            var state = new State {H1 = seed, Length = 0L};
+            var state = new State {H1 = seed };
             ProcessBytes(bb, state);
             return HashValue(state);
         }

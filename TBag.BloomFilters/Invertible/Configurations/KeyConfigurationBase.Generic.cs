@@ -18,10 +18,14 @@
         private readonly IMurmurHash _murmurHash = new Murmur3();
         private Func<TEntity, long> _getId;
         private Func<TEntity, int> _entityHash;
-        private Func<long, long, long> _idXor;
+        private Func<long, long, long> _idAdd;
+        private Func<long, long, long> _idRemove;
+        private Func<long, long, long> _idIntersect;
         private int _hashIdentity;
         private long _idIdentity;
-        private Func<int, int, int> _hashXor;
+        private Func<int, int, int> _hashAdd;
+        private Func<int, int, int> _hashRemove;
+        private Func<int, int, int> _hashIntersect;
         private Func<IInvertibleBloomFilterData<long, int, TCount>, long, bool> _isPure;
         private EqualityComparer<long> _idEqualityComparer;
          private EqualityComparer<int> _hashEqualityComparer;
@@ -49,10 +53,12 @@
             _entityHash = e => IdHash(GetId(e));
             _isPure = (d, p) => CountConfiguration.IsPure(d.Counts[p]) && 
             HashEqualityComparer.Equals(d.HashSumProvider[p], IdHash(d.IdSumProvider[p]));
-            _idXor = (id1, id2) => id1 ^ id2;
+            _idAdd = _idRemove = (id1, id2) => id1 ^ id2;
+            _idIntersect = (id1, id2) => id1 & id2;
             _hashIdentity = 0;
             _idIdentity = 0L;
-            _hashXor = (h1, h2) => h1 ^ h2;
+            _hashAdd = _hashRemove = (h1, h2) => h1 ^ h2;
+            _hashIntersect = (h1, h2) => h1 & h2;
             _idEqualityComparer = EqualityComparer<long>.Default;
             _hashEqualityComparer = EqualityComparer<int>.Default;
         }
@@ -142,10 +148,22 @@
             set { _hashIdentity = value; }
         }
 
-        public override Func<int, int, int> HashXor
+        public override Func<int, int, int> HashAdd
         {
-            get { return _hashXor; }
-            set { _hashXor = value; }
+            get { return _hashAdd; }
+            set { _hashAdd = value; }
+        }
+
+        public override Func<int, int, int> HashRemove
+        {
+            get { return _hashRemove; }
+            set { _hashRemove = value; }
+        }
+
+        public override Func<int, int, int> HashIntersect
+        {
+            get { return _hashIntersect; }
+            set { _hashIntersect = value; }
         }
 
         public override EqualityComparer<long> IdEqualityComparer
@@ -160,10 +178,22 @@
             set { _idIdentity = value; }
         }
 
-        public override Func<long, long, long> IdXor
+        public override Func<long, long, long> IdAdd
         {
-            get { return _idXor; }
-            set { _idXor = value; }
+            get { return _idAdd; }
+            set { _idAdd = value; }
+        }
+
+        public override Func<long, long, long> IdRemove
+        {
+            get { return _idRemove; }
+            set { _idRemove = value; }
+        }
+
+        public override Func<long, long, long> IdIntersect
+        {
+            get { return _idIntersect; }
+            set { _idIntersect = value; }
         }
 
         public override Func<IInvertibleBloomFilterData<long, int, TCount>, long, bool> IsPure

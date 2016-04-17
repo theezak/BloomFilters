@@ -2,9 +2,12 @@
 {
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using System.Linq;
-    using TBag.BloomFilters.Invertible;
-    using TBag.BloomFilter.Test.Infrastructure;
+    using BloomFilters.Invertible;
+    using Infrastructure;
 
+    /// <summary>
+    /// Test for folding a hybrid invertible Bloom filter.
+    /// </summary>
     [TestClass]
     public class FoldTest
     {
@@ -25,7 +28,7 @@
             var folded = bloomFilter.Fold(4);
             var positiveCountAfterFold = DataGenerator.Generate().Take(500).Count(itm => bloomFilter.Contains(itm));
             Assert.AreEqual(positiveCount, positiveCountAfterFold, "False positive count different after fold");
-            Assert.AreEqual(256, folded.Extract().BlockSize);
+            Assert.AreEqual(256, folded.BlockSize, "Folded block size is unexpected.");
             Assert.IsTrue(testData.All(item => testData.Contains(item)), "False negative found");
         }
     }

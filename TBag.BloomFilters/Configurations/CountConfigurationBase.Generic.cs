@@ -13,7 +13,7 @@
         /// <summary>
         /// The unity for the count type.
         /// </summary>
-        public virtual Func<TCount> Unity { get; set; }
+        public virtual TCount Unity { get; set; }
 
         /// <summary>
         /// Determine if the count is pure.

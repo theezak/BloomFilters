@@ -25,7 +25,6 @@
         public TCount this[long index] 
         {
             get { return _values[index]; }
-
             set { _values[index] = value; }
         }        
 

@@ -32,13 +32,17 @@
         /// <summary>
         /// The block size
         /// </summary>
-        public long BlockSize
-        {
-            get
-            {
-                return _strataEstimator.BlockSize;
-            }
-        }
+        public long BlockSize => _strataEstimator.BlockSize;
+
+        /// <summary>
+        /// The virtual block size that drives the estimator its behavior.
+        /// </summary>
+        public long VirtualBlockSize => _strataEstimator.BlockSize*_strataEstimator.MaxStrata;
+
+        /// <summary>
+        /// The hash function count
+        /// </summary>
+        public uint HashFunctionCount => _strataEstimator.HashFunctionCount;
 
         /// <summary>
         /// The decode factor.
@@ -141,7 +145,7 @@
             if (_strataEstimator.MaxStrata < _strataEstimator.StrataLimit &&
                 _minwiseEstimator != null)
             {
-                _minwiseReplacementCount += _minwiseEstimator?.ItemCount ?? 0L;
+                _minwiseReplacementCount += _minwiseEstimator.ItemCount;
                 //after removal, the bit minwise estimator needs to be dropped since we can't remove from that.
                 _minwiseEstimator = null;
             }
@@ -153,6 +157,17 @@
             }
         }
 
+        /// <summary>
+        /// Determine if the item is in the estimator.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        public bool Contains(TEntity item)
+        {            
+             //if the strata estimator can't determine membership, assume it is in there (and count it toward false positives)
+             //this only happens for a very small subset of items, that have a strata above the maximum strata of the estimator.
+            return _strataEstimator.Contains(item) ?? true;
+        }
         /// <summary>
         /// Decode the given hybrid estimator.
         /// </summary>
@@ -180,6 +195,28 @@
             return self
                 .Extract()
                 .Decode(estimator, _configuration);
+        }
+
+        /// <summary>
+        /// intersect with the estimator
+        /// </summary>
+        /// <param name="estimator"></param>
+        public void Intersect(IHybridEstimator<TEntity, int, TCount> estimator)
+        {
+            Intersect(estimator.FullExtract());
+        }
+
+
+        /// <summary>
+        /// Intersect with the estimator.
+        /// </summary>
+        /// <param name="estimator"></param>
+        public void Intersect(IHybridEstimatorFullData<int,TCount> estimator)
+        {
+            IHybridEstimator<TEntity, int, TCount> self = this;
+            Rehydrate(self
+                .FullExtract()
+                .Intersect(_configuration, estimator));
         }
         #endregion
 
@@ -275,6 +312,18 @@
             _minwiseReplacementCount = Math.Max(0, data.ItemCount - (_strataEstimator.ItemCount + (_minwiseEstimator?.ItemCount ?? 0L)));
         }
 
+        /// <summary>
+        /// Rehydrate the hybrid estimator 
+        /// </summary>
+        /// <param name="data">The data to restore</param>
+        /// <remarks>This rehydrate is lossy, since it can't restore the bit minwise estimator.</remarks>
+        public void Rehydrate(IHybridEstimatorData<int, TCount> data)
+        {
+            if (data == null) return;
+            _minwiseEstimator = null;
+            _strataEstimator.Rehydrate(data.StrataEstimator);
+            _minwiseReplacementCount = Math.Max(0, data.ItemCount - (_strataEstimator.ItemCount + (_minwiseEstimator?.ItemCount ?? 0L)));
+        }
         #endregion
     }
 }

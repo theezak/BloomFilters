@@ -11,10 +11,11 @@
     /// <typeparam name="TId">Type of the entity identifier</typeparam>
     /// <typeparam name="THash">Type of the hash value</typeparam>
     public abstract class BloomFilterIdConfigurationBase<TEntity, TId, THash> : IBloomFilterSizeConfiguration
-       where THash : struct
+        where THash : struct
     {
         private static readonly double Log2 = Math.Log(2.0D);
         private static readonly double Pow2Log2 = Math.Pow(2, Math.Log(2.0D));
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -41,8 +42,7 @@
         /// <summary>
         /// Equality comparer for <typeparamref name="TId"/>
         /// </summary>
-        public virtual EqualityComparer<TId> IdEqualityComparer
-        { get; set; }
+        public virtual EqualityComparer<TId> IdEqualityComparer { get; set; }
 
         /// <summary>
         /// The identity value for <typeparamref name="TId"/> (for example 0 when the identifier is a number).
@@ -52,7 +52,17 @@
         /// <summary>
         /// Determine the XOR of two identifiers.
         /// </summary>
-        public virtual Func<TId, TId, TId> IdXor { get; set; }
+        public virtual Func<TId, TId, TId> IdAdd { get; set; }
+
+        /// <summary>
+        /// Determine the XOR of two identifiers.
+        /// </summary>
+        public virtual Func<TId, TId, TId> IdRemove { get; set; }
+
+        /// <summary>
+        /// Intersect two identifiers.
+        /// </summary>
+        public virtual Func<TId, TId, TId> IdIntersect { get; set; }
 
         /// <summary>
         /// The minimum number of hash functions used.
@@ -70,7 +80,7 @@
             //at least 2 hash functions.
             return Math.Max(
                 MinimumHashFunctionCount,
-                (uint)Math.Ceiling(Math.Abs(Log2 * (1.0D * BestSize(capacity, errorRate) / capacity))));
+                (uint) Math.Ceiling(Math.Abs(Log2*(1.0D*BestSize(capacity, errorRate)/capacity))));
         }
 
         /// <summary>
@@ -84,7 +94,7 @@
         {
             //compress the size of the Bloom filter, by ln2.
             //TODO: causes too many false positives? Alternative is return BestSize(capacity, errorRate);
-            return (long)(BestSize(capacity, errorRate) * Log2);
+            return (long) (BestSize(capacity, errorRate)*Log2);
         }
 
         /// <summary>
@@ -95,9 +105,9 @@
         /// <returns></returns>
         public virtual long BestSize(long capacity, float errorRate)
         {
-            return (long)Math.Abs(capacity * Math.Log(errorRate) / Pow2Log2);
+            return (long) Math.Abs(capacity*Math.Log(errorRate)/Pow2Log2);
         }
-      
+
         /// <summary>
         /// This determines an error rate assuming that at higher capacity a higher error rate is acceptable as a trade off for space. Provide your own error rate if this does not work for you.
         /// </summary>
@@ -107,11 +117,29 @@
         public virtual float BestErrorRate(long capacity)
         {
             //heuristic for determing an error rate: as capacity becomes larger, the accepted error rate increases.
-            var errRate = Math.Min(0.5F, (float)(0.000001F * Math.Pow(2.0D, Math.Log(capacity))));
+            var errRate = Math.Min(0.5F, (float) (0.000001F*Math.Pow(2.0D, Math.Log(capacity))));
             //determine the best size based upon capacity and the error rate determined above, then calculate the error rate.
-            return Math.Min(0.5F, (float)Math.Pow(0.5D, 1.0D * BestSize(capacity, errRate) / capacity));
+            return Math.Min(0.5F, (float) Math.Pow(0.5D, 1.0D*BestSize(capacity, errRate)/capacity));
             // return Math.Min(0.5F, (float)Math.Pow(0.6185D, BestM(capacity, errRate) / capacity));
             // http://www.cs.princeton.edu/courses/archive/spring02/cs493/lec7.pdf
+        }
+
+        /// <summary>
+        /// Determine the actual error rate.
+        /// </summary>
+        /// <param name="blockSize"></param>
+        /// <param name="itemCount"></param>
+        /// <param name="hashFunctionCount"></param>
+        /// <returns></returns>
+        public float ActualErrorRate(long blockSize, long itemCount, uint hashFunctionCount)
+        {
+            if (blockSize == 0L)
+            {
+                blockSize = 1L;
+            }
+            return
+                (float)
+                    Math.Pow(1 - Math.Pow(Math.E, (double) -hashFunctionCount*itemCount/blockSize), hashFunctionCount);
         }
     }
 }

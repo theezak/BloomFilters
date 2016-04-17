@@ -13,7 +13,7 @@
         /// <summary>
         /// The unity for the count type.
         /// </summary>
-        Func<TCount> Unity { get; set; }
+        TCount Unity { get; set; }
 
         /// <summary>
         /// Determine if the count is pure.

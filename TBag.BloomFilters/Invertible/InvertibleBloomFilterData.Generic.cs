@@ -6,6 +6,9 @@ namespace TBag.BloomFilters.Invertible
     using System.Runtime.Serialization;
     using Configurations;
     using BloomFilters.Configurations;
+    using System.Threading.Tasks;
+    using System.Collections.Concurrent;
+    
     /// <summary>
     /// Implementation of <see cref="IInvertibleBloomFilterData{TId, TEntityHash, TCount}"/>
     /// </summary>
@@ -18,13 +21,16 @@ namespace TBag.BloomFilters.Invertible
          where TId : struct
         where THash : struct
     {
+        #region Fields
         private ICompressedArray<THash> _hashSumProvider;
         private ICompressedArray<TId> _idSumProvider;
          private THash[] _hashSums;
         private Func<long, bool> _membershipTest;
         private TId[] _idSums;
         private bool _hasDirtyProvider = true;
-      
+        #endregion
+
+        #region Properties
         /// <summary>
         /// The number of items stored in the Bloom filter
         /// </summary>
@@ -124,11 +130,14 @@ namespace TBag.BloomFilters.Invertible
         /// The idSum provider.
         /// </summary>
         public ICompressedArray<TId> IdSumProvider => _idSumProvider;
+        #endregion
+
+        #region Compressed arrays
 
         /// <summary>
         /// Set the counter provider.
         /// </summary>
-         /// <param name="configuration"></param>
+        /// <param name="configuration"></param>
         public void SyncCompressionProviders(
             ICountingBloomFilterConfiguration<TId, THash, TCount> configuration)
         {
@@ -137,12 +146,7 @@ namespace TBag.BloomFilters.Invertible
             if (_hasDirtyProvider)
             {
                 _hasDirtyProvider = false;
-                 _membershipTest = pos => configuration
-                    .CountConfiguration
-                    .Comparer
-                    .Compare(
-                        configuration.CountConfiguration.Identity,
-                        Counts[pos]) != 0;
+                 _membershipTest = position => IsMember(configuration.CountConfiguration, this, position);
                 _hashSumProvider = configuration.CompressedArrayFactory.Create<THash>();
                 _hashSumProvider.Load(_hashSums, BlockSize, _membershipTest);
                 _hashSums = null;
@@ -151,5 +155,40 @@ namespace TBag.BloomFilters.Invertible
                 _idSums = null;
             }
         }
+
+        private static bool IsMember(
+            ICountConfiguration<TCount> configuration,
+            InvertibleBloomFilterData<TId, THash, TCount> data, 
+            long position)
+        {
+            return configuration
+                .Comparer
+                .Compare(
+                    configuration.Identity,
+                    data.Counts[position]) != 0;
+        }
+
+        /// <summary>
+        /// Clear the data
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="configuration"></param>
+        public void Clear<TEntity>(IInvertibleBloomFilterConfiguration<TEntity,TId,THash,TCount> configuration)
+        {
+            ItemCount = 0;
+            SyncCompressionProviders(configuration);
+            Parallel.ForEach(
+               Partitioner.Create(0L, BlockSize),
+               (range, state) =>
+               {
+                   for (var i = range.Item1; i < range.Item2; i++)
+                   {
+                       IdSumProvider[i] = configuration.IdIdentity;
+                       HashSumProvider[i] = configuration.HashIdentity;
+                       Counts[i] = configuration.CountConfiguration.Identity;
+                   }
+               });
+        }
+        #endregion
     }
 }

@@ -61,7 +61,7 @@
         /// <summary>
         /// The count unity (1)
         /// </summary>
-        public override Func<long> Unity { get; set; } = ()=>1L;
+        public override long Unity { get; set; } = 1L;
 
         /// <summary>
         /// Count comparer

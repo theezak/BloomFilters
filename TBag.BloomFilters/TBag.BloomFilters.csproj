@@ -53,6 +53,7 @@
     <Compile Include="Configurations\ICountingBloomFilterConfiguration.Generic.cs" />
     <Compile Include="Configurations\LongCountConfiguration.cs" />
     <Compile Include="CompressedArrayrExtensions.cs" />
+    <Compile Include="Estimators\QuasiEstimator.cs" />
     <Compile Include="ICompressedArray.cs" />
     <Compile Include="ICompressedArrayFactory.cs" />
     <Compile Include="Invertible\Estimators\BloomFilterConfigurationExtensions.cs" />
@@ -69,6 +70,7 @@
     <Compile Include="Estimators\IBitMinwiseHashEstimatorDataFactory.cs" />
     <Compile Include="Collections\Generic\LongEnumerable.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimatorFullData.cs" />
+    <Compile Include="Invertible\Estimators\HybridEstimatorExtensions.cs" />
     <Compile Include="Invertible\Estimators\HybridEstimatorFullData.Generic.cs" />
     <Compile Include="Estimators\IBitMinwiseHashEstimatorFullData.cs" />
     <Compile Include="Invertible\Estimators\IHybridEstimatorFullData.Generic.cs" />
@@ -118,6 +120,7 @@
     <Compile Include="Standard\BloomFilter.cs" />
     <Compile Include="Standard\BloomFilterData.cs" />
     <Compile Include="Standard\IBloomFilter.cs" />
+    <Compile Include="Standard\IBloomFilterData.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TBag.HashAlgorithms\TBag.HashAlgorithms.csproj">

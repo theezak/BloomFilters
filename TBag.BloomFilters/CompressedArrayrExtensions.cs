@@ -1,4 +1,6 @@
 ﻿
+using System.Linq;
+
 namespace TBag.BloomFilters
 {
     using System;
@@ -11,7 +13,7 @@ namespace TBag.BloomFilters
         /// <typeparam name="TCount">Type of the item</typeparam>
         /// <param name="values">The values</param>
         /// <param name="position">The position</param>
-        /// <param name="blockSize"></param>
+        /// <param name="blockSize">The block size of the unfolded Bloom filter</param>
         /// <param name="foldFactor">Factor to fold by</param>
         /// <param name="foldOperator">The operator to apply during folding</param>
         /// <returns></returns>
@@ -19,24 +21,16 @@ namespace TBag.BloomFilters
             this ICompressedArray<TCount> values,
             long position,
             long blockSize,
-            long? foldFactor,
+            long foldFactor,
             Func<TCount, TCount, TCount> foldOperator)
             where TCount : struct
         {
-            if (values == null) return default(TCount);
-            if ((foldFactor ?? 0L) <= 1L) return values[position];
-            var foldedSize = blockSize / foldFactor.Value;
-            position = position % foldedSize;
-            var val = values[position];
-            foldFactor--;
-            position += foldedSize;
-            while (foldFactor > 0)
-            {
-                val = foldOperator(val, values[position]);
-                foldFactor--;
-                position += foldedSize;
-            }
-            return val;
+            if (foldFactor <= 1L) return values[position];
+            var foldedSize = blockSize/foldFactor;
+            position = position%foldedSize;
+            return LongEnumerable.Range(1L, foldFactor)
+                .Aggregate(values[position],
+                    (foldedValue, factor) => foldOperator(foldedValue, values[position + factor*foldedSize]));
         }
     }
 }

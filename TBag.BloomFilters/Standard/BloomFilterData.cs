@@ -7,7 +7,7 @@ namespace TBag.BloomFilters.Standard
     using System.Runtime.Serialization;
 
     [Serializable,DataContract]
-    internal class BloomFilterData
+    internal class BloomFilterData : IBloomFilterData
     {
         [DataMember(Order =1)]
         public long BlockSize { get; set; }
@@ -18,7 +18,10 @@ namespace TBag.BloomFilters.Standard
         [DataMember(Order =3)]
         public uint HashFunctionCount { get; set; }
 
-        [DataMember(Order =4)]
+        [DataMember(Order=4)]
+        public long ItemCount { get; set; }
+
+        [DataMember(Order =5)]
         public byte[] Bits { get; set; }
     }
 }

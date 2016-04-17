@@ -26,6 +26,11 @@
         byte StrataCount { get; set; }
 
         /// <summary>
+        /// The number of hash functions used.
+        /// </summary>
+        uint HashFunctionCount { get; set; }
+
+        /// <summary>
         /// Estimated size up to the given strata.
         /// </summary>
         /// <param name="strata"></param>

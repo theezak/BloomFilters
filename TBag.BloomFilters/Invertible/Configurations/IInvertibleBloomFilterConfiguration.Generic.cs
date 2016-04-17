@@ -28,12 +28,32 @@
         /// <summary>
         /// Perform a XOR between identifiers.
         /// </summary>
-        Func<TId, TId, TId> IdXor { get; set; }
+        Func<TId, TId, TId> IdAdd { get; set; }
+
+        /// <summary>
+        /// Perform a XOR between identifiers.
+        /// </summary>
+        Func<TId, TId, TId> IdRemove { get; set; }
+
+        /// <summary>
+        /// Perform a AND between identifiers.
+        /// </summary>
+        Func<TId, TId, TId> IdIntersect { get; set; }
 
         /// <summary>
         /// Hash XOR
         /// </summary>
-        Func<THash, THash, THash> HashXor { get; set; }
+        Func<THash, THash, THash> HashAdd { get; set; }
+
+        /// <summary>
+        /// Hash XOR
+        /// </summary>
+        Func<THash, THash, THash> HashRemove { get; set; }
+
+        /// <summary>
+        /// Hash AND
+        /// </summary>
+        Func<THash, THash, THash> HashIntersect { get; set; }
 
         /// <summary>
         /// Equality comparer for <typeparamref name="TId"/>.

@@ -79,7 +79,23 @@
         /// <summary>
         /// The XOR operator for the hash.
         /// </summary>
-        public virtual Func<THash, THash, THash> HashXor
+        public virtual Func<THash, THash, THash> HashAdd
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// The XOR operator for the hash.
+        /// </summary>
+        public virtual Func<THash, THash, THash> HashRemove
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// The intersection operator for the hash.
+        /// </summary>
+        public virtual Func<THash, THash, THash> HashIntersect
         {
             get; set;
         }

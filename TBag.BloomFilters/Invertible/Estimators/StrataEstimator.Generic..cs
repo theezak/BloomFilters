@@ -28,7 +28,7 @@
         /// <summary>
         /// Limit on the strata
         /// </summary>
-        public byte StrataLimit = sizeof(int) * MaxTrailingZeros;
+        public byte StrataLimit = MaxTrailingZeros;
 
         /// <summary>
         /// The maximum strata.
@@ -42,6 +42,11 @@
         {
             get; protected set;
         }
+
+        /// <summary>
+        /// The hash function count
+        /// </summary>
+        public uint HashFunctionCount { get; private set; }
 
         /// <summary>
         /// The item count.
@@ -94,7 +99,7 @@
             }
             Configuration = configuration;
             DecodeCountFactor = BlockSize >= 20 ? 1.39D : 1.0D;
-            CreateFilters();
+             CreateFilters();
         }
         #endregion
 
@@ -110,6 +115,7 @@
                 BlockSize = BlockSize,
                 DecodeCountFactor = DecodeCountFactor,
                 StrataCount = MaxStrata,
+                HashFunctionCount =  HashFunctionCount,
                 BloomFilters = StrataFilters
                     .Where(s => s?.IsValueCreated ?? false)
                     .Select(s => s.Value.Extract())
@@ -131,6 +137,7 @@
             if (data == null) return;
             BlockSize = data.BlockSize;
             MaxStrata = data.StrataCount;
+            HashFunctionCount = data.HashFunctionCount;
             DecodeCountFactor = data.DecodeCountFactor;            
             CreateFilters(data);
         }
@@ -155,6 +162,20 @@
             var idHash = Configuration.IdHash(Configuration.GetId(item));
             var entityHash = Configuration.EntityHash(item);
             Remove(idHash, entityHash, GetStrata(idHash, entityHash));
+        }
+
+        /// <summary>
+        /// Determine if an item is in the estimator
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns><c>null</c> when the strata estimator can't determine membership (strata for the item is above the maximum strata), otherwise <c>true</c> when a member, or <c>false</c> when not a member.</returns>
+        public bool? Contains(TEntity item)
+        {
+            var idHash = Configuration.IdHash(Configuration.GetId(item));
+            var entityHash = Configuration.EntityHash(item);
+            var strata = GetStrata(idHash, entityHash);
+            if (strata >= MaxStrata) return null;
+            return StrataFilters[strata].Value.Contains(new KeyValuePair<int, int>(idHash, entityHash));
         }
 
         /// <summary>
@@ -198,7 +219,29 @@
         public virtual long? Decode(IStrataEstimator<TEntity, int, TCount> estimator,
             bool destructive = false)
         {
-            return Decode(estimator.Extract(), destructive);
+            return Decode(estimator?.Extract(), destructive);
+        }
+
+        /// <summary>
+        /// Intersect the given estimator data.
+        /// </summary>
+        /// <param name="estimator">Estimator data to intersect with.</param>
+        /// <returns></returns>
+        private void Intersect(IStrataEstimatorData<int, TCount> estimator,
+            bool destructive = false)
+        {
+            Rehydrate(Extract()
+                .Intersect(estimator, Configuration));
+        }
+
+        /// <summary>
+        /// Intersect with the given estimator
+        /// </summary>
+        /// <param name="estimator">Other estimator.</param>
+        /// <returns></returns>
+        public virtual void Intersect(IStrataEstimator<TEntity, int, TCount> estimator)
+        {
+            Intersect(estimator?.Extract());
         }
 
         /// <summary>
@@ -265,7 +308,8 @@
         private byte GetStrata(int idHash, int entityHash)
         {
             idHash = BitConverter.ToInt32(_murmur.Hash(BitConverter.GetBytes(idHash), unchecked((uint)entityHash)), 0);
-            var mask = 1;
+            if (idHash==0) return StrataLimit;           
+            int mask = 1;
             for (byte i = 0; i < StrataLimit; i++, mask <<= 1)
                 if ((idHash & mask) != 0)
                     return i;
@@ -301,7 +345,7 @@
         private void CreateFilters(IStrataEstimatorData<int, TCount> estimatorData = null)
         {
             var configuration = Configuration.ConvertToEstimatorConfiguration();
-            var hashFunctionCount = configuration.BestHashFunctionCount(BlockSize, ErrorRate);
+            HashFunctionCount = configuration.BestHashFunctionCount(BlockSize, ErrorRate);
             for (var idx = 0; idx < StrataFilters.Length; idx++)
             {
                 if (idx >= MaxStrata)
@@ -315,7 +359,7 @@
                 {
                     var res = new InvertibleBloomFilter<KeyValuePair<int, int>, int, TCount>(configuration);
                     //capacity doesn't really matter, the capacity is basically the block size.
-                    res.Initialize(BlockSize, BlockSize, hashFunctionCount);
+                    res.Initialize(BlockSize, BlockSize, HashFunctionCount);
                     res.Rehydrate(filterData);
                     return res;
                 });

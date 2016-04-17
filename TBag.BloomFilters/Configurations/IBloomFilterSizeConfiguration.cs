@@ -39,6 +39,15 @@
         float BestErrorRate(long capacity);
 
         /// <summary>
+        /// Calculate the actual error rate.
+        /// </summary>
+        /// <param name="blockSize"></param>
+        /// <param name="itemCount"></param>
+        /// <param name="hashFunctionCount"></param>
+        /// <returns></returns>
+        float ActualErrorRate(long blockSize, long itemCount, uint hashFunctionCount);
+
+        /// <summary>
         /// The minimum number of hash function counts to use.
         /// </summary>
         uint MinimumHashFunctionCount { get; set; }

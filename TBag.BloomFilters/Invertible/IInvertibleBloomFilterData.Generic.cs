@@ -76,5 +76,10 @@ namespace TBag.BloomFilters.Invertible
         /// <param name="configuration"></param>
         void SyncCompressionProviders(
             ICountingBloomFilterConfiguration<TId, THash, TCount> configuration);
+
+        /// <summary>
+        /// Clear the Bloom filter data
+        /// </summary>
+        void Clear<TEntity>(IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration);
     }
 }

@@ -50,7 +50,7 @@
         /// <summary>
         /// The count unity (1)
         /// </summary>
-        public override Func<int> Unity { get; set; } = ()=>1;
+        public override int Unity { get; set; } = 1;
 
         /// <summary>
         /// Count comparer

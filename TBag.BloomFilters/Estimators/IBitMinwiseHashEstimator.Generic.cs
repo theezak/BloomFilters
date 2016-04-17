@@ -33,6 +33,20 @@ namespace TBag.BloomFilters.Estimators
         void Add(IBitMinwiseHashEstimatorFullData estimator);
 
         /// <summary>
+        /// Intersect the <paramref name="estimator">estimator</paramref> to the current estimator.
+        /// </summary>
+        /// <param name="estimator">Estimator to add</param>
+        /// <returns></returns>
+        void Intersect(IBitMinwiseHashEstimator<TEntity, TId, TCount> estimator);
+
+        /// <summary>
+        /// Intersect the <paramref name="estimator">estimator</paramref> to the current estimator.
+        /// </summary>
+        /// <param name="estimator">Estimator to add</param>
+        /// <returns></returns>
+        void Intersect(IBitMinwiseHashEstimatorFullData estimator);
+
+        /// <summary>
         /// Extract a serializable version of the bit minwise hash estimator.
         /// </summary>
         /// <returns></returns>

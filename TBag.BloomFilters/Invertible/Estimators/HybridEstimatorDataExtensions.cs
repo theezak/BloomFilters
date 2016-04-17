@@ -2,7 +2,6 @@
 {
     using BloomFilters.Estimators;
     using Configurations;
-    using MathExt;
     using System;
     using System.Collections;
     using System.Linq;
@@ -99,6 +98,30 @@
                 StrataEstimator =
                     estimatorData.StrataEstimator?.Fold(configuration.ConvertToEstimatorConfiguration(), factor)
             };
+        }
+
+        /// <summary>
+        /// Intersect two hybrid estimators
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="TCount"></typeparam>
+        /// <param name="estimatorData"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        internal static IHybridEstimatorFullData<int,TCount> Intersect<TEntity,TId,TCount>(
+            this IHybridEstimatorFullData<int,TCount> estimatorData,
+            IInvertibleBloomFilterConfiguration<TEntity,TId,int,TCount> configuration,
+            IHybridEstimatorFullData<int,TCount> otherEstimatorData)
+            where TId : struct
+            where TCount : struct
+        {
+            if (estimatorData == null && otherEstimatorData == null) return null;
+            var res = new HybridEstimatorFullData<int, TCount>();
+            res.BitMinwiseEstimator = estimatorData?.BitMinwiseEstimator.Intersect(otherEstimatorData?.BitMinwiseEstimator, configuration.FoldingStrategy);
+            res.StrataEstimator = estimatorData?.StrataEstimator.Intersect(otherEstimatorData?.StrataEstimator, configuration);
+            res.ItemCount = (res.BitMinwiseEstimator?.ItemCount??0L) + (res.StrataEstimator?.ItemCount ?? 0L);
+            return res;
         }
 
         /// <summary>

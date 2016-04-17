@@ -26,13 +26,13 @@
         /// <summary>
         /// The strate estimator data
         /// </summary>
-        [DataMember(Order = 2)]
+        [DataMember(Order = 3)]
         public StrataEstimatorData<TId,TCount> StrataEstimator { get; set; }
 
         /// <summary>
         /// The bit minwise estimator data.
         /// </summary>
-        [DataMember(Order = 3)]
+        [DataMember(Order = 4)]
         public BitMinwiseHashEstimatorData BitMinwiseEstimator { get; set; }
 
         #region Implementation of IStrataEstimatorData{Tid, TCount}

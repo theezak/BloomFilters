@@ -1,7 +1,7 @@
 ﻿namespace TBag.BloomFilters
 {
     using System;
-        
+    using System.Linq;
     /// <summary>
     /// Array extensions.
     /// </summary>
@@ -19,23 +19,15 @@
         internal static T GetFolded<T>(
             this T[] values, 
             long position, 
-            long? foldFactor, 
+            long foldFactor, 
             Func<T, T, T> foldOperator)
         {
-            if (values == null) return default(T);
-            if ((foldFactor ?? 0L) <= 1L) return values[position];
-            var foldedSize = values.Length / foldFactor.Value;
+             if (foldFactor <= 1L) return values[position];
+            var foldedSize = values.Length / foldFactor;
             position = position % foldedSize;
-            var val = values[position];
-            foldFactor--;
-            position += foldedSize;
-            while (foldFactor > 0)
-            {
-                val = foldOperator(val, values[position]);
-                foldFactor--;
-                position += foldedSize;
-            }
-            return val;
+            return LongEnumerable.Range(1L, foldFactor)
+                .Aggregate(values[position],
+                    (foldedValue, factor) => foldOperator(foldedValue, values[position + factor * foldedSize]));
         }
     }
 }

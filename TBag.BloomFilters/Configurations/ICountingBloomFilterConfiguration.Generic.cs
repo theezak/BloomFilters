@@ -3,8 +3,7 @@
      /// <summary>
     /// Interface for configuration of a Bloom filter.
     /// </summary>
-    /// <typeparam name="TEntity">The entity type</typeparam>
-    /// <typeparam name="TId">The identifier type</typeparam>
+     /// <typeparam name="TKey">The key type</typeparam>
     /// <typeparam name="THash">The hash value type</typeparam>
     /// <typeparam name="TCount">The occurence count type.</typeparam>
     public interface ICountingBloomFilterConfiguration<TKey, THash, TCount> :

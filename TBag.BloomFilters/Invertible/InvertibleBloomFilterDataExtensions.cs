@@ -8,6 +8,7 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+
     /// <summary>
     /// Extension methods for invertible Bloom filter data.
     /// </summary>
@@ -70,14 +71,15 @@
                 filter.IdSumProvider == null ||
                 filter.Counts == null)) return false;
             return true;
-        }     
+        }
 
         /// <summary>
         /// Try to compress the data
         /// </summary>
         /// <typeparam name="TId"></typeparam>
-       /// <typeparam name="TCount"></typeparam>
+        /// <typeparam name="TCount"></typeparam>
         /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="THash"></typeparam>
         /// <param name="filterData">The Bloom filter data to compress.</param>
         /// <param name="configuration">The Bloom filter configuration</param>
         /// <returns>The compressed data, or <c>null</c> when compression failed.</returns>
@@ -88,8 +90,8 @@
             where TId : struct
             where THash : struct
         {
-            if (filterData == null || configuration?.FoldingStrategy == null) return null;
-            var fold = configuration.FoldingStrategy.FindCompressionFactor(filterData.BlockSize, filterData.Capacity, filterData.ItemCount);
+            if (filterData == null) return null;
+            var fold = configuration?.FoldingStrategy?.FindCompressionFactor(filterData.BlockSize, filterData.Capacity, filterData.ItemCount);
             var res = fold.HasValue ? filterData.Fold(configuration, fold.Value) : null;
             if (res == null) return null;
             res.SubFilter = filterData.
@@ -120,8 +122,8 @@
         {
             if (filter == null) return;
             filter.Counts[position] = configuration.CountConfiguration.Decrease(filter.Counts[position]);
-            filter.HashSumProvider[position] = configuration.HashXor(filter.HashSumProvider[position], hashValue);
-            filter.IdSumProvider[position] = configuration.IdXor(filter.IdSumProvider[position], idValue);
+            filter.HashSumProvider[position] = configuration.HashRemove(filter.HashSumProvider[position], hashValue);
+            filter.IdSumProvider[position] = configuration.IdRemove(filter.IdSumProvider[position], idValue);
         }
 
         /// <summary>
@@ -146,8 +148,8 @@
         {
             if (filter == null) return;
             filter.Counts[position] = configuration.CountConfiguration.Increase(filter.Counts[position]);
-            filter.HashSumProvider[position] = configuration.HashXor(filter.HashSumProvider[position], hashValue);
-            filter.IdSumProvider[position] = configuration.IdXor(filter.IdSumProvider[position], idValue);
+            filter.HashSumProvider[position] = configuration.HashAdd(filter.HashSumProvider[position], hashValue);
+            filter.IdSumProvider[position] = configuration.IdAdd(filter.IdSumProvider[position], idValue);
         }
 
         ///  <summary>
@@ -201,6 +203,7 @@
                     filterData.Capacity / foldFactors.Item1,
                     filterData.BlockSize / foldFactors.Item1,
                     filterData.HashFunctionCount));
+            foldFactors = foldFactors ?? new Tuple<long, long>(1, 1);
             res.IsReverse = filterData.IsReverse;
             Parallel.ForEach(
                 Partitioner.Create(0L, res.BlockSize),
@@ -209,14 +212,14 @@
                     for (var i = range.Item1; i < range.Item2; i++)
                     {
                         res.Counts[i] = configuration.CountConfiguration.Add(
-                            filterData.Counts.GetFolded(i, foldFactors?.Item1, configuration.CountConfiguration.Add),
-                            otherFilterData.Counts.GetFolded(i, foldFactors?.Item2, configuration.CountConfiguration.Add));
-                        res.HashSumProvider[i] = configuration.HashXor(
-                          filterData.HashSumProvider.GetFolded(i, filterData.BlockSize, foldFactors?.Item1, configuration.HashXor),
-                         otherFilterData.HashSumProvider.GetFolded(i, otherFilterData.BlockSize, foldFactors?.Item2, configuration.HashXor));
-                        res.IdSumProvider[i] = configuration.IdXor(
-                           filterData.IdSumProvider.GetFolded(i, filterData.BlockSize, foldFactors?.Item1, configuration.IdXor),
-                           otherFilterData.IdSumProvider.GetFolded(i, otherFilterData.BlockSize, foldFactors?.Item2, configuration.IdXor));
+                            filterData.Counts.GetFolded(i, foldFactors.Item1, configuration.CountConfiguration.Add),
+                            otherFilterData.Counts.GetFolded(i, foldFactors.Item2, configuration.CountConfiguration.Add));
+                        res.HashSumProvider[i] = configuration.HashAdd(
+                          filterData.HashSumProvider.GetFolded(i, filterData.BlockSize, foldFactors.Item1, configuration.HashAdd),
+                         otherFilterData.HashSumProvider.GetFolded(i, otherFilterData.BlockSize, foldFactors.Item2, configuration.HashAdd));
+                        res.IdSumProvider[i] = configuration.IdAdd(
+                           filterData.IdSumProvider.GetFolded(i, filterData.BlockSize, foldFactors.Item1, configuration.IdAdd),
+                           otherFilterData.IdSumProvider.GetFolded(i, otherFilterData.BlockSize, foldFactors.Item2, configuration.IdAdd));
                     }
                 });
             res.SubFilter = filterData
@@ -251,7 +254,7 @@
                 throw new ArgumentException($"Fold factor should be a positive number (given value was {factor}.");
             if (data == null) return null;
             if (data.BlockSize % factor != 0)
-                throw new ArgumentException($"Bloom filter data cannot be folded by {factor}.", nameof(factor));
+                throw new ArgumentException($"Bloom filter data of size {data.BlockSize} cannot be folded by factor {factor}.", nameof(factor));
             data.SyncCompressionProviders(configuration);
             var res = configuration.DataFactory.Create(
                 configuration,
@@ -267,13 +270,99 @@
                     for (var i = range.Item1; i < range.Item2; i++)
                     {
                         res.Counts[i] = data.Counts.GetFolded(i, factor, configuration.CountConfiguration.Add);
-                        res.HashSumProvider[i] = data.HashSumProvider.GetFolded(i, data.BlockSize, factor, configuration.HashXor);
-                        res.IdSumProvider[i] = data.IdSumProvider.GetFolded(i, data.BlockSize, factor, configuration.IdXor);
+                        res.HashSumProvider[i] = data.HashSumProvider.GetFolded(i, data.BlockSize, factor, configuration.HashAdd);
+                        res.IdSumProvider[i] = data.IdSumProvider.GetFolded(i, data.BlockSize, factor, configuration.IdAdd);
                     }
                 });
             res.SubFilter = data
                 .SubFilter?
                 .Fold(configuration.SubFilterConfiguration, factor);
+            return res;
+        }
+
+        /// <summary>
+        /// Intersect Bloom filter data.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TId"></typeparam>
+        /// <typeparam name="THash"></typeparam>
+        /// <typeparam name="TCount"></typeparam>
+        /// <param name="filterData"></param>
+        /// <param name="configuration"></param>
+        /// <param name="otherFilterData"></param>
+        /// <param name="inPlace"></param>
+        /// <returns></returns>
+        internal static InvertibleBloomFilterData<TId,THash,TCount> Intersect<TEntity,TId,THash,TCount>(
+            this IInvertibleBloomFilterData<TId,THash,TCount> filterData,
+            IInvertibleBloomFilterConfiguration<TEntity,TId,THash,TCount> configuration,
+            IInvertibleBloomFilterData<TId,THash,TCount> otherFilterData,
+            bool inPlace = false
+            )
+            where TId : struct
+            where THash : struct
+            where TCount : struct
+        {
+            if (filterData == null && otherFilterData == null) return null;
+            if (filterData == null)
+            {
+                return configuration
+                    .DataFactory
+                    .Create(configuration, otherFilterData.Capacity, otherFilterData.BlockSize, otherFilterData.HashFunctionCount);
+            }
+            else
+            {
+                filterData.SyncCompressionProviders(configuration);
+            }
+            if (otherFilterData == null)
+            {
+                if (inPlace)
+                {
+                    filterData.Clear(configuration);
+                    return filterData.ConvertToBloomFilterData(configuration);
+                }
+                return configuration
+                    .DataFactory
+                    .Create(configuration, filterData.Capacity, filterData.BlockSize, filterData.HashFunctionCount);
+            }
+            else
+            {
+                otherFilterData.SyncCompressionProviders(configuration);
+            }
+            if (!filterData.IsCompatibleWith(otherFilterData, configuration)) return null;
+            var foldFactors = configuration.FoldingStrategy?.GetFoldFactors(filterData.BlockSize, otherFilterData.BlockSize);
+            var res = inPlace && foldFactors?.Item1 <= 1 ?
+                filterData.ConvertToBloomFilterData(configuration) :
+                (foldFactors == null || foldFactors.Item1 <= 1 ?
+                filterData.CreateDummy(configuration) :
+                configuration.DataFactory.Create(
+                    configuration,
+                    filterData.Capacity / foldFactors.Item1,
+                    filterData.BlockSize / foldFactors.Item1,
+                    filterData.HashFunctionCount));
+            foldFactors = foldFactors ?? new Tuple<long, long>(1, 1);
+            res.IsReverse = filterData.IsReverse;
+            Parallel.ForEach(
+               Partitioner.Create(0L, res.BlockSize),
+               (range, state) =>
+               {
+                   for (var i = range.Item1; i < range.Item2; i++)
+                   {
+                       var filterDataCount = filterData.Counts.GetFolded(i, foldFactors.Item1, configuration.CountConfiguration.Add);
+                       var otherFilterDataCount = otherFilterData.Counts.GetFolded(i, foldFactors.Item2, configuration.CountConfiguration.Add);
+                       res.Counts[i] = configuration.CountConfiguration.Comparer.Compare(filterDataCount, otherFilterDataCount) < 0 ? filterDataCount : otherFilterDataCount;
+                       res.IdSumProvider[i] = configuration.IdIntersect(
+                           filterData.IdSumProvider.GetFolded(i, filterData.BlockSize, foldFactors.Item1, configuration.IdAdd),
+                           otherFilterData.IdSumProvider.GetFolded(i, otherFilterData.BlockSize, foldFactors.Item2, configuration.IdAdd));
+                       res.HashSumProvider[i] = configuration.HashIntersect(
+                          filterData.HashSumProvider.GetFolded(i, filterData.BlockSize, foldFactors.Item1, configuration.HashAdd),
+                          otherFilterData.HashSumProvider.GetFolded(i, otherFilterData.BlockSize, foldFactors.Item2, configuration.HashAdd));
+                   }
+               });
+            res.SubFilter = filterData
+             .SubFilter
+             .Intersect(configuration.SubFilterConfiguration, otherFilterData.SubFilter, inPlace)
+             .ConvertToBloomFilterData(configuration);
+            res.ItemCount = configuration.CountConfiguration.GetEstimatedCount(res.Counts, res.HashFunctionCount);
             return res;
         }
 
@@ -531,6 +620,7 @@
                    filterData.Capacity / foldFactors.Item1,
                    filterData.BlockSize / foldFactors.Item1,
                    filterData.HashFunctionCount));
+            foldFactors = foldFactors ?? new Tuple<long, long>(1, 1);
             var idIdentity = configuration.IdIdentity;
             var hashIdentity = configuration.HashIdentity;
             //conccurent place holders
@@ -543,14 +633,14 @@
                 {
                     for (var i = range.Item1; i < range.Item2; i++)
                     {
-                        var filterCount = filterData.Counts.GetFolded(i, foldFactors?.Item1, configuration.CountConfiguration.Add);
-                        var subtractedCount = subtractedFilterData.Counts.GetFolded(i, foldFactors?.Item2, configuration.CountConfiguration.Add);
-                        var hashSum = configuration.HashXor(
-                           filterData.HashSumProvider.GetFolded(i, filterData.BlockSize, foldFactors?.Item1, configuration.HashXor),
-                           subtractedFilterData.HashSumProvider.GetFolded(i, subtractedFilterData.BlockSize, foldFactors?.Item2, configuration.HashXor));
-                        var filterIdSum = filterData.IdSumProvider.GetFolded(i, filterData.BlockSize, foldFactors?.Item1, configuration.IdXor);
-                        var subtractedIdSum = subtractedFilterData.IdSumProvider.GetFolded(i, subtractedFilterData.BlockSize, foldFactors?.Item2, configuration.IdXor);
-                        var idXorResult = configuration.IdXor(filterIdSum, subtractedIdSum);
+                        var filterCount = filterData.Counts.GetFolded(i, foldFactors.Item1, configuration.CountConfiguration.Add);
+                        var subtractedCount = subtractedFilterData.Counts.GetFolded(i, foldFactors.Item2, configuration.CountConfiguration.Add);
+                        var hashSum = configuration.HashRemove(
+                           filterData.HashSumProvider.GetFolded(i, filterData.BlockSize, foldFactors.Item1, configuration.HashAdd),
+                           subtractedFilterData.HashSumProvider.GetFolded(i, subtractedFilterData.BlockSize, foldFactors.Item2, configuration.HashAdd));
+                        var filterIdSum = filterData.IdSumProvider.GetFolded(i, filterData.BlockSize, foldFactors.Item1, configuration.IdAdd);
+                        var subtractedIdSum = subtractedFilterData.IdSumProvider.GetFolded(i, subtractedFilterData.BlockSize, foldFactors.Item2, configuration.IdAdd);
+                        var idXorResult = configuration.IdRemove(filterIdSum, subtractedIdSum);
                         if ((!configuration.IdEqualityComparer.Equals(idIdentity, idXorResult) ||
                             !configuration.HashEqualityComparer.Equals(hashIdentity, hashSum)) &&
                             configuration.CountConfiguration.IsPure(filterCount) &&

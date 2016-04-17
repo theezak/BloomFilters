@@ -6,10 +6,10 @@
     /// <summary>
     /// Interface for an invertible Bloom filter.
     /// </summary>
-    /// <typeparam name="T">The entity type</typeparam>
+    /// <typeparam name="TEntity">The entity type</typeparam>
     /// <typeparam name="TId">The entity identifier type.</typeparam>
     /// <typeparam name="TCount"></typeparam>
-    public interface IInvertibleBloomFilter<T, TId, TCount>
+    public interface IInvertibleBloomFilter<TEntity, TId, TCount>
         where TId : struct
         where TCount : struct
     {
@@ -23,6 +23,11 @@
         /// The capacity of the filter.
         /// </summary>
         long Capacity { get; }
+
+        /// <summary>
+        /// The size of the array.
+        /// </summary>
+        long BlockSize { get; }
         #endregion
 
         #region Methods
@@ -31,14 +36,14 @@
         /// </summary>
         /// <param name="item">The entity to add</param>
         /// <exception cref="InvalidOperationException">When the Bloom filter configuration is not valid.</exception>
-        void Add(T item);
+        void Add(TEntity item);
 
         /// <summary>
         /// Add the Bloom filter.
         /// </summary>
         /// <param name="bloomFilter"></param>
         /// <exception cref="ArgumentException">Bloom filter is not compatible</exception>
-        void Add(IInvertibleBloomFilter<T, TId, TCount> bloomFilter);
+        void Add(IInvertibleBloomFilter<TEntity, TId, TCount> bloomFilter);
 
         /// <summary>
         /// Add the Bloom filter data
@@ -53,7 +58,7 @@
         /// <param name="factor">The factor to fold the Bloom filter by</param>
         /// <param name="destructive">When <c>true</c> the Bloom filter is replaced by the folded Bloom filter, else <c>false</c>.</param>
         /// <exception cref="ArgumentException">The Bloom filter cannot be folded by the given factor.</exception>
-        IInvertibleBloomFilter<T, TId, TCount> Fold(uint factor, bool destructive = false);
+        IInvertibleBloomFilter<TEntity, TId, TCount> Fold(uint factor, bool destructive = false);
 
         /// <summary>
         /// Determine if the item is in the Bloom filter.
@@ -62,7 +67,7 @@
         /// <returns><c>true</c> when the Bloom filter contains the item, else <c>false</c></returns>
         /// <remarks>False-positives are possible</remarks>
         /// <exception cref="InvalidOperationException">When the Bloom filter configuration is not valid.</exception>
-        bool Contains(T item);
+        bool Contains(TEntity item);
 
         /// <summary>
         /// Determine if the given key is in the Bloom filter.
@@ -106,7 +111,7 @@
         /// </summary>
         /// <param name="item">The entity to remove</param>
         /// <exception cref="InvalidOperationException">When the Bloom filter configuration is not valid.</exception>
-        void Remove(T item);
+        void Remove(TEntity item);
 
         /// <summary>
         /// Remove by key
@@ -147,14 +152,28 @@
         /// <param name="listB">Items not in this filter, but in <paramref name="filter"/></param>
         /// <param name="modifiedEntities">Entities in both filters, but with a different value</param>
         /// <returns><c>true</c> when the decode was successful, otherwise <c>false</c></returns>
-        bool? SubtractAndDecode(IInvertibleBloomFilter<T, TId, TCount> filter, HashSet<TId> listA,
+        bool? SubtractAndDecode(IInvertibleBloomFilter<TEntity, TId, TCount> filter, HashSet<TId> listA,
             HashSet<TId> listB,
             HashSet<TId> modifiedEntities);
 
         /// <summary>
         /// Compress the Bloom filter
         /// </summary>
-        IInvertibleBloomFilter<T, TId, TCount> Compress(bool inPlace = false);
+        IInvertibleBloomFilter<TEntity, TId, TCount> Compress(bool inPlace = false);
+
+        /// <summary>
+        /// Intersect with another Bloom filter
+        /// </summary>
+        /// <param name="bloomFilter"></param>
+        /// <remarks>The result is the shared entities between the two Bloom filters</remarks>
+        void Intersect(IInvertibleBloomFilter<TEntity, TId, TCount> bloomFilter);
+
+        /// <summary>
+        /// Intersect with another Bloom filter
+        /// </summary>
+        /// <param name="otherFilterData"></param>
+        /// <remarks>The result is the shared entities between the two Bloom filters</remarks>
+        void Intersect(IInvertibleBloomFilterData<TId, int, TCount> otherFilterData);
         #endregion
 
     }

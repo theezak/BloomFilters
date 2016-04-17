@@ -124,6 +124,26 @@ namespace TBag.BloomFilters.Estimators
         }
 
         /// <summary>
+        /// Intersect an estimator
+        /// </summary>
+        /// <param name="estimator">The estimator to add.</param>
+        /// <returns></returns>
+        public void Intersect(IBitMinwiseHashEstimator<TEntity, TId, TCount> estimator)
+        {
+            Rehydrate(FullExtract().Intersect(estimator?.FullExtract(), _configuration.FoldingStrategy));
+        }
+
+        /// <summary>
+        /// Add an estimator
+        /// </summary>
+        /// <param name="estimator">The estimator to add.</param>
+        /// <returns></returns>
+        public void Intersect(IBitMinwiseHashEstimatorFullData estimator)
+        {
+            Rehydrate(FullExtract().Intersect(estimator, _configuration.FoldingStrategy));
+        }
+
+        /// <summary>
         /// Extract the estimator data in a serializable format.
         /// </summary>
         /// <returns></returns>
