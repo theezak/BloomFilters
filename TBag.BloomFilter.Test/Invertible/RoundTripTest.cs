@@ -64,7 +64,7 @@
             var falsePositives =
                 allFound.Where(itm => !onlyInSet1.Contains(itm) && !onlyInSet2.Contains(itm) && !modified.Contains(itm))
                     .ToArray();
-            Assert.IsTrue(falsePositives.Count() < 350, "Too many false positives found");
+            Assert.IsTrue(falsePositives.Count() < 400, "Too many false positives found");
             var falseNegatives =
                 onlyInSet1.Where(itm => !allFound.Contains(itm))
                     .Union(onlyInSet2.Where(itm => !allFound.Contains(itm)))

@@ -61,7 +61,7 @@ namespace TBag.BloomFilter.Test.Standard
             }
             bloomFilter.Add(bloomFilter2);
             var contained = testData.Union(testData2).Count(item => bloomFilter.Contains(item.Id));
-            Assert.AreEqual(contained, 2 * addSize, "Not all items found in added Bloom filters");
+            Assert.AreEqual(2 * addSize, contained, "Not all items found in added Bloom filters");
         }
     }
 }

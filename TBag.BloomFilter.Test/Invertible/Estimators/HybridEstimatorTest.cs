@@ -117,7 +117,7 @@
             data.Modify(1000);
              var estimate = estimator.QuasiDecode(configuration, data);
             //actual difference is expected to be about 91500
-            Assert.IsTrue(estimate>90500 && estimate <94800, "Unexpected estimate for difference." );
+            Assert.IsTrue(estimate>90500 && estimate <97000, "Unexpected estimate for difference." );
         }
 
         /// <summary>

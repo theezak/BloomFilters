@@ -162,41 +162,43 @@
 
 
 
-            int i = 0;
+            Parallel
 
-            int j = 0;
+              .ForEach(
 
-            while (bytes.Length - j >= 4)
+                  Partitioner.Create(0, m_array.Length),
 
-            {
+                  (range, state) =>
 
-                m_array[i++] = (bytes[j] & 0xff) |
+                  {
 
-                              ((bytes[j + 1] & 0xff) << 8) |
+                      for (var i = range.Item1; i < range.Item2; i++)
 
-                              ((bytes[j + 2] & 0xff) << 16) |
+                      {
+                          var idx = i * BytesPerInt32;
+                          if (idx + 3 < bytes.Length)
+                          {
+                              m_array[i] = (bytes[idx] & 0xff) |
 
-                              ((bytes[j + 3] & 0xff) << 24);
+                                  ((bytes[idx + 1] & 0xff) << 8) |
 
-                j += 4;
+                                  ((bytes[idx + 2] & 0xff) << 16) |
 
-            }
+                                  ((bytes[idx + 3] & 0xff) << 24);
+                          }
+                      }
+                  });
 
+            var j = Math.Max(0, bytes.Length - (bytes.Length % BytesPerInt32));
+            var last = Math.Max(0, m_array.Length - 1);
 
-
-            Contract.Assert(bytes.Length - j >= 0, "BitArray byteLength problem");
-
-            Contract.Assert(bytes.Length - j < 4, "BitArray byteLength problem #2");
-
-
-
-            switch (bytes.Length - j)
+            switch (bytes.Length -j)
 
             {
 
                 case 3:
 
-                    m_array[i] = ((bytes[j + 2] & 0xff) << 16);
+                    m_array[last] = ((bytes[j + 2] & 0xff) << 16);
 
                     goto case 2;
 
@@ -204,7 +206,7 @@
 
                 case 2:
 
-                    m_array[i] |= ((bytes[j + 1] & 0xff) << 8);
+                    m_array[last] |= ((bytes[j + 1] & 0xff) << 8);
 
                     goto case 1;
 
@@ -212,7 +214,7 @@
 
                 case 1:
 
-                    m_array[i] |= (bytes[j] & 0xff);
+                    m_array[last] |= (bytes[j] & 0xff);
 
                     break;
 
@@ -408,16 +410,17 @@
                        for (var i = range.Item1; i < range.Item2; i++)
 
                        {
-
-                           for (int j = 0; j < BitsPerInt32; j++)
+                           var idx = i * BitsPerInt32;
+                           for (int j = 0; j < BitsPerInt32 && idx < values.Length; j++,idx++)
 
                            {
-                               var idx = (i * BitsPerInt32) + j;
 
-                               if (idx < values.Length && values[idx])
+
+                               if (values[idx])
+                               {
 
                                    m_array[i] |= (1 << j);
-
+                               }
                            }
 
                        }
