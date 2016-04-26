@@ -1,6 +1,10 @@
 ﻿namespace TBag.BloomFilters.Standard
 {
-    internal interface IBloomFilter<TKey> where TKey : struct
+    /// <summary>
+    /// Interface for Bloom filter
+    /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    public interface IBloomFilter<TKey> where TKey : struct
     {
         /// <summary>
         /// The item count.
@@ -41,6 +45,18 @@
         void Add(TKey value);
 
         /// <summary>
+        /// Add the Bloom filter data
+        /// </summary>
+        /// <param name="bloomFilterData"></param>
+        void Add(IBloomFilterData bloomFilterData);
+
+        /// <summary>
+        /// Add the Bloom filter 
+        /// </summary>
+        /// <param name="bloomFilterData"></param>
+        void Add(IBloomFilter<TKey> filter);
+
+        /// <summary>
         /// Remove a value from the Bloom filter
         /// </summary>
         /// <param name="value"></param>
@@ -64,28 +80,21 @@
         /// Load the Bloom filter data into the Bloom filter
         /// </summary>
         /// <param name="bloomFilterData"></param>
-        void Rehydrate(BloomFilterData bloomFilterData);
+        void Rehydrate(IBloomFilterData bloomFilterData);
 
         /// <summary>
         /// Intersect with a Bloom filter. 
         /// </summary>
         /// <param name="bloomFilterData"></param>
         /// <remarks>Results in only retaining the keys the filters have in common.</remarks>
-        void Intersect(BloomFilterData bloomFilterData);
-
-        /// <summary>
-        /// Add a Bloom filter (union)
-        /// </summary>
-        /// <param name="bloomFilterData"></param>
-        /// <remarks>Results in all keys from the filters.</remarks>
-        void Add(BloomFilterData bloomFilterData);
-
+        void Intersect(IBloomFilterData bloomFilterData);
+    
         /// <summary>
         /// Subtract the given Bloom filter, resulting in the difference.
         /// </summary>
         /// <param name="bloomFilterData"></param>
         /// <remarks>Results in only retaining the keys the filters do not have in common.</remarks>
-        void Subtract(BloomFilterData bloomFilterData);
+        void Subtract(IBloomFilterData bloomFilterData);
 
         /// <summary>
         /// Fold the Bloom filter by the given factor.

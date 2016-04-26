@@ -4,19 +4,20 @@
     using System.Collections;
     using Configurations;
     using System.Linq;
-
-    /// <summary>
-    /// A simple Bloom filter
-    /// </summary>
-    /// <remarks>Not public for now</remarks>
-    internal class BloomFilter<TKey> : 
+    using Invertible.Configurations;
+    using System.Diagnostics.Contracts;    /// <summary>
+                                           /// A simple Bloom filter
+                                           /// </summary>
+                                           /// <remarks>Not public for now</remarks>
+    public class BloomFilter<TKey> : 
         IBloomFilter<TKey> where TKey : struct
     {
         private readonly IBloomFilterConfiguration<TKey, int> _configuration;
-        private BitArray _data;
+        private FastBitArray _data;
         private uint _hashFunctionCount;
         private long _capacity;
         private long _blockSize;
+        private static readonly byte[] EmptyByteArray = new byte[0];
 
         #region Properties
 
@@ -94,7 +95,7 @@
                 throw new ArgumentOutOfRangeException(
                     $"The size {m} of the Bloom filter is not large enough to hold {capacity} items.");
             }
-            _data = new BitArray((int) (m*k));
+            _data = new FastBitArray((int) m);
             _hashFunctionCount = k;
             _capacity = capacity;
             _blockSize = m;
@@ -106,7 +107,8 @@
         /// <param name="value"></param>
         public virtual void Add(TKey value)
         {
-            foreach (var position in _configuration.Hashes(_configuration.IdHash(value), _hashFunctionCount))
+            foreach (int position in _configuration
+                .Probe(BlockSize, _hashFunctionCount, _configuration.IdHash(value)))
             {
                 _data.Set(position, true);
             }
@@ -120,7 +122,8 @@
         /// <remarks>Not the best thing to do. Use a counting Bloom filter instead when you need removal. Throw a not supported exception instead?</remarks>
         public virtual void Remove(TKey value)
         {
-            foreach (var position in _configuration.Hashes(_configuration.IdHash(value), _hashFunctionCount))
+            foreach (int position in _configuration
+                .Probe(BlockSize, _hashFunctionCount, _configuration.IdHash(value)))
             {
                 _data.Set(position, false);
             }
@@ -135,8 +138,8 @@
         public virtual bool Contains(TKey value)
         {
             return _configuration
-                .Hashes(_configuration.IdHash(value), _hashFunctionCount)
-                .All(position => _data.Get(position));
+                .Probe(BlockSize, _hashFunctionCount, _configuration.IdHash(value))
+                .All(position => _data.Get((int)position));
         }
 
         /// <summary>
@@ -147,7 +150,7 @@
         {
             return new BloomFilterData
             {
-                Bits = _data.ToBytes(),
+                Bits = _data?.ToBytes(),
                 Capacity = _capacity,
                 BlockSize = _blockSize,
                 ItemCount = ItemCount,
@@ -159,16 +162,16 @@
         /// Load the Bloom filter data into the Bloom filter
         /// </summary>
         /// <param name="bloomFilterData"></param>
-        public virtual void Rehydrate(BloomFilterData bloomFilterData)
+        public virtual void Rehydrate(IBloomFilterData bloomFilterData)
         {
             if (bloomFilterData == null) return;
             _hashFunctionCount = bloomFilterData.HashFunctionCount;
             _capacity = bloomFilterData.Capacity;
             _blockSize = bloomFilterData.BlockSize;
             ItemCount = bloomFilterData.ItemCount;
-            _data = new BitArray(bloomFilterData.Bits)
+            _data = new FastBitArray(bloomFilterData.Bits?? EmptyByteArray)
             {
-                Length = (int) (_blockSize*_hashFunctionCount)
+                Length = (int)_blockSize
             };
         }
 
@@ -177,30 +180,88 @@
         /// </summary>
         /// <param name="bloomFilterData"></param>
         /// <remarks>Results in only retaining the keys the filters have in common.</remarks>
-        public virtual void Intersect(BloomFilterData bloomFilterData)
+        public virtual void Intersect(IBloomFilterData bloomFilterData)
         {
             if (bloomFilterData == null) return;
-            //todo: check compatibility
-            _data.And(new BitArray(bloomFilterData.Bits)
+            var foldedSize = _configuration.FoldingStrategy?.GetFoldFactors(_blockSize, bloomFilterData.BlockSize);
+            if (bloomFilterData.BlockSize != BlockSize &
+                foldedSize == null)
             {
-                Length = (int) (bloomFilterData.BlockSize*bloomFilterData.HashFunctionCount)
-            });
+                throw new ArgumentException("Bloom filters of different sizes cannot be intersected.", nameof(bloomFilterData));
+            }
+            var otherBitArray = new FastBitArray(bloomFilterData.Bits ?? EmptyByteArray)
+            {
+                Length = (int)bloomFilterData.BlockSize
+            };
+            if (foldedSize != null &&
+                (foldedSize.Item2 != 1 ||
+                foldedSize.Item1 != 1))
+            {
+                if (foldedSize.Item1 != 1)
+                {
+                    Fold((uint)foldedSize.Item1, true);
+                }
+                if (foldedSize.Item2 != 1)
+                {
+                    for (var i = 0; i < _data.Length; i++)
+                    {
+                        _data.Set(i, _data.Get(i) & GetFolded(otherBitArray, i, (uint)foldedSize.Item2));
+                    }
+                    ItemCount = EstimateItemCount(_data, _hashFunctionCount);
+                    return;
+                }
+            }
+            _data = _data.And(otherBitArray);
             ItemCount = EstimateItemCount(_data, _hashFunctionCount);
         }
 
         /// <summary>
         /// Add a Bloom filter (union)
         /// </summary>
+        /// <param name="bloomFilter"></param>
+        /// <remarks>Results in all keys from the filters.</remarks>
+        public virtual void Add(IBloomFilter<TKey> bloomFilter)
+        {
+            if (bloomFilter == null) return;
+            Add(bloomFilter.Extract());
+        }
+        /// <summary>
+        /// Add a Bloom filter (union)
+        /// </summary>
         /// <param name="bloomFilterData"></param>
         /// <remarks>Results in all keys from the filters.</remarks>
-        public virtual void Add(BloomFilterData bloomFilterData)
+        public virtual void Add(IBloomFilterData bloomFilterData)
         {
             if (bloomFilterData == null) return;
-            //todo: check compatibility
-            _data.Or(new BitArray(bloomFilterData.Bits)
+            var foldedSize = _configuration.FoldingStrategy?.GetFoldFactors(_blockSize, bloomFilterData.BlockSize);
+            if (bloomFilterData.BlockSize != BlockSize &
+                foldedSize == null)
             {
-                Length = (int) (bloomFilterData.BlockSize*bloomFilterData.HashFunctionCount)
-            });
+                throw new ArgumentException("Bloom filters of different sizes cannot be added.", nameof(bloomFilterData));
+            }
+            var otherBitArray = new FastBitArray(bloomFilterData.Bits ?? EmptyByteArray)
+            {
+                Length = (int)bloomFilterData.BlockSize
+            };
+            if (foldedSize != null &&
+                (foldedSize.Item2 != 1 ||
+                foldedSize.Item1 != 1))
+            {
+                if (foldedSize.Item1 != 1)
+                {
+                    Fold((uint)foldedSize.Item1, true);
+                }
+                if (foldedSize.Item2 != 1)
+                {
+                    for (var i = 0; i < _data.Length; i++)
+                    {
+                        _data.Set(i, _data.Get(i) | GetFolded(otherBitArray, i, (uint)foldedSize.Item2));
+                    }
+                    ItemCount = ItemCount + bloomFilterData.ItemCount;
+                    return;
+                }
+            }
+            _data = _data.Or(otherBitArray);
             ItemCount = ItemCount + bloomFilterData.ItemCount;
         }
 
@@ -209,14 +270,38 @@
         /// </summary>
         /// <param name="bloomFilterData"></param>
         /// <remarks>Results in the symmetric difference of the two Bloom filters.</remarks>
-        public virtual void Subtract(BloomFilterData bloomFilterData)
+        public virtual void Subtract(IBloomFilterData bloomFilterData)
         {
             if (bloomFilterData == null) return;
-            //todo: check compatibility
-            _data.Xor(new BitArray(bloomFilterData.Bits)
+            var foldedSize = _configuration.FoldingStrategy?.GetFoldFactors(_blockSize, bloomFilterData.BlockSize);
+            if (bloomFilterData.BlockSize != BlockSize &
+                foldedSize == null)
             {
-                Length = (int) (bloomFilterData.BlockSize*bloomFilterData.HashFunctionCount)
-            });
+                throw new ArgumentException("Bloom filters of different sizes cannot be subtracted.", nameof(bloomFilterData));
+            }
+            var otherBitArray = new FastBitArray(bloomFilterData.Bits ?? EmptyByteArray)
+            {
+                Length = (int)bloomFilterData.BlockSize
+            };
+            if (foldedSize != null &&
+                (foldedSize.Item2 != 1 ||
+                foldedSize.Item1 != 1))
+            {
+                if (foldedSize.Item1 != 1)
+                {
+                    Fold((uint)foldedSize.Item1, true);
+                }
+                if (foldedSize.Item2 != 1)
+                {
+                    for (var i = 0; i < _data.Length; i++)
+                    {
+                        _data.Set(i, _data.Get(i) ^ GetFolded(otherBitArray, i, (uint)foldedSize.Item2));
+                    }
+                    ItemCount = EstimateItemCount(_data, _hashFunctionCount);
+                    return;
+                }
+            }
+            _data = _data.Xor(otherBitArray);
             ItemCount = EstimateItemCount(_data, _hashFunctionCount);
         }
 
@@ -228,25 +313,11 @@
         /// <returns></returns>
         public virtual BloomFilter<TKey> Fold(uint factor, bool inPlace = false)
         {
-            if (factor <= 0)
-                throw new ArgumentException($"Fold factor should be a positive number (given value was {factor}.");
-            if (_blockSize%factor != 0)
-            {
-                throw new ArgumentException(
-                    $"Bloom filter of size {_blockSize} cannot be folded by a factor {factor}.", nameof(factor));
-            }
-            var newBlockSize = _blockSize/factor;       
-            var newCapacity = _capacity/factor;
-            var result = inPlace ? _data : new BitArray((int) newBlockSize);
-            for (var i = 0; i < (int) newBlockSize; i++)
-            {
-                result.Set(i, GetFolded(_data, i, (int) factor));
-            }
+            var result = _data.Fold(factor, inPlace);
             if (inPlace)
             {
-                result.Length = (int) newBlockSize;
-                _capacity = newCapacity;
-                _blockSize = newBlockSize;
+                _capacity = _capacity / factor;
+                _blockSize = result.Length;
                 return this;
             }
             var bloomFilter = new BloomFilter<TKey>(_configuration);
@@ -254,8 +325,8 @@
             {
                 Bits = result.ToBytes(),
                 ItemCount = ItemCount,
-                Capacity = newCapacity,
-                BlockSize = newBlockSize,
+                Capacity = _capacity/factor,
+                BlockSize = result.Length,
                 HashFunctionCount = _hashFunctionCount
             });
             return bloomFilter;
@@ -263,24 +334,27 @@
 
         public BloomFilter<TKey> Compress(bool inPlace = false)
         {
-            var foldFactor = _configuration?.FoldingStrategy?.FindCompressionFactor(_blockSize, _capacity, ItemCount);
+            var foldFactor = _configuration?
+                .FoldingStrategy?
+                .FindCompressionFactor(_configuration, _blockSize, _capacity, ItemCount);
             if (foldFactor == null) return null;
+           
             return Fold(foldFactor.Value, inPlace);
         }
 
-        private static bool GetFolded(BitArray bitArray, int position, int foldFactor)
+        private static bool GetFolded(FastBitArray bitArray, int position, uint foldFactor)
         {
             if (foldFactor == 1) return bitArray[position];
             var foldedSize = bitArray.Length/foldFactor;
             for (var i = 0; i < foldFactor; i++)
             {
-                if (!bitArray.Get(position + i*foldedSize))
-                    return false;
+                if (bitArray.Get(position + i * (int)foldedSize))
+                    return true;
             }
-            return true;
+            return false;
         }
 
-        private static long EstimateItemCount(BitArray array, uint hashFunctionCount)
+        private static long EstimateItemCount(FastBitArray array, uint hashFunctionCount)
         {
             var bitCount = 0L;
             for (var i = 0; i < array.Length; i++)

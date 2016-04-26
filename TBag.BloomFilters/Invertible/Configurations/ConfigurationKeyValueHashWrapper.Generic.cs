@@ -53,6 +53,32 @@
             }
         }
 
+        public override Func<TId, TId, TId> IdRemove
+        {
+            get
+            {
+                return _wrappedConfiguration.IdRemove;
+            }
+
+            set
+            {
+                _wrappedConfiguration.IdRemove = value;
+            }
+        }
+
+        public override Func<TId, TId, TId> IdIntersect
+        {
+            get
+            {
+                return _wrappedConfiguration.IdIntersect;
+            }
+
+            set
+            {
+                _wrappedConfiguration.IdIntersect = value;
+            }
+        }
+
         public override Func<TId, THash> IdHash
         {
             get
@@ -132,6 +158,32 @@
             }
         }
 
+        public override Func<THash, THash, THash> HashRemove
+        {
+            get
+            {
+                return _wrappedConfiguration.HashRemove;
+            }
+
+            set
+            {
+                _wrappedConfiguration.HashRemove= value;
+            }
+        }
+
+        public override Func<THash, THash, THash> HashIntersect
+        {
+            get
+            {
+                return _wrappedConfiguration.HashIntersect;
+            }
+
+            set
+            {
+                _wrappedConfiguration.HashIntersect = value;
+            }
+        }
+
         public override EqualityComparer<TId> IdEqualityComparer
         {
             get
@@ -145,6 +197,18 @@
             }
         }
 
+        public override ICompressedArrayFactory CompressedArrayFactory
+        {
+            get
+            {
+                return _wrappedConfiguration.CompressedArrayFactory;
+            }
+
+            set
+            {
+                _wrappedConfiguration.CompressedArrayFactory = value;
+            }
+        }
         public override TId IdIdentity
         {
             get

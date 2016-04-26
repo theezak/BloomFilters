@@ -34,7 +34,7 @@ namespace TBag.BloomFilters.Invertible
                 capacity = 10;
             }            
             var data = precalculatedFilter.Extract();
-            var foldFactor = configuration.FoldingStrategy?.FindCompressionFactor(data.BlockSize, data.Capacity, capacity);
+            var foldFactor = configuration.FoldingStrategy?.FindCompressionFactor(configuration, data.BlockSize, data.Capacity, capacity);
             if (foldFactor > 1)
             {
                 return data.Fold(configuration, (uint)foldFactor);

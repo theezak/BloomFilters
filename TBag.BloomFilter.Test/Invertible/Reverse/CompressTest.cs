@@ -30,7 +30,7 @@ namespace TBag.BloomFilter.Test.Invertible.Reverse
             var notFoundCount = DataGenerator.Generate().Skip(addSize).Take(10000).Count(itm => filter.Contains(itm));
             Assert.IsTrue(notFoundCount <= 4 * errorRate * addSize, "Uncompressed reverse Bloom filter exceeded error rate.");
             filter.Compress(true);
-            Assert.AreEqual(filter.Capacity, 15151, "Unexpected size of compressed reverse Bloom filter.");
+            Assert.AreEqual(filter.Capacity, 12820, "Unexpected size of compressed reverse Bloom filter.");
             var compressNotFoundCount = DataGenerator.Generate().Skip(addSize).Take(10000).Count(itm => filter.Contains(itm));
             Assert.IsTrue(compressNotFoundCount <= 4 * errorRate * addSize, "Compressed reverse Bloom filter exceeded error rate.");
         }

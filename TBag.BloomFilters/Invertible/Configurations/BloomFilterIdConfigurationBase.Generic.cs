@@ -14,7 +14,7 @@
         where THash : struct
     {
         private static readonly double Log2 = Math.Log(2.0D);
-        private static readonly double Pow2Log2 = Math.Pow(2, Math.Log(2.0D));
+        private static readonly double Pow2Log2 = 1.0D/Math.Pow(2, Math.Log(2.0D));
 
         /// <summary>
         /// Constructor
@@ -83,6 +83,19 @@
                 (uint) Math.Ceiling(Math.Abs(Log2*(1.0D*BestSize(capacity, errorRate)/capacity))));
         }
 
+        /// Function to determine the best number of hash functions.
+        /// </summary>
+        /// <param name="capacity">The capacity</param>
+        /// <param name="blockSize">The desired error rate (between 0 and 1).</param>
+        /// <returns></returns>
+        public uint BestHashFunctionCount(long capacity, long blockSize)
+        {
+            //at least 2 hash functions.
+            return Math.Max(
+                MinimumHashFunctionCount,
+                (uint)Math.Ceiling(Math.Abs(Log2 * (1.0D * blockSize / capacity))));
+        }
+
         /// <summary>
         /// Determine the best, compressed, size for the Bloom filter.
         /// </summary>
@@ -92,9 +105,10 @@
         /// <returns></returns>
         public virtual long BestCompressedSize(long capacity, float errorRate, int foldFactor = 0)
         {
+            return BestSize(capacity, errorRate);
             //compress the size of the Bloom filter, by ln2.
             //TODO: causes too many false positives? Alternative is return BestSize(capacity, errorRate);
-            return (long) (BestSize(capacity, errorRate)*Log2);
+            //return (long) (BestSize(capacity, errorRate)*Log2);
         }
 
         /// <summary>
@@ -105,7 +119,7 @@
         /// <returns></returns>
         public virtual long BestSize(long capacity, float errorRate)
         {
-            return (long) Math.Abs(capacity*Math.Log(errorRate)/Pow2Log2);
+            return (long) Math.Ceiling(1.01D*Math.Abs(capacity*Math.Log(errorRate, Pow2Log2)));
         }
 
         /// <summary>

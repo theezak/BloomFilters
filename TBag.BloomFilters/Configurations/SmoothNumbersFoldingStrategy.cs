@@ -4,7 +4,7 @@
     using System;
     using MathExt;
     using System.Collections.Generic;
-
+    using Configurations;
     /// <summary>
     /// Folding strategy based upon smooth numbers.
     /// </summary>
@@ -47,16 +47,18 @@
         /// <param name="capacity"></param>
         /// <param name="keyCount">The number of keys added to the Bloom filter. When not provided, the fold advice will not take the error rate into consideration and provide a maximal fold given the capacity.</param>
         /// <returns>A fold factor.</returns>
-        public uint? FindCompressionFactor(long blockSize, long capacity, long? keyCount = null)
+        public uint? FindCompressionFactor(IBloomFilterSizeConfiguration configuration, long blockSize, long capacity, long? keyCount = null)
         {
             if (keyCount.HasValue && !(keyCount > 0)) return null;
-            var pieces = MathExtensions.GetFactors(blockSize)               
-                .Where(factor => blockSize / factor > 1 &&
-                                 (!keyCount.HasValue || capacity / factor > keyCount.Value) &&
-                                 factor < blockSize)
+            var pieces = MathExtensions.GetFactors(blockSize)
+                .Where(factor =>
+               blockSize / factor > 1 &&
+                                (!keyCount.HasValue ||  (capacity / factor  >= keyCount.Value) &&
+                                factor < blockSize))
                 .DefaultIfEmpty()
-                .Max();
-            return pieces > 1 ? (uint?) (uint) pieces : null;
+                .ToArray();
+            var max = pieces.Max();
+            return max > 1 ? (uint?) (uint) max : null;
         }
 
         /// <summary>

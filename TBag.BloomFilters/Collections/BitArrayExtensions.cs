@@ -1,7 +1,7 @@
 ﻿namespace System.Collections
 {
     /// <summary>
-    /// Extensions for <see cref="BitArray"/>.
+    /// Extensions for <see cref="FastBitArray"/>.
     /// </summary>
    internal static class BitArrayExtensions
     {
@@ -10,7 +10,7 @@
         // </summary>
         //<param name="bits">The bit array to convert</param>
         // <returns>The bit array converted to an array of bytes.</returns>
-        internal static byte[] ToBytes(this BitArray bits)
+        internal static byte[] ToBytes(this FastBitArray bits)
         {
             if (bits == null) return null;
             var numBytes = bits.Count / 8;

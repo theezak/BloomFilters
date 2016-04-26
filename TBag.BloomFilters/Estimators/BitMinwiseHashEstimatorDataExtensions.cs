@@ -48,7 +48,7 @@
             where TCount : struct
         {
             if (configuration?.FoldingStrategy == null || estimator == null) return null;
-            var fold = configuration.FoldingStrategy.FindCompressionFactor(estimator.Capacity, estimator.Capacity, estimator.ItemCount);
+            var fold = configuration.FoldingStrategy.FindCompressionFactor(configuration, estimator.Capacity, estimator.Capacity, estimator.ItemCount);
             return fold.HasValue ? estimator.Fold(fold.Value) : null;
         }
 
@@ -72,9 +72,12 @@
                 BitSize = estimator.BitSize,
                 Capacity = estimator.Capacity / factor,
                 HashCount = estimator.HashCount,
-                ItemCount = estimator.ItemCount,
-                Values = estimator.Values == null ? null : new int[(estimator.Capacity / factor)*estimator.HashCount]
+                ItemCount = estimator.ItemCount
             };
+            if (estimator.Values!=null)
+            {
+                res.SetValues(false);
+            }
             if ((res.Values?.Length ?? 0L) == 0L) return res;
             Parallel.ForEach(
                 Partitioner.Create(0L, res.Values.LongLength),
@@ -123,9 +126,10 @@
                     BitSize = estimator.BitSize,
                     ItemCount = estimator.ItemCount,
                 };
-            res.Values = estimator.Values == null && otherEstimator.Values == null ?
-                null :
-                new int[res.Capacity*res.HashCount];
+            if (estimator.Values != null && otherEstimator.Values != null)
+            {
+                res.SetValues(false);
+            }
             if (res.Values == null) return res;
             Parallel.ForEach(
                 Partitioner.Create(0L, res.Values.LongLength),
@@ -181,14 +185,17 @@
                 throw new ArgumentException("Minwise estimators with different capacity or hash count cannot be intersected.");
             }
             var res = new BitMinwiseHashEstimatorFullData
-                {
-                    Capacity = estimator.Capacity / (foldingFactors?.Item1 ?? 1L),
-                    HashCount = estimator.HashCount,
-                    BitSize = estimator.BitSize,
-                    ItemCount = otherEstimator==null?0:estimator.ItemCount,
-                    Values = estimator.Values==null || otherEstimator?.Values == null ? null : new int[(estimator.Capacity / (foldingFactors?.Item1 ?? 1L))*estimator.HashCount]
-                };
-           if (res.Values == null) return res;
+            {
+                Capacity = estimator.Capacity / (foldingFactors?.Item1 ?? 1L),
+                HashCount = estimator.HashCount,
+                BitSize = estimator.BitSize,
+                ItemCount = otherEstimator == null ? 0 : estimator.ItemCount
+            };
+            if (estimator.Values != null && otherEstimator?.Values != null)
+            {
+                res.SetValues(false);
+            }
+                if (res.Values == null) return res;
             var dropped = 0;
             Parallel.ForEach(
                 Partitioner.Create(0L, res.Values.LongLength),
@@ -196,8 +203,18 @@
                 {
                     for (var i = range.Item1; i < range.Item2; i++)
                     {
-                        var estimatorValue = GetFolded(estimator.Values, i, foldingFactors?.Item1, Math.Min, int.MaxValue);
-                        var otherEstimatorValue = GetFolded(otherEstimator.Values, i, foldingFactors?.Item2, Math.Min, int.MaxValue);
+                        var estimatorValue = GetFolded(
+                            estimator.Values, 
+                            i, 
+                            foldingFactors?.Item1, 
+                            Math.Min, 
+                            int.MaxValue);
+                        var otherEstimatorValue = GetFolded(
+                            otherEstimator.Values, 
+                            i, 
+                            foldingFactors?.Item2, 
+                            Math.Min, 
+                            int.MaxValue);
                         if (estimatorValue == int.MaxValue ||
                             otherEstimatorValue == int.MaxValue ||
                             otherEstimatorValue != estimatorValue)
@@ -208,7 +225,11 @@
                     }
                 });
             //wildly wrong, but about as good as it gets. 
-            res.ItemCount = Math.Max(0, Math.Min(estimator.ItemCount, otherEstimator.ItemCount) - (long)Math.Ceiling((double)dropped/(0.5D*res.HashCount)));
+            res.ItemCount = Math.Max(
+                0, 
+                Math.Min(
+                    estimator.ItemCount, 
+                    otherEstimator.ItemCount) - (long)Math.Ceiling(dropped/(0.5D*res.HashCount)));
             return res;
         }
 
@@ -218,10 +239,10 @@
         /// <param name="slots">The hashed values.</param>
         /// <param name="bitSize">The bit size to be used per slot.</param>
         /// <returns></returns>
-        internal static BitArray ConvertToBitArray(this int[] slots, byte bitSize)
+        internal static FastBitArray ConvertToBitArray(this int[] slots, byte bitSize)
         {
             if (slots == null || bitSize <= 0) return null;
-            var hashValues = new BitArray((int)(bitSize * slots.LongLength));
+            var hashValues = new FastBitArray((int)(bitSize * slots.LongLength));
             var allDefault = true;
             var idx = 0;
             for (var i = 0; i < slots.LongLength; i++)
@@ -243,16 +264,36 @@
             return hashValues;
         }
 
+        internal static long GetBlockSize(this IBitMinwiseHashEstimatorFullData data)
+        {
+            return data == null ? 0L : data.HashCount * data.Capacity;
+        }
+
+        internal static long GetBlockSize(this IBitMinwiseHashEstimatorData data)
+        {
+            return data == null ? 0L : data.HashCount * data.Capacity;
+        }
+
+        internal static long GetBitSize(this IBitMinwiseHashEstimatorData data)
+        {
+            return data == null ? 0L : data.GetBlockSize() * data.BitSize;
+        }
+
         #region Methods
-        private static BitArray CreateBitArray(IBitMinwiseHashEstimatorData estimator)
+        /// <summary>
+        /// Create a bit array for the given estimator,
+        /// </summary>
+        /// <param name="estimator"></param>
+        /// <returns></returns>
+        private static FastBitArray CreateBitArray(IBitMinwiseHashEstimatorData estimator)
         {
             if (estimator==null)
                 throw new ArgumentNullException(nameof(estimator));
             var estimatorBitArray = estimator.Values == null
-                ? new BitArray((int) estimator.Capacity*estimator.BitSize*estimator.HashCount)
-                : new BitArray(estimator.Values)
+                ? new FastBitArray((int)estimator.GetBitSize())
+                : new FastBitArray(estimator.Values)
                 {
-                    Length = (int) estimator.Capacity*estimator.BitSize*estimator.HashCount
+                    Length = (int)estimator.GetBitSize()
                 };
             if (estimator.Values == null)
             {
@@ -270,8 +311,8 @@
         /// <param name="bitSize">The number of bits for a single cell</param>
         /// <returns></returns>
        private static double? ComputeSimilarityFromSignatures(
-            BitArray minHashValues1, 
-            BitArray minHashValues2,
+            FastBitArray minHashValues1, 
+            FastBitArray minHashValues2,
             int numHashFunctions, 
             byte bitSize)
         {
@@ -299,13 +340,13 @@
         /// <summary>
         /// Get the folded value starting fro the given position.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="values"></param>
-        /// <param name="position"></param>
-        /// <param name="foldFactor"></param>
-        /// <param name="foldOperator"></param>
-        /// <param name="defaultValue"></param>
-        /// <returns></returns>
+        /// <typeparam name="T">The value type</typeparam>
+        /// <param name="values">The values</param>
+        /// <param name="position">The position to get the value for in the folded version of <paramref name="values"/></param>
+        /// <param name="foldFactor">The factor to fold <paramref name="values"/> by</param>
+        /// <param name="foldOperator">The operator to apply during folding</param>
+        /// <param name="defaultValue">The default value</param>
+        /// <returns>The value at the given <paramref name="position"/> of the folded version of <paramref name="values"/> when folded by <paramref name="foldFactor"/></returns>
         private static T GetFolded<T>(
             T[] values, 
             long position, 
@@ -330,5 +371,7 @@
         }
         #endregion
     }
+
+  
 }
 

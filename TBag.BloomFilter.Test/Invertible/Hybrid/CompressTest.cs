@@ -26,7 +26,7 @@ namespace TBag.BloomFilter.Test.Invertible.Hybrid
             var notFoundCount = DataGenerator.Generate().Skip(addSize).Take(10000).Count(itm => hybridFilter.Contains(itm));
             Assert.IsTrue(notFoundCount <= errorRate * addSize, "Uncompressed hybrid Bloom filter exceeded error rate.");
             hybridFilter.Compress(true);
-            Assert.AreEqual(hybridFilter.Capacity, 15151, "Unexpected size of compressed hybrid Bloom filter.");
+            Assert.AreEqual(hybridFilter.Capacity, 12820, "Unexpected size of compressed hybrid Bloom filter.");
             var compressNotFoundCount = DataGenerator.Generate().Skip(addSize).Take(10000).Count(itm => hybridFilter.Contains(itm));
             Assert.IsTrue(compressNotFoundCount <= errorRate * addSize, "Compressed hybrid Bloom filter exceeded error rate.");
         }

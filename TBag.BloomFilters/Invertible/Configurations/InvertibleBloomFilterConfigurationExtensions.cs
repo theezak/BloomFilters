@@ -40,6 +40,25 @@
         /// <param name="data">The invertible Bloom filter data</param>
         /// <param name="value">The hash value</param>
         /// <returns>A sequence of positions to hash the data to (length equals the number of hash functions configured).</returns>
+        internal static IEnumerable<long> Probe<TId>(
+            this IBloomFilterConfiguration<TId, int> configuration,
+            long blockSize,
+            uint hashFunctionCount,
+            int value)
+            where TId : struct
+        {
+            return configuration
+                .Hashes(value,hashFunctionCount)
+                .Select(p => Math.Abs(p % blockSize));
+        }
+
+        /// <summary>
+        /// Generate the sequence of cell locations to hash the given key to.
+        /// </summary>
+        /// <param name="configuration">The configuration</param>
+        /// <param name="data">The invertible Bloom filter data</param>
+        /// <param name="value">The hash value</param>
+        /// <returns>A sequence of positions to hash the data to (length equals the number of hash functions configured).</returns>
         internal static IEnumerable<long> Probe<TId, TCount>(
             this IBloomFilterConfiguration<TId, int> configuration,
             IInvertibleBloomFilterData<TId, int, TCount> data,
@@ -48,8 +67,7 @@
             where TId : struct
         {
             return configuration
-                .Hashes(value, data.HashFunctionCount)
-                .Select(p => Math.Abs(p%data.BlockSize));
+                .Probe(data.BlockSize, data.HashFunctionCount, value);
         }
     }
 }

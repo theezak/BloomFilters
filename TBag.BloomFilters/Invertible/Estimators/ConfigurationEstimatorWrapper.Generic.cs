@@ -22,11 +22,13 @@
         private readonly IInvertibleBloomFilterConfiguration<TEntity, TId,  int, TCount> _wrappedConfiguration;
         private Func<KeyValuePair<int, int>, int> _getId;
         private readonly IMurmurHash _murmurHash = new Murmur3();
-        private Func<int, int, int> _idXor;
+        private Func<int, int, int> _idAdd;
+        private Func<int, int, int> _idRemove;
         private Func<IInvertibleBloomFilterData<int, int, TCount>, long, bool> _isPure;
         private EqualityComparer<int> _idEqualityComparer;
         private Func<KeyValuePair<int, int>, int> _entityHash;
         private Func<int, int> _idHash;
+        private Func<int, int, int> _idIntersect;
 
         /// <summary>
         /// Constructor
@@ -43,7 +45,9 @@
             _idHash = id => BitConverter.ToInt32(_murmurHash.Hash(BitConverter.GetBytes(id), 12345678), 0);
             //entity hash equals identifier hash
             _entityHash = e => _idHash(_getId(e));
-            _idXor = (id1, id2) => id1 ^ id2;
+            //estimator uses XOR
+            _idAdd = _idRemove = (id1, id2) => id1 ^ id2;
+            _idIntersect = (id1, id2) => id1 & id2;
             _isPure = (d, p) => _wrappedConfiguration.CountConfiguration.IsPure(d.Counts[p]) &&
                                 _idHash(d.IdSumProvider[p]) == d.HashSumProvider[p];
         }   
@@ -58,12 +62,38 @@
         {
             get
             {
-                return _idXor;
+                return _idAdd;
             }
 
             set
             {
-                _idXor = value;
+                _idAdd = value;
+            }
+        }
+
+        public override Func<int, int, int> IdRemove
+        {
+            get
+            {
+                return _idRemove;
+            }
+
+            set
+            {
+               _idRemove = value;
+            }
+        }
+
+        public override Func<int, int, int> IdIntersect
+        {
+            get
+            {
+                return _idIntersect;
+            }
+
+            set
+            {
+                _idIntersect = value;
             }
         }
 
@@ -135,6 +165,45 @@
             set
             {
                 _wrappedConfiguration.HashAdd = value;
+            }
+        }
+
+        public override Func<int, int, int> HashRemove
+        {
+            get
+            {
+                return _wrappedConfiguration.HashRemove;
+            }
+
+            set
+            {
+                _wrappedConfiguration.HashRemove = value;
+            }
+        }
+
+        public override Func<int, int, int> HashIntersect
+        {
+            get
+            {
+                return _wrappedConfiguration.HashIntersect;
+            }
+
+            set
+            {
+                _wrappedConfiguration.HashIntersect = value;
+            }
+        }
+
+        public override ICompressedArrayFactory CompressedArrayFactory
+        {
+            get
+            {
+                return _wrappedConfiguration.CompressedArrayFactory;
+            }
+
+            set
+            {
+                _wrappedConfiguration.CompressedArrayFactory = value;
             }
         }
 

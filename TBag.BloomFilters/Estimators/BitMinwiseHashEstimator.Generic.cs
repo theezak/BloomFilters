@@ -110,7 +110,12 @@ namespace TBag.BloomFilters.Estimators
         /// <returns></returns>
         public void Add(IBitMinwiseHashEstimator<TEntity, TId, TCount> estimator)
         {
-            Rehydrate(FullExtract().Add(estimator?.FullExtract(), _configuration.FoldingStrategy, true));
+            Rehydrate(
+                FullExtract()
+                .Add(
+                    estimator?.FullExtract(), 
+                    _configuration.FoldingStrategy, 
+                    true));
         }
 
         /// <summary>
@@ -189,7 +194,11 @@ namespace TBag.BloomFilters.Estimators
                 Rehydrate(res);
                 return this;
             }
-            var estimatorRes = new BitMinwiseHashEstimator<TEntity, TId, TCount>(_configuration, _bitSize, _hashCount, _capacity);
+            var estimatorRes = new BitMinwiseHashEstimator<TEntity, TId, TCount>(
+                _configuration, 
+                _bitSize, 
+                _hashCount, 
+                _capacity);
             estimatorRes.Rehydrate(res);
             return estimatorRes;
         }
@@ -247,8 +256,6 @@ namespace TBag.BloomFilters.Estimators
         #endregion
 
         #region Methods
-
-      
 
         /// <summary>
         /// Bit minwise estimator requires this specific hash function.

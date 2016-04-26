@@ -20,10 +20,10 @@ namespace TBag.BloomFilters.Configurations
         /// Find a fold factor for a Bloom filter of <paramref name="blockSize"/> and given <paramref name="capacity"/> to match the <paramref name="keyCount"/>.
         /// </summary>
         /// <param name="blockSize">The size of the Bloom filter.</param>
-         /// <param name="capacity">The current capacity.</param>
+        /// <param name="capacity">The current capacity.</param>
         /// <param name="keyCount">The actual number of keys.</param>
         /// <returns>A compression factor</returns>
-        uint? FindCompressionFactor(long blockSize, long capacity, long? keyCount = null);
+        uint? FindCompressionFactor(IBloomFilterSizeConfiguration configuration, long blockSize, long capacity, long? keyCount = null);
 
         /// <summary>
         /// Get the best fold factor for two Bloom filters of <paramref name="blockSize1"/> and <paramref name="blockSize2"/> size.

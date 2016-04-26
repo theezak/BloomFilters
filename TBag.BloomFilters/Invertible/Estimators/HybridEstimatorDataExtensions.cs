@@ -141,6 +141,7 @@
         {
             if (configuration?.FoldingStrategy == null || estimatorData == null) return null;
             var fold = configuration.FoldingStrategy.FindCompressionFactor(
+                configuration,
                 estimatorData.StrataEstimator.BlockSize,
                 estimatorData.StrataEstimator.BlockSize,
                 estimatorData.ItemCount);

@@ -29,5 +29,11 @@
         /// The item count.
         /// </summary>
         long ItemCount { get; set; }
+
+        /// <summary>
+        /// Create new values.
+        /// </summary>
+        /// <param name="initialize">When <c>true</c> initialize.</param>
+        void SetValues(bool initialize = true);
     }
 }

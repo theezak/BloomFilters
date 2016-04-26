@@ -91,7 +91,7 @@
             where THash : struct
         {
             if (filterData == null) return null;
-            var fold = configuration?.FoldingStrategy?.FindCompressionFactor(filterData.BlockSize, filterData.Capacity, filterData.ItemCount);
+            var fold = configuration?.FoldingStrategy?.FindCompressionFactor(configuration, filterData.BlockSize, filterData.Capacity, filterData.ItemCount);
             var res = fold.HasValue ? filterData.Fold(configuration, fold.Value) : null;
             if (res == null) return null;
             res.SubFilter = filterData.

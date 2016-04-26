@@ -38,5 +38,21 @@
         /// </summary>
         [DataMember(Order = 5)]
         public long ItemCount { get; set; }
+
+        /// <summary>
+        /// Set the values
+        /// </summary>
+        /// <param name="initialize"></param>
+        public void SetValues(bool initialize=true)
+        {
+            Values = new int[this.GetBlockSize()];
+            if (initialize)
+            {
+                for(var i=0L; i < Values.LongLength; i++)
+                {
+                    Values[i] = int.MaxValue;
+                }
+            }
+        }
     }
 }

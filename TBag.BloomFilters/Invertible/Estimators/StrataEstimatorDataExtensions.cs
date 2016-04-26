@@ -246,7 +246,7 @@
             where TId : struct
         {
             if (configuration?.FoldingStrategy == null || estimatorData == null) return null;
-            var fold = configuration.FoldingStrategy?.FindCompressionFactor(estimatorData.BlockSize, estimatorData.BlockSize,
+            var fold = configuration.FoldingStrategy?.FindCompressionFactor(configuration, estimatorData.BlockSize, estimatorData.BlockSize,
                 estimatorData.ItemCount);
             var res = fold.HasValue ? estimatorData.Fold(configuration, fold.Value) : null;
             return res;

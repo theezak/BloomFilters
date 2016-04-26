@@ -14,6 +14,14 @@
         uint BestHashFunctionCount(long capacity, float errorRate);
 
         /// <summary>
+        /// Calculate the best hash function count given capacity and block size.
+        /// </summary>
+        /// <param name="capacity"></param>
+        /// <param name="blockSize"></param>
+        /// <returns></returns>
+        uint BestHashFunctionCount(long capacity, long blockSize);
+
+        /// <summary>
         /// Calculate the best compressed size based upon <paramref name="capacity"/> and desired <paramref name="errorRate"/>.
         /// </summary>
         /// <param name="capacity">The capacity for the Bloom filter</param>
