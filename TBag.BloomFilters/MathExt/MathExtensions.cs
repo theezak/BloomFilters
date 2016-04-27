@@ -1,4 +1,7 @@
-﻿namespace TBag.BloomFilters.MathExt
+﻿using System.Collections;
+using System.Security.Cryptography.X509Certificates;
+
+namespace TBag.BloomFilters.MathExt
 {
     using System;
     using System.Collections.Generic;
@@ -34,8 +37,9 @@
             return gcd;
         }
 
+
         /// <summary>
-        /// Get the primes
+        /// Get all the primes at most equal to <param name="to"></param>
         /// </summary>
         /// <param name="to"></param>
         /// <returns>All primes up to <paramref name="to"/>.</returns>
@@ -46,21 +50,35 @@
             {
                 return cached.Item2.Where(p => p <= to).ToArray();
             }
+            FastBitArray sieveContainer = new FastBitArray((int) to + 1, true);
             var max = (long)Math.Floor(2.52 * Math.Sqrt(to) / Math.Log(to));
-            var res = LongEnumerable.Range(0L, max).Aggregate(
-                LongEnumerable.Range(2, to - 1).ToList(),
-                (result, index) =>
+            int marker = 2; //start
+            int factor = 2; //start.
+
+            sieveContainer[0] = false; //0 is not prime
+            sieveContainer[1] = false; //1 is not prime
+
+            while (marker*marker <= sieveContainer.Length)
+            {
+                while ((factor += marker) <= to)
                 {
-                    if (index < result.Count)
-                    {
-                        var bp = result[(int) index];
-                        var sqr = bp*bp;
-                        result.RemoveAll(i => i >= sqr && i%bp == 0);
-                    }
-                    return result;
-                });
-            _primeCache = new Tuple<long, IEnumerable<long>>(to, res);
-            return res;
+                    sieveContainer[factor] = false;
+                }
+                while (!sieveContainer.Get(++marker))
+                {
+                }
+                factor = marker;  //reset
+            }
+            var primes = new List<long>();
+            for (var i = 0; i < sieveContainer.Length; i++)
+            {
+                if (sieveContainer[i])
+                {
+                    primes.Add(i);
+                }
+            }
+            _primeCache = new Tuple<long, IEnumerable<long>>(to, primes);
+            return primes;
         }
 
         /// <summary>

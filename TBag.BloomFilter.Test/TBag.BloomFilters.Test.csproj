@@ -58,6 +58,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Collections\FastBitArrayTest.cs" />
     <Compile Include="Infrastructure\PrecalculatedActor.cs" />
     <Compile Include="Infrastructure\Actor.cs" />
     <Compile Include="Infrastructure\HybridDefaultBloomFilterConfiguration.cs" />

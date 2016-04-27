@@ -24,7 +24,7 @@
 
     [Serializable()]
 
-    internal class FastBitArray : ICollection, ICloneable
+    public class FastBitArray : ICollection, ICloneable
 
     {
 
@@ -167,13 +167,9 @@
               .ForEach(
 
                   Partitioner.Create(0, m_array.Length),
-
                   (range, state) =>
-
                   {
-
-                      for (var i = range.Item1; i < range.Item2; i++)
-
+                      for (var i = range.Item1; i < range.Item2; i++)                  
                       {
                           var idx = i * BytesPerInt32;
                           if (idx + 3 < bytes.Length)
@@ -227,27 +223,10 @@
         }
 
 
-
         public FastBitArray(bool[] values)
-
         {
             SetValues(values);
-            //for (int i = 0; i < values.Length; i++)
-
-            //{
-
-            //    if (values[i])
-
-            //        m_array[i / BitsPerInt32] |= (1 << (i % BitsPerInt32));
-
-            //}
-
-
-
             _version = 0;
-
-
-
         }
 
 
