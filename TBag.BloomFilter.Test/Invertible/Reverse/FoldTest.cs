@@ -26,7 +26,7 @@
             var positiveCountAfterFold = DataGenerator.Generate().Take(500).Count(itm => bloomFilter.Contains(itm));
             Assert.AreEqual(positiveCount, positiveCountAfterFold, "False positive count different after fold");
             Assert.AreEqual(256, folded.Extract().BlockSize);
-            Assert.IsTrue(testData.All(item => testData.Contains(item)), "False negative found");
+            Assert.IsTrue(testData.All(item => bloomFilter.Contains(item)), "False negative found");
         }
     }
 }

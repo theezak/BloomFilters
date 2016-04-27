@@ -1,7 +1,8 @@
 ﻿namespace System.Collections.Generic
 {
-   using Linq;
-  
+    using Diagnostics.Contracts;
+    using Linq;
+
     /// <summary>
     /// Extensions for hashsets.
     /// </summary>
@@ -16,6 +17,8 @@
         /// <param name="listB">Identifiers only in the second set</param>
         internal static void MoveModified<TId>(this HashSet<TId> modifiedEntities, HashSet<TId> listA, HashSet<TId> listB)
         {
+            Contract.Requires(listA != null);
+            Contract.Requires(listB != null);
             if (listA == modifiedEntities || listB == modifiedEntities) return;
             foreach (var modItem in listA.Where(listB.Contains).ToArray())
             {

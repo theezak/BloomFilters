@@ -9,6 +9,9 @@ namespace TBag.BloomFilter.Test.Standard
     [TestClass]
     public class AddTest
     {
+        /// <summary>
+        /// Add two Bloom filters.
+        /// </summary>
         [TestMethod]
         public void BloomFilterAddTest()
         {
@@ -35,6 +38,9 @@ namespace TBag.BloomFilter.Test.Standard
             Assert.AreEqual(contained, 2 * addSize, "Not all items found in added Bloom filters");
         }
 
+        /// <summary>
+        /// Add two Bloom filters of different size.
+        /// </summary>
         [TestMethod]
         public void BloomFilterAddDifferentSizesTest()
         {

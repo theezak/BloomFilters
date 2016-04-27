@@ -1,35 +1,35 @@
-﻿namespace TBag.BloomFilter.Test.Invertible.Hybrid
+﻿namespace TBag.BloomFilter.Test.Standard
 {
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using System.Linq;
     using BloomFilters.Invertible;
     using Infrastructure;
-
+    using BloomFilters.Standard;
     /// <summary>
-    /// Test for folding a hybrid invertible Bloom filter.
+    /// Test for folding a  Bloom filter.
     /// </summary>
     [TestClass]
     public class FoldTest
     {
         [TestMethod]
-        public void HybridSimpleFold()
+        public void BloomFilterSimpleFold()
         {
             var addSize = 50;
             var testData = DataGenerator.Generate().Take(addSize).ToArray();
             var size = testData.Length;
-            var configuration = new HybridDefaultBloomFilterConfiguration();
-            var bloomFilter = new InvertibleHybridBloomFilter<TestEntity, long, sbyte>(configuration);
+            var configuration = new DefaultBloomFilterConfiguration();
+            var bloomFilter = new BloomFilter<long>(configuration);
             bloomFilter.Initialize(size, 1024, (uint)3);
             foreach (var itm in testData)
             {
-                bloomFilter.Add(itm);
+                bloomFilter.Add(itm.Id);
             }
-            var positiveCount = DataGenerator.Generate().Take(500).Count(itm => bloomFilter.Contains(itm));
+            var positiveCount = DataGenerator.Generate().Take(500).Count(itm => bloomFilter.Contains(itm.Id));
             var folded = bloomFilter.Fold(4);
-            var positiveCountAfterFold = DataGenerator.Generate().Take(500).Count(itm => bloomFilter.Contains(itm));
+            var positiveCountAfterFold = DataGenerator.Generate().Take(500).Count(itm => bloomFilter.Contains(itm.Id));
             Assert.AreEqual(positiveCount, positiveCountAfterFold, "False positive count different after fold");
             Assert.AreEqual(256, folded.BlockSize, "Folded block size is unexpected.");
-            Assert.IsTrue(testData.All(item => bloomFilter.Contains(item)), "False negative found");
+            Assert.IsTrue(testData.All(item => bloomFilter.Contains(item.Id)), "False negative found");
         }
     }
 }

@@ -84,9 +84,12 @@
             public StrataEstimator(
             long blockSize,
             IInvertibleBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration,
-            byte? maxStrata = null)
+            byte? maxStrata = null,
+            bool fixedBlockSize = false)
         {
-            BlockSize = configuration.FoldingStrategy?.ComputeFoldableSize(blockSize, 0) ?? blockSize;
+            BlockSize = fixedBlockSize ? 
+                blockSize :
+                configuration.FoldingStrategy?.ComputeFoldableSize(blockSize, 0) ?? blockSize;
             if (maxStrata.HasValue)
             {
                 if (maxStrata <= 0 || maxStrata > MaxTrailingZeros)

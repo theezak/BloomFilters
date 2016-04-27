@@ -239,7 +239,8 @@
             var estimator = new HybridEstimator<TEntity, TId, TCount>(
                 data.StrataEstimator.BlockSize,
                 data.StrataEstimator.StrataCount,
-                configuration)
+                configuration,
+                fixedBlockSize:true)
             {
                 DecodeCountFactor = data.StrataEstimator.DecodeCountFactor
             };

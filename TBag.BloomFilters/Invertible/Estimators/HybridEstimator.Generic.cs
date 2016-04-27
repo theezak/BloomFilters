@@ -62,12 +62,14 @@
         /// <param name="blockSize">Capacity for strata estimator (good default is 80)</param>
           /// <param name="maxStrata">Maximum strate for the strata estimator.</param>
         /// <param name="configuration">The configuration</param>
+        /// <param name="fixedBlockSize">When <c>true</c> the block size should not be modified, else the folding strategy can be applied.</param>
         public HybridEstimator(
             long blockSize,
             byte maxStrata,
-            IInvertibleBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration) 
+            IInvertibleBloomFilterConfiguration<TEntity, TId,  int, TCount> configuration,
+            bool fixedBlockSize = false) 
         {
-            _strataEstimator = new StrataEstimator<TEntity, TId, TCount>(blockSize, configuration, maxStrata);
+            _strataEstimator = new StrataEstimator<TEntity, TId, TCount>(blockSize, configuration, maxStrata, fixedBlockSize: fixedBlockSize);
             _strataEstimator.DecodeCountFactor = _strataEstimator.BlockSize >= 20 ? 1.45D : 1.0D;
             _configuration = configuration;
         }
