@@ -1,12 +1,11 @@
-﻿using System.Collections;
-using System.Security.Cryptography.X509Certificates;
-
+﻿
 namespace TBag.BloomFilters.MathExt
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-  
+    using System.Collections;
+
     /// <summary>
     /// Math extensions
     /// </summary>
@@ -50,16 +49,13 @@ namespace TBag.BloomFilters.MathExt
             {
                 return cached.Item2.Where(p => p <= to).ToArray();
             }
-            FastBitArray sieveContainer = new FastBitArray((int) to + 1, true);
-            var max = (long)Math.Floor(2.52 * Math.Sqrt(to) / Math.Log(to));
+            var sieveContainer = new FastBitArray((int) to + 1, true);
             int marker = 2; //start
-            int factor = 2; //start.
-
             sieveContainer[0] = false; //0 is not prime
             sieveContainer[1] = false; //1 is not prime
-
-            while (marker*marker <= sieveContainer.Length)
+            while (marker * marker <= sieveContainer.Length)
             {
+                var factor = marker;
                 while ((factor += marker) <= to)
                 {
                     sieveContainer[factor] = false;
@@ -67,7 +63,6 @@ namespace TBag.BloomFilters.MathExt
                 while (!sieveContainer.Get(++marker))
                 {
                 }
-                factor = marker;  //reset
             }
             var primes = new List<long>();
             for (var i = 0; i < sieveContainer.Length; i++)
