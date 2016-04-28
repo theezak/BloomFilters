@@ -1,9 +1,9 @@
 # Invertible Bloom Filters
 On using invertible Bloom filters for estimating differences between sets of key/value pairs. Written in C#.
 
-The goal is to efficiently determine the differences between two sets of key/value pairs. The first approach is based upon invertible Bloom filters, as described in "What’s the Difference? Efﬁcient Set Reconciliation without Prior Context" (David Eppstein, Michael T. Goodrich, Frank Uyeda, George Varghese, 2011, http://conferences.sigcomm.org/sigcomm/2011/papers/sigcomm/p218.pdf) . A similar data structure, but not extended to detect set differences, is described in "Invertible Bloom Lookup Tables" (Michael T. Goodrich, Michael Mitzenmacher, 2015, http://arxiv.org/pdf/1101.2245v3.pdf). 
+The goal is to efficiently determine the differences between two sets of key/value pairs. The first approach is based upon invertible Bloom filters, as described in "What’s the Difference? Efﬁcient Set Reconciliation without Prior Context" (David Eppstein, Michael T. Goodrich, Frank Uyeda, George Varghese, 2011, http://conferences.sigcomm.org/sigcomm/2011/papers/sigcomm/p218.pdf) . A similar data structure, but not extended to detect set differences, is described in "Invertible Bloom Lookup Tables" (Michael T. Goodrich, Michael Mitzenmacher, 2015, http://arxiv.org/pdf/1101.2245v3.pdf). The basic observation is that an invertible Bloom filter with a capacity equal to the size of the difference rather than the size of the sets, yields a good estimate of the difference between two sets. A side note is that a highly compressed Bloom filter like this should never be used for membership tests.
 
-After implementing the data structure, it was noted that the data structure detected changes in the keys, but did not perform equally well at detecting changes in the values. An alternative solution is presented in the form of a reverse invertible Bloom filter (see in https://drive.google.com/file/d/0B1bvyH2cU0m4N3BEWWQxWV9PUmc/view?usp=sharing ).
+After implementing the data structure, it was noted that the invertible Bloom filter detected changes in the keys, but did not perform equally well at detecting changes in the values. An alternative solution is presented in the form of a reverse invertible Bloom filter (see https://drive.google.com/file/d/0B1bvyH2cU0m4N3BEWWQxWV9PUmc/view?usp=sharing for an introduction).
 
 Included with the reverse invertible Bloom Filter implementation is a strata estimator (as described in http://conferences.sigcomm.org/sigcomm/2011/papers/sigcomm/p218.pdf ). Based upon the strata estimator, a hybrid strata estimator is implemented utilizing the b-bit minwise hash (see http://research.microsoft.com/pubs/120078/wfc0398-liPS.pdf). 
 
@@ -19,7 +19,7 @@ A Bloom filter can be folded through any factor of its size. For example: a Bloo
 
 Support has been added for serializing and deserializing Bloom filters and estimators. You can extract the data in a serializable format from both the Bloom filters and the estimators. In general you can also load the extracted data back into the Bloom filter or estimator. An exception to this rule is the bit minwise estimator, and thus the hybrid estimator. Since the bit minwise estimator only extracts b bits of each cell, you can't restore the estimator from the data. An alternative full extract is provided for both the bit minwise estimator and hybrid estimator, that includes all bits for each cell.
 
-## Overloading a Bloom filter
+## Highly compressed Bloom filters
 
 When utilizing an invertible Bloom filter within the capacity it was sized for, the count will seldom exceed 2 or 3. However, when utilizing estimators, the idea is that the invertible Bloom filter will be utilized at a much higher capacity than it was sized for, thus accepting a higher error rate and much higher count values. To account for both scenario's, the actual count type is configurable. Four types are supported out of the box: sbyte, short, int and long. Always ensure that the count type used can handle highly folded filters. When the difference between two sets is small, there can be as few as 30 or 40 cells whose combined count equals the total set size. The counters will not overflow, but stay at maximum or minimum value. Overflow scenario's will however negatively impact results and performance. It is better to choose a slightly larger count type and be able to utilize folding, than it is to use a smaller count type and encounter overflows.
 
@@ -50,6 +50,12 @@ When the two estimators provide an estimate, you can send the local Bloom filter
 - The only major obstacle occurs when the Bloom filters are not compatible, for example because they can't be resized to have the same size (no shared factor), have different hash functions or have different hash counts. A minor obstacle is two estimators that do not have a shared factor, but you could still choose to exchange the Bloom filters.
 
 The solution provided in this repository includes a test implementation of pre-calculated estimators and filters.
+
+## Quasi - estimations
+
+There might be scenario's where it is not feasible for both parties to maintain estimators. In these scenario's a quasi decoder can be used. One party sends its estimator and the other party utilizes a membership test to determine the size of the difference. Note that ideally all entities are tested for membership, but functionality is provided to estimate the difference based upon a random sample and the total size of the set. Quasi estimations can be performed against both estimators and Bloom filters. 
+
+Note that the quasi estimations can be rather inaccurate. Accuracy is truly problematic against highly compressed Bloom filters or estimators due to the high number of false positives, Heuristics have been included to compensate for some of these effects.
 
 ## Wishlist
 Although this is initially just a testbed, an obvious wishlist item is a buffer pool to counteract some of the horrible things the Bloom Filter does to memory management.
