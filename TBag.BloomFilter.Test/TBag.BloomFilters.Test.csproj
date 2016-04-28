@@ -90,6 +90,7 @@
     <Compile Include="Invertible\Standard\IntersectTest.cs" />
     <Compile Include="Invertible\Standard\RemoveTest.cs" />
     <Compile Include="Invertible\Standard\SetDiffTest.cs" />
+    <Compile Include="Invertible\Standard\QuasiDecodeTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\DefaultBloomFilterConfiguration.cs" />
     <Compile Include="Invertible\PrecalculatedRoundTripTest.cs" />

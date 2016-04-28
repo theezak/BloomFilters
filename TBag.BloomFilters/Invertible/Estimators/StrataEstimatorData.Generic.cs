@@ -53,6 +53,12 @@
         public byte[] BloomFilterStrataIndexes { get; set; }
 
         /// <summary>
+        /// The error rate
+        /// </summary>
+        [DataMember(Order = 7)]
+        public float ErrorRate { get; set; }
+
+        /// <summary>
         /// The item count
         /// </summary>
         public long ItemCount => BloomFilters?.Sum(filter => filter?.ItemCount ?? 0L)??0L;

@@ -40,6 +40,11 @@
         public long VirtualBlockSize => _strataEstimator.BlockSize*_strataEstimator.MaxStrata;
 
         /// <summary>
+        /// The error rate
+        /// </summary>
+        public float ErrorRate => _strataEstimator.ErrorRate;
+
+        /// <summary>
         /// The hash function count
         /// </summary>
         public uint HashFunctionCount => _strataEstimator.HashFunctionCount;

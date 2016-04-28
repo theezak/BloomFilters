@@ -2,7 +2,7 @@
 {
     using System.Collections.Generic;
     using System;
-   
+    using Configurations;
     /// <summary>
     /// Interface for an invertible Bloom filter.
     /// </summary>
@@ -15,9 +15,24 @@
     {
         #region Properties
         /// <summary>
+        /// The configuration
+        /// </summary>
+        IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> Configuration { get; }
+
+        /// <summary>
         /// The number of items in the Bloom filter.
         /// </summary>
         long ItemCount { get; }
+
+        /// <summary>
+        /// The error rate
+        /// </summary>
+        float ErrorRate { get; }
+
+        /// <summary>
+        /// The hash function count.
+        /// </summary>
+        uint HashFunctionCount { get; }
 
         /// <summary>
         /// The capacity of the filter.

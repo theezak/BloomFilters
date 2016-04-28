@@ -14,7 +14,7 @@
         where THash : struct
     {
         private static readonly double Log2 = Math.Log(2.0D);
-        private static readonly double Pow2Log2 = 1.0D/Math.Pow(2, Math.Log(2.0D));
+        private static readonly double Pow2Log2 = Math.Log(1.0D/Math.Pow(2, Math.Log(2.0D)));
 
         /// <summary>
         /// Constructor
@@ -119,7 +119,7 @@
         /// <returns></returns>
         public virtual long BestSize(long capacity, float errorRate)
         {
-            return (long) Math.Ceiling(1.01D*Math.Abs(capacity*Math.Log(errorRate, Pow2Log2)));
+            return (long)Math.Ceiling(1.01D * Math.Abs(capacity * Math.Log(errorRate) / Pow2Log2));
         }
 
         /// <summary>

@@ -23,6 +23,11 @@
         double DecodeCountFactor { get; set; }
 
         /// <summary>
+        /// The error rate
+        /// </summary>
+        float ErrorRate { get; }
+
+        /// <summary>
         /// The number of items in the estimator.
         /// </summary>
         long ItemCount { get; }

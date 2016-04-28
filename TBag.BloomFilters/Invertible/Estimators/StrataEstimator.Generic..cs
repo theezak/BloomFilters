@@ -19,9 +19,9 @@
         where TId : struct
     {
         #region Fields
-       private const byte MaxTrailingZeros = sizeof(int) * 8;
+        private const byte MaxTrailingZeros = sizeof(int) * 8;
         private readonly IMurmurHash _murmur = new Murmur3();
-        private const float ErrorRate = 0.001F;
+        private const float ErrorRateDefault = 0.001F;
         #endregion
 
         #region Properties
@@ -33,8 +33,8 @@
         /// <summary>
         /// The maximum strata.
         /// </summary>
-        public byte MaxStrata { get; protected set; } = MaxTrailingZeros;   
-        
+        public byte MaxStrata { get; protected set; } = MaxTrailingZeros;
+
         /// <summary>
         /// The block size
         /// </summary>
@@ -42,6 +42,11 @@
         {
             get; protected set;
         }
+
+        /// <summary>
+        /// The error rate
+        /// </summary>
+        public float ErrorRate { get; private set; } = ErrorRateDefault;
 
         /// <summary>
         /// The hash function count
@@ -117,6 +122,7 @@
             {
                 BlockSize = BlockSize,
                 DecodeCountFactor = DecodeCountFactor,
+                ErrorRate = ErrorRate,
                 StrataCount = MaxStrata,
                 HashFunctionCount =  HashFunctionCount,
                 BloomFilters = StrataFilters
@@ -140,6 +146,7 @@
             if (data == null) return;
             BlockSize = data.BlockSize;
             MaxStrata = data.StrataCount;
+            ErrorRate = data.ErrorRate;
             HashFunctionCount = data.HashFunctionCount;
             DecodeCountFactor = data.DecodeCountFactor;            
             CreateFilters(data);

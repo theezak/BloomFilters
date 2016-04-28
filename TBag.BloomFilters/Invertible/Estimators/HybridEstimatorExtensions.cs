@@ -32,7 +32,7 @@
             //compensate for extremely high error rates that can occur with estimators. Without this, the difference goes to infinity.
             var idealBlockSize = bloomFilterSizeConfiguration.BestCompressedSize(
                 estimator.ItemCount, 
-                0.001F);
+                estimator.ErrorRate);
             var idealErrorRate = bloomFilterSizeConfiguration.ActualErrorRate(
                 idealBlockSize, 
                 estimator.ItemCount,
@@ -43,9 +43,9 @@
                     estimator.VirtualBlockSize, 
                     estimator.ItemCount,
                     estimator.HashFunctionCount));         
-            //adjust for total set size
             var factor = (actualErrorRate - idealErrorRate);
-            if (actualErrorRate >= 0.9D)
+            if (actualErrorRate >= 0.9D &&
+                estimator.VirtualBlockSize > 0)
             {
                 //arbitrary. Should really figure out what is behind this one day : - ). What happens is that the estimator has an extremely high
                 //false-positive rate. Which is the reason why this approach is not ideal to begin with. 

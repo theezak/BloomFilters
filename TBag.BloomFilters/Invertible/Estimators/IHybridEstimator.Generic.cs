@@ -26,6 +26,11 @@
         uint HashFunctionCount { get; }
 
         /// <summary>
+        /// The error rate
+        /// </summary>
+        float ErrorRate { get; }
+
+        /// <summary>
         /// The hybrid estimator item count.
         /// </summary>
         long ItemCount { get; }

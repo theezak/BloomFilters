@@ -109,6 +109,7 @@
     <Compile Include="Invertible\IInvertibleBloomFilter.Generic.cs" />
     <Compile Include="Invertible\IInvertibleBloomFilterData.Generic.cs" />
     <Compile Include="Invertible\IInvertibleBloomFilterFactory.cs" />
+    <Compile Include="Invertible\InvertibleBloomFilterExtensions.cs" />
     <Compile Include="Invertible\InvertibleHybridBloomFilter.Generic.cs" />
     <Compile Include="Invertible\InvertibleReverseBloomFilter.Generic.cs" />
     <Compile Include="Invertible\InvertibleBloomFilter.Generic.cs" />

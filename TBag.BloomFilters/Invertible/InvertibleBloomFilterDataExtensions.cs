@@ -474,7 +474,8 @@
                 IsReverse = filterData.IsReverse,
                 SubFilter = filterData.SubFilter,
                 Capacity = filterData.Capacity,
-                ItemCount = filterData.ItemCount
+                ItemCount = filterData.ItemCount,
+                ErrorRate = filterData.ErrorRate
             };
             res.SyncCompressionProviders(configuration);
             return res;

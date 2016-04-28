@@ -36,6 +36,11 @@ namespace TBag.BloomFilters.Invertible
         uint HashFunctionCount { get; set; }
 
         /// <summary>
+        /// The error rate
+        /// </summary>
+        float ErrorRate { get; set; }
+
+        /// <summary>
         /// The hash sums (for entity values).
         /// </summary>
         THash[] HashSums { get; set; }

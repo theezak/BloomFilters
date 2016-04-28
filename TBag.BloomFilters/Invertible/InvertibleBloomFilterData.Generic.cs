@@ -122,6 +122,12 @@ namespace TBag.BloomFilters.Invertible
         public long Capacity { get; set; }
 
         /// <summary>
+        /// The error rate
+        /// </summary>
+        [DataMember(Order =10)]
+        public float ErrorRate { get; set; }
+
+        /// <summary>
         /// The hashSum provider.
         /// </summary>
         public ICompressedArray<THash> HashSumProvider => _hashSumProvider;

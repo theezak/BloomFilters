@@ -70,7 +70,8 @@ namespace TBag.BloomFilters.Invertible
                 HashFunctionCount = k,
                 BlockSize = m,
                 Counts = new TCount[m],
-                Capacity = capacity
+                Capacity = capacity,
+                ErrorRate = configuration.ActualErrorRate(m, capacity, k)
             };
             res.SyncCompressionProviders(configuration);
             return res;

@@ -33,11 +33,21 @@ namespace TBag.BloomFilters.Invertible
         /// The capacity.
         /// </summary>
         public virtual long Capacity => Data?.Capacity ?? 0L;
+
+        /// <summary>
+        /// The error rate
+        /// </summary>
+        public virtual float ErrorRate => Data?.ErrorRate ?? 0.0000001F;
+
+        /// <summary>
+        /// The hash function count
+        /// </summary>
+        public virtual uint HashFunctionCount => Data?.HashFunctionCount ?? 0;
       
         /// <summary>
         /// The configuration for the Bloom filter.
         /// </summary>
-        protected IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> Configuration { get; }
+        public IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> Configuration { get; }
 
         /// <summary>
         /// The Bloom filter data.
@@ -92,6 +102,7 @@ namespace TBag.BloomFilters.Invertible
                 capacity,
                 Configuration.BestCompressedSize(capacity, errorRate, foldFactor),
                 Configuration.BestHashFunctionCount(capacity, errorRate));
+            Data.ErrorRate = errorRate;
         }
 
         /// <summary>

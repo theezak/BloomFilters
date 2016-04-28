@@ -26,6 +26,11 @@
         byte StrataCount { get; set; }
 
         /// <summary>
+        /// The error rate
+        /// </summary>
+        float ErrorRate { get; set; }
+
+        /// <summary>
         /// The number of hash functions used.
         /// </summary>
         uint HashFunctionCount { get; set; }
