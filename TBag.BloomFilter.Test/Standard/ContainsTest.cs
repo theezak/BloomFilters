@@ -23,15 +23,15 @@
             var errorRate = 0.001F;
             var size = testData.Length;
             var configuration = new DefaultBloomFilterConfiguration();
-            var bloomFilter = new BloomFilter<long>(configuration);
+            var bloomFilter = new BloomFilter<TestEntity,long>(configuration);
             bloomFilter.Initialize(size, errorRate);
             foreach (var itm in testData)
             {
-                bloomFilter.Add(itm.Id);
+                bloomFilter.Add(itm);
             }
-            var notFoundCount = testData.Count(itm => !bloomFilter.Contains(itm.Id));
+            var notFoundCount = testData.Count(itm => !bloomFilter.Contains(itm));
             Assert.IsTrue(notFoundCount == 0, "False negative error rate violated");
-            notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.Contains(itm.Id));
+            notFoundCount = DataGenerator.Generate().Skip(addSize).Take(addSize).Count(itm => bloomFilter.Contains(itm));
             Assert.IsTrue(notFoundCount <= errorRate * addSize, "False positive error rate violated");
         }
     }

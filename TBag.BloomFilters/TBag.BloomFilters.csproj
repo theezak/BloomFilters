@@ -52,6 +52,7 @@
     <Compile Include="CompressedArrayFactory.cs" />
     <Compile Include="Configurations\IBloomFilterConfiguration.Generic.cs" />
     <Compile Include="Configurations\ICountingBloomFilterConfiguration.Generic.cs" />
+    <Compile Include="Configurations\IEntityBloomFilterConfiguration.Generic.cs" />
     <Compile Include="Configurations\LongCountConfiguration.cs" />
     <Compile Include="CompressedArrayrExtensions.cs" />
     <Compile Include="Estimators\QuasiEstimator.cs" />

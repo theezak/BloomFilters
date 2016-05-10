@@ -5,14 +5,17 @@
     using Configurations;
     using System.Linq;
     using Invertible.Configurations;
-    using System.Diagnostics.Contracts;    /// <summary>
-                                           /// A simple Bloom filter
-                                           /// </summary>
-                                           /// <remarks>Not public for now</remarks>
-    public class BloomFilter<TKey> : 
-        IBloomFilter<TKey> where TKey : struct
+    using System.Diagnostics.Contracts;    
+    
+    /// <summary>
+    /// A Bloom filter
+    /// </summary>
+    /// <typeparam name="TEntity">The entity type</typeparam>
+    /// <typeparam name="TKey">The type of the key for <typeparamref name="TEntity"/></typeparam>
+    public class BloomFilter<TEntity, TKey> : 
+        IBloomFilter<TEntity, TKey> where TKey : struct
     {
-        private readonly IBloomFilterConfiguration<TKey, int> _configuration;
+        private readonly IEntityBloomFilterConfiguration<TEntity, TKey, int> _configuration;
         private FastBitArray _data;
         private uint _hashFunctionCount;
         private long _capacity;
@@ -50,7 +53,7 @@
         /// Constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public BloomFilter(IBloomFilterConfiguration<TKey, int> configuration)
+        public BloomFilter(IEntityBloomFilterConfiguration<TEntity, TKey, int> configuration)
         {
             _configuration = configuration;
         }
@@ -102,25 +105,11 @@
         }
 
         /// <summary>
-        /// Add a value to the Bloom filter.
-        /// </summary>
-        /// <param name="value"></param>
-        public virtual void Add(TKey value)
-        {
-            foreach (int position in _configuration
-                .Probe(BlockSize, _hashFunctionCount, _configuration.IdHash(value)))
-            {
-                _data.Set(position, true);
-            }
-            ItemCount++;
-        }
-
-        /// <summary>
         /// Remove a value from the Bloom filter
         /// </summary>
         /// <param name="value"></param>
         /// <remarks>Not the best thing to do. Use a counting Bloom filter instead when you need removal. Throw a not supported exception instead?</remarks>
-        public virtual void Remove(TKey value)
+        public virtual void RemoveKey(TKey value)
         {
             foreach (int position in _configuration
                 .Probe(BlockSize, _hashFunctionCount, _configuration.IdHash(value)))
@@ -135,7 +124,7 @@
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public virtual bool Contains(TKey value)
+        public virtual bool ContainsKey(TKey value)
         {
             return _configuration
                 .Probe(BlockSize, _hashFunctionCount, _configuration.IdHash(value))
@@ -184,7 +173,7 @@
         {
             if (bloomFilterData == null) return;
             var foldedSize = _configuration.FoldingStrategy?.GetFoldFactors(_blockSize, bloomFilterData.BlockSize);
-            if (bloomFilterData.BlockSize != BlockSize &
+            if (bloomFilterData.BlockSize != BlockSize &&
                 foldedSize == null)
             {
                 throw new ArgumentException("Bloom filters of different sizes cannot be intersected.", nameof(bloomFilterData));
@@ -220,11 +209,12 @@
         /// </summary>
         /// <param name="bloomFilter"></param>
         /// <remarks>Results in all keys from the filters.</remarks>
-        public virtual void Add(IBloomFilter<TKey> bloomFilter)
+        public virtual void Add(IBloomFilter<TEntity, TKey> bloomFilter)
         {
             if (bloomFilter == null) return;
             Add(bloomFilter.Extract());
         }
+
         /// <summary>
         /// Add a Bloom filter (union)
         /// </summary>
@@ -311,7 +301,7 @@
         /// <param name="factor"></param>
         /// <param name="inPlace"></param>
         /// <returns></returns>
-        public virtual BloomFilter<TKey> Fold(uint factor, bool inPlace = false)
+        public virtual BloomFilter<TEntity, TKey> Fold(uint factor, bool inPlace = false)
         {
             var result = _data.Fold(factor, inPlace);
             if (inPlace)
@@ -320,7 +310,7 @@
                 _blockSize = result.Length;
                 return this;
             }
-            var bloomFilter = new BloomFilter<TKey>(_configuration);
+            var bloomFilter = new BloomFilter<TEntity, TKey>(_configuration);
             bloomFilter.Rehydrate(new BloomFilterData
             {
                 Bits = result.ToBytes(),
@@ -332,7 +322,7 @@
             return bloomFilter;
         }
 
-        public BloomFilter<TKey> Compress(bool inPlace = false)
+        public BloomFilter<TEntity,TKey> Compress(bool inPlace = false)
         {
             var foldFactor = _configuration?
                 .FoldingStrategy?
@@ -364,7 +354,32 @@
                     bitCount++;
                 }
             }
-            return bitCount / hashFunctionCount;
+            return (long)Math.Abs(-array.Length / ((double)hashFunctionCount) * Math.Log(1 - bitCount / ((double)array.Length)));
+        }
+
+        public void Add(TEntity value)
+        {
+            foreach (int position in _configuration
+              .Probe(BlockSize, _hashFunctionCount, _configuration.IdHash(_configuration.GetId(value))))
+            {
+                _data.Set(position, true);
+            }
+            ItemCount++;
+        }
+
+        public void Remove(TEntity value)
+        {
+            RemoveKey(_configuration.GetId(value));
+        }
+
+        public bool Contains(TEntity value)
+        {
+            return ContainsKey(_configuration.GetId(value));
+        }
+
+        public void Intersect(IBloomFilter<TEntity, TKey> bloomFilterData)
+        {
+            Intersect(bloomFilterData?.Extract());
         }
     }
 }

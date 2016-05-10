@@ -18,18 +18,18 @@
             var testData = DataGenerator.Generate().Take(addSize).ToArray();
             var size = testData.Length;
             var configuration = new DefaultBloomFilterConfiguration();
-            var bloomFilter = new BloomFilter<long>(configuration);
+            var bloomFilter = new BloomFilter<TestEntity,long>(configuration);
             bloomFilter.Initialize(size, 1024, (uint)3);
             foreach (var itm in testData)
             {
-                bloomFilter.Add(itm.Id);
+                bloomFilter.Add(itm);
             }
-            var positiveCount = DataGenerator.Generate().Take(500).Count(itm => bloomFilter.Contains(itm.Id));
+            var positiveCount = DataGenerator.Generate().Take(500).Count(itm => bloomFilter.Contains(itm));
             var folded = bloomFilter.Fold(4);
-            var positiveCountAfterFold = DataGenerator.Generate().Take(500).Count(itm => bloomFilter.Contains(itm.Id));
+            var positiveCountAfterFold = DataGenerator.Generate().Take(500).Count(itm => bloomFilter.Contains(itm));
             Assert.AreEqual(positiveCount, positiveCountAfterFold, "False positive count different after fold");
             Assert.AreEqual(256, folded.BlockSize, "Folded block size is unexpected.");
-            Assert.IsTrue(testData.All(item => bloomFilter.Contains(item.Id)), "False negative found");
+            Assert.IsTrue(testData.All(bloomFilter.Contains), "False negative found");
         }
     }
 }

@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
 
+
     /// <summary>
     /// Configuration for a Bloom filter
     /// </summary>
@@ -40,6 +41,52 @@
         /// Strategy for folding Bloom filters.
         /// </summary>
         IFoldingStrategy FoldingStrategy { get; set; }
+
+
+        /// <summary>
+        /// Perform a XOR between identifiers.
+        /// </summary>
+        Func<TKey, TKey, TKey> IdAdd { get; set; }
+
+        /// <summary>
+        /// Perform a XOR between identifiers.
+        /// </summary>
+        Func<TKey, TKey, TKey> IdRemove { get; set; }
+
+        /// <summary>
+        /// Perform a AND between identifiers.
+        /// </summary>
+        Func<TKey, TKey, TKey> IdIntersect { get; set; }
+
+        /// <summary>
+        /// Hash XOR
+        /// </summary>
+        Func<THash, THash, THash> HashAdd { get; set; }
+
+        /// <summary>
+        /// Hash XOR
+        /// </summary>
+        Func<THash, THash, THash> HashRemove { get; set; }
+
+        /// <summary>
+        /// Hash AND
+        /// </summary>
+        Func<THash, THash, THash> HashIntersect { get; set; }
+
+        /// <summary>
+        /// Equality comparer for <typeparamref name="TId"/>.
+        /// </summary>
+        EqualityComparer<TKey> IdEqualityComparer { get; set; }
+
+        /// <summary>
+        /// The identity value for <typeparamref name="TId"/> (for example 0 when the identifier is a number).
+        /// </summary>
+        TKey IdIdentity { get; set; }
+
+        /// <summary>
+        /// The identity value for <typeparamref name="THash"/> (for example 0 when the identifier is a number).
+        /// </summary>
+        THash HashIdentity { get; set; }
     }
 
 }
