@@ -30,34 +30,19 @@
         {
             if (estimator == null) return otherSetSize ?? otherSetSample?.LongCount() ?? 0L;
             //compensate for extremely high error rates that can occur with estimators. Without this, the difference goes to infinity.
-            var idealBlockSize = bloomFilterSizeConfiguration.BestCompressedSize(
+            var factors = QuasiEstimator.GetAdjustmentFactor(
+                bloomFilterSizeConfiguration,
+                estimator.VirtualBlockSize, 
                 estimator.ItemCount, 
+                estimator.HashFunctionCount, 
                 estimator.ErrorRate);
-            var idealErrorRate = bloomFilterSizeConfiguration.ActualErrorRate(
-                idealBlockSize, 
-                estimator.ItemCount,
-                estimator.HashFunctionCount);
-            var actualErrorRate = Math.Max(
-                idealErrorRate,
-                bloomFilterSizeConfiguration.ActualErrorRate(
-                    estimator.VirtualBlockSize, 
-                    estimator.ItemCount,
-                    estimator.HashFunctionCount));         
-            var factor = (actualErrorRate - idealErrorRate);
-            if (actualErrorRate >= 0.9D &&
-                estimator.VirtualBlockSize > 0)
-            {
-                //arbitrary. Should really figure out what is behind this one day : - ). What happens is that the estimator has an extremely high
-                //false-positive rate. Which is the reason why this approach is not ideal to begin with. 
-                factor = 2*factor*((float)idealBlockSize/estimator.VirtualBlockSize);
-            }            
             return QuasiEstimator.Decode(
                 estimator.ItemCount, 
-                idealErrorRate, 
+                factors.Item1, 
                 estimator.Contains, 
                 otherSetSample,
                 otherSetSize,
-                (membershipCount, sampleCount) =>(long) Math.Floor(membershipCount - factor*((otherSetSize ?? sampleCount) - membershipCount)));                                 
+                factors.Item2);                                 
         }
     }
 }

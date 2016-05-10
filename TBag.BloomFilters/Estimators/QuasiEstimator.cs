@@ -3,7 +3,7 @@
 
 namespace TBag.BloomFilters.Estimators
 {
-
+    using Configurations;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -14,6 +14,41 @@ namespace TBag.BloomFilters.Estimators
     /// <remarks>Quasi estimation uses one Bloom filter (representing the first set) and a set of items (representing the second set) to estimate the number of differences between the two sets.</remarks>
     internal static class QuasiEstimator
     {
+        /// <summary>
+        /// Get the ideal error rate and adjustment factor function.
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="blockSize"></param>
+        /// <param name="itemCount"></param>
+        /// <param name="hashFunctionCount"></param>
+        /// <param name="errorRate"></param>
+        /// <returns></returns>
+        internal static Tuple<float, Func<long, long, long>> GetAdjustmentFactor(IBloomFilterSizeConfiguration configuration, long blockSize,  long itemCount, uint hashFunctionCount, float errorRate)
+        {
+            var idealBlockSize = configuration.BestCompressedSize(
+            itemCount,
+            errorRate);
+            var idealErrorRate = configuration.ActualErrorRate(
+                idealBlockSize,
+                itemCount,
+                hashFunctionCount);
+            var actualErrorRate = Math.Max(
+                idealErrorRate,
+                configuration.ActualErrorRate(
+                    blockSize,
+                    itemCount,
+                    hashFunctionCount));
+            var factor = (actualErrorRate - idealErrorRate);
+            if (actualErrorRate >= 0.9D &&
+                blockSize > 0)
+            {
+                //arbitrary. Should really figure out what is behind this one day : - ). What happens is that the estimator has an extremely high
+                //false-positive rate. Which is the reason why this approach is not ideal to begin with. 
+                factor = 2 * factor * ((float)idealBlockSize / blockSize);
+            }
+            return new Tuple<float, Func<long, long, long>>(idealErrorRate, (membershipCount, sampleCount) => (long)Math.Floor(membershipCount - factor * (sampleCount - membershipCount)));
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -68,7 +103,7 @@ namespace TBag.BloomFilters.Estimators
             }        
             if (membershipCountAdjuster != null)
             {
-                membershipCount = membershipCountAdjuster(membershipCount, sampleCount);
+                membershipCount = membershipCountAdjuster(membershipCount, otherSetSize ?? sampleCount);
             }
             if (membershipCount < 0)
             {

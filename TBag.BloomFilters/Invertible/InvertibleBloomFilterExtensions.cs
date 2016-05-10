@@ -32,34 +32,14 @@ namespace TBag.BloomFilters.Invertible
         {
             if (filter == null) return otherSetSize ?? otherSetSample?.LongCount() ?? 0L;
             //compensate for extremely high error rates that can occur with estimators. Without this, the difference goes to infinity.
-            var idealBlockSize =  filter.Configuration.BestCompressedSize(
-                filter.ItemCount,
-                filter.ErrorRate);
-            var idealErrorRate = filter.Configuration.ActualErrorRate(
-                idealBlockSize,
-                filter.ItemCount,
-                filter.HashFunctionCount);
-            var actualErrorRate = Math.Max(
-                idealErrorRate,
-                filter.Configuration.ActualErrorRate(
-                    filter.BlockSize,
-                    filter.ItemCount,
-                    filter.HashFunctionCount));
-            var factor = (actualErrorRate - idealErrorRate);
-            if (actualErrorRate >= 0.9D &&
-                filter.BlockSize > 0)
-            {
-                //arbitrary. Should really figure out what is behind this one day : - ). What happens is that the estimator has an extremely high
-                //false-positive rate. Which is the reason why this approach is not ideal to begin with. 
-                factor = 2 * factor * ((float)idealBlockSize / filter.BlockSize);
-            }
+            var factor = QuasiEstimator.GetAdjustmentFactor(filter.Configuration, filter.BlockSize, filter.ItemCount, filter.HashFunctionCount, filter.ErrorRate);
             return QuasiEstimator.Decode(
                 filter.ItemCount,
-                idealErrorRate,
+               factor.Item1,
                 filter.Contains,
                 otherSetSample,
                 otherSetSize,
-                (membershipCount, sampleCount) => (long)Math.Floor(membershipCount - factor * ((otherSetSize ?? sampleCount) - membershipCount)));
+                factor.Item2);
         }
     }
 }
