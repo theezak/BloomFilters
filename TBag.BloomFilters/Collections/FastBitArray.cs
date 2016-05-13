@@ -251,6 +251,16 @@
 
         {
 
+            SetValues(values);
+
+            _version = 0;
+
+        }
+
+
+
+        private void SetValues(int[] values)
+        {
             if (values == null)
 
             {
@@ -282,13 +292,7 @@
             Array.Copy(values, m_array, values.Length);
 
 
-
-            _version = 0;
-
         }
-
-
-
         /*=========================================================================
 
         ** Allocates a new BitArray with the same length and bit values as bits.
@@ -648,31 +652,39 @@
             Contract.EndContractBlock();
             if (factor == 1) return this;
             int newLength = (int)( Length / factor);
-            var tempStore = new bool[newLength];
+            int arrayLength = GetArrayLength(newLength, BitsPerInt32);
+            var newValues = new int[arrayLength];
             Parallel
 
-                    .ForEach(
+                   .ForEach(
 
-                        Partitioner.Create(0, newLength),
+                       Partitioner.Create(0, arrayLength),
 
-                        (range, state) =>
+                       (range, state) =>
 
-                        {
+                       {
+                           for (var i = range.Item1; i < range.Item2; i++)
+                           {
+                               var idx = i * BitsPerInt32;
+                               for(var j = 0; j < BitsPerInt32 && idx < newLength;j++,idx++)
+                               {
+                                   if (GetFolded(this, idx, factor, newLength))
+                                   {
+                                       newValues[i] |= (1 << j);
+                                   }
 
-                            for (var i = range.Item1; i < range.Item2; i++)
+                               }
+                           }
+                       });
 
-                            {
-               
-                                tempStore[i] = GetFolded(this, i, factor, newLength);
-
-                            }
-
-                        });
             if (!inPlace)
             {
-                return new FastBitArray(tempStore);
+               var res = new FastBitArray(newValues);
+                res.m_length = newLength;
+                return res;
             }
-            SetValues(tempStore);
+            SetValues(newValues);
+            m_length = newLength;
             Interlocked.Increment(ref _version);
             return this;
         }
