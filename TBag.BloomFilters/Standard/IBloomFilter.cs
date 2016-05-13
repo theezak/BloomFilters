@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters.Standard
+﻿using TBag.BloomFilters.Configurations;
+
+namespace TBag.BloomFilters.Standard
 {
     /// <summary>
     /// Interface for Bloom filter
@@ -23,6 +25,21 @@
         /// The block size.
         /// </summary>
         long BlockSize { get; }
+
+        /// <summary>
+        /// Hash function count
+        /// </summary>
+        uint HashFunctionCount { get; }
+
+        /// <summary>
+        /// The error rate
+        /// </summary>
+        float ErrorRate { get; }
+
+        /// <summary>
+        /// Configuration
+        /// </summary>
+        IEntityBloomFilterConfiguration<TEntity, TKey, int> Configuration { get; }
 
         /// <summary>
         /// Initialize

@@ -122,6 +122,7 @@
     <Compile Include="Configurations\SmoothNumberGenerator.cs" />
     <Compile Include="Standard\BloomFilter.cs" />
     <Compile Include="Standard\BloomFilterData.cs" />
+    <Compile Include="Standard\BloomFilterExtensions.cs" />
     <Compile Include="Standard\IBloomFilter.cs" />
     <Compile Include="Standard\IBloomFilterData.cs" />
   </ItemGroup>

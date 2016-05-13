@@ -20,6 +20,7 @@
         private uint _hashFunctionCount;
         private long _capacity;
         private long _blockSize;
+        private float _errorRate;
         private static readonly byte[] EmptyByteArray = new byte[0];
 
         #region Properties
@@ -44,6 +45,12 @@
         /// The block size.
         /// </summary>
         public virtual long BlockSize => _blockSize;
+
+        public IEntityBloomFilterConfiguration<TEntity, TKey, int> Configuration => _configuration;
+
+        public uint HashFunctionCount => _hashFunctionCount;
+
+        public float ErrorRate => _errorRate;
 
         #endregion
 
@@ -82,6 +89,7 @@
                 capacity,
                 _configuration.BestCompressedSize(capacity, errorRate, foldFactor),
                 _configuration.BestHashFunctionCount(capacity, errorRate));
+            _errorRate = errorRate;
         }
 
         /// <summary>
@@ -102,6 +110,7 @@
             _hashFunctionCount = k;
             _capacity = capacity;
             _blockSize = m;
+            _errorRate = _configuration.ActualErrorRate(_blockSize, _capacity, _hashFunctionCount);
         }
 
         /// <summary>
@@ -111,12 +120,44 @@
         /// <remarks>Not the best thing to do. Use a counting Bloom filter instead when you need removal. Throw a not supported exception instead?</remarks>
         public virtual void RemoveKey(TKey value)
         {
-            foreach (int position in _configuration
-                .Probe(BlockSize, _hashFunctionCount, _configuration.IdHash(value)))
+            RemoveKey(value, _configuration.IdHash(value));
+        }
+
+        /// <summary>
+        /// Remove the given key
+        /// </summary>
+        /// <param name="key">The key to remove</param>
+        /// <param name="hash">The entity hash</param>
+        protected virtual void RemoveKey(TKey key, int hash)
+        {
+            if (ValidateConfiguration)
+            {
+                IsValidConfiguration(Configuration.IdHash(key), hash);
+            }
+            foreach (int position in Configuration.Probe(BlockSize, _hashFunctionCount, hash))
             {
                 _data.Set(position, false);
             }
-            ItemCount--;
+           ItemCount--;
+        }
+
+
+        /// <summary>
+        /// Add the identifier and hash.
+        /// </summary>
+        /// <param name="key">The key to add</param>
+        /// <param name="entityHash">The entity hash</param>
+        protected virtual void Add(TKey key, int entityHash)
+        {
+            if (ValidateConfiguration)
+            {
+                IsValidConfiguration(Configuration.IdHash(key), entityHash);
+            }
+            foreach (int position in Configuration.Probe(BlockSize, _hashFunctionCount, entityHash))
+            {
+                _data.Set(position, true);
+            }
+            ItemCount++;
         }
 
         /// <summary>
@@ -126,8 +167,17 @@
         /// <returns></returns>
         public virtual bool ContainsKey(TKey value)
         {
+            return ContainsKey(value, _configuration.IdHash(value));
+        }
+
+        protected virtual bool ContainsKey(TKey key, int hash)
+        {
+            if (ValidateConfiguration)
+            {
+                IsValidConfiguration(Configuration.IdHash(key), hash);
+            }
             return _configuration
-                .Probe(BlockSize, _hashFunctionCount, _configuration.IdHash(value))
+                .Probe(BlockSize, _hashFunctionCount, _configuration.IdHash(key))
                 .All(position => _data.Get((int)position));
         }
 
@@ -359,27 +409,36 @@
 
         public void Add(TEntity value)
         {
-            foreach (int position in _configuration
-              .Probe(BlockSize, _hashFunctionCount, _configuration.IdHash(_configuration.GetId(value))))
-            {
-                _data.Set(position, true);
-            }
-            ItemCount++;
-        }
+            Add(_configuration.GetId(value), _configuration.EntityHash(value));
+;        }
 
         public void Remove(TEntity value)
         {
-            RemoveKey(_configuration.GetId(value));
+            RemoveKey(_configuration.GetId(value), _configuration.EntityHash(value));
         }
 
         public bool Contains(TEntity value)
         {
-            return ContainsKey(_configuration.GetId(value));
+            return ContainsKey(_configuration.GetId(value), _configuration.EntityHash(value));
         }
 
         public void Intersect(IBloomFilter<TEntity, TKey> bloomFilterData)
         {
             Intersect(bloomFilterData?.Extract());
         }
+
+        /// <summary>
+        /// Determine if the configuration is valid.
+        /// </summary>
+        /// <param name="idHash"></param>
+        /// <param name="entityHash"></param>
+        /// <remarks>For regular IBFs the entity hash and identifier hash have to be equal.</remarks>
+        protected virtual void IsValidConfiguration(int idHash, int entityHash)
+        {
+            if (idHash != entityHash)
+                throw new InvalidOperationException("The configuration of the IBF does not satisfy that the IdHash and EntityHash are equal. For key-value pairs, please use a reverse IBF or hybrid IBF.");
+            ValidateConfiguration = false;
+        }
+
     }
 }
