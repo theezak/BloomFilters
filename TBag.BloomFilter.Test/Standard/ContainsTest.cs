@@ -1,11 +1,10 @@
 ﻿namespace TBag.BloomFilter.Test.Standard
 {
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using System.Collections.Generic;
-    using BloomFilters;
     using System.Linq;
     using Infrastructure;
     using BloomFilters.Standard;
+
     /// <summary>
     /// Simple add and lookup test on Bloom filter.
     /// </summary>

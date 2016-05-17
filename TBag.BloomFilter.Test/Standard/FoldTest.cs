@@ -2,9 +2,9 @@
 {
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using System.Linq;
-    using BloomFilters.Invertible;
     using Infrastructure;
     using BloomFilters.Standard;
+
     /// <summary>
     /// Test for folding a  Bloom filter.
     /// </summary>

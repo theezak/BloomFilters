@@ -1,14 +1,10 @@
-﻿using System;
-using System.Text;
-using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TBag.BloomFilter.Test.Infrastructure;
-using TBag.BloomFilters.Invertible;
-using System.Linq;
-using TBag.BloomFilters.Standard;
-
-namespace TBag.BloomFilter.Test.Standard
+﻿namespace TBag.BloomFilter.Test.Standard
 {
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using TBag.BloomFilter.Test.Infrastructure;
+    using System.Linq;
+    using TBag.BloomFilters.Standard;
+
     /// <summary>
     /// Summary description for IntersectTest
     /// </summary>
@@ -45,31 +41,29 @@ namespace TBag.BloomFilter.Test.Standard
         }
 
         [TestMethod]
-        public void InvertibleIntersectDifferentFiltersTest()
+        public void BloomFilterIntersectDifferentFiltersTest()
         {
             var addSize = 10000;
             var testData = DataGenerator.Generate().Take(addSize).ToArray();
             var errorRate = 0.001F;
             var size = testData.Length;
             var configuration = new DefaultBloomFilterConfiguration();
-            var bloomFilter = new InvertibleBloomFilter<TestEntity, long, sbyte>(configuration);
+            var bloomFilter = new BloomFilter<TestEntity, long>(configuration);
             bloomFilter.Initialize(2 * size, errorRate);
             foreach (var itm in testData)
             {
                 bloomFilter.Add(itm);
             }
-            var bloomFilter2 = new InvertibleBloomFilter<TestEntity, long, sbyte>(configuration);
+            var bloomFilter2 = new BloomFilter<TestEntity, long>(configuration);
             bloomFilter2.Initialize(2 * size, errorRate);
             foreach (var itm in testData.Skip(1000))
             {
                 bloomFilter2.Add(itm);
             }
             bloomFilter.Intersect(bloomFilter2);
-            Assert.AreEqual(9000, bloomFilter.ItemCount);
+            Assert.IsTrue(bloomFilter.ItemCount >= 9000);
             var count = testData.Skip(1000).Count(bloomFilter.Contains);
-            //Note: intersect introduces a horrible error rate when utilizing XOR, so don't actually use intersect.
-            //There are however definitions of operations possible where the intersect would not have this horrible effect.
-            Assert.IsTrue(count > 7800);
+            Assert.AreEqual(9000, count);
         }
     }
 }

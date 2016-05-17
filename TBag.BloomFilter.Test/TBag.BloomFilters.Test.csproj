@@ -101,6 +101,8 @@
     <Compile Include="Standard\ContainsTest.cs" />
     <Compile Include="Standard\FoldTest.cs" />
     <Compile Include="Standard\IntersectTest.cs" />
+    <Compile Include="Standard\QuasiDecodeTest.cs" />
+    <Compile Include="Standard\RemoveTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TBag.BloomFilters\TBag.BloomFilters.csproj">

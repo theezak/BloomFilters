@@ -1,12 +1,10 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TBag.BloomFilter.Test.Infrastructure;
-using System.Linq;
-using TBag.BloomFilters.Invertible;
-using TBag.BloomFilters.Standard;
-
-namespace TBag.BloomFilter.Test.Standard
+﻿namespace TBag.BloomFilter.Test.Standard
 {
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using TBag.BloomFilter.Test.Infrastructure;
+    using System.Linq;
+    using TBag.BloomFilters.Standard;
+
     [TestClass]
     public class CompressTest
     {

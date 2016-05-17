@@ -134,11 +134,8 @@
             {
                 IsValidConfiguration(Configuration.IdHash(key), hash);
             }
-            foreach (int position in Configuration.Probe(BlockSize, _hashFunctionCount, hash))
-            {
-                _data.Set(position, false);
-            }
-           ItemCount--;
+            _data.Set((int)Configuration.Probe(BlockSize, _hashFunctionCount, hash).First(), false);
+            ItemCount--;
         }
 
 
@@ -177,7 +174,7 @@
                 IsValidConfiguration(Configuration.IdHash(key), hash);
             }
             return _configuration
-                .Probe(BlockSize, _hashFunctionCount, _configuration.IdHash(key))
+                .Probe(BlockSize, _hashFunctionCount, hash)
                 .All(position => _data.Get((int)position));
         }
 
