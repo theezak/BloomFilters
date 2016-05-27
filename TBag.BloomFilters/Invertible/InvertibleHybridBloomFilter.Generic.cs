@@ -53,7 +53,7 @@
         public override void Remove(TEntity item)
         {
             var id = Configuration.GetId(item);
-            RemoveKey(id, Configuration.IdHash(id));
+            RemoveKey(id, Configuration.IdHash(id), true);
             _reverseBloomFilter.Remove(new KeyValuePair<TId, int>(id, Configuration.EntityHash(item)));
         }       
 
@@ -65,7 +65,7 @@
         public override bool Contains(TEntity item)
         {
             var id = Configuration.GetId(item);
-            return ContainsKey(id, Configuration.IdHash(id)) &&
+            return ContainsKey(id, Configuration.IdHash(id), true) &&
                 _reverseBloomFilter.Contains(new KeyValuePair<TId, int>(id, Configuration.EntityHash(item)));
         }
 

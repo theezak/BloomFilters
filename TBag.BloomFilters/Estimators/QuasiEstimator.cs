@@ -5,9 +5,11 @@ namespace TBag.BloomFilters.Estimators
 {
     using Configurations;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
-
+    using System.Threading;
+    using System.Threading.Tasks;
     /// <summary>
     /// Decoding algorithm for quasi estimation.
     /// </summary>
@@ -23,7 +25,12 @@ namespace TBag.BloomFilters.Estimators
         /// <param name="hashFunctionCount"></param>
         /// <param name="errorRate"></param>
         /// <returns></returns>
-        internal static Tuple<float, Func<long, long, long>> GetAdjustmentFactor(IBloomFilterSizeConfiguration configuration, long blockSize,  long itemCount, uint hashFunctionCount, float errorRate)
+        internal static Tuple<float, Func<long, long, long>> GetAdjustmentFactor(
+            IBloomFilterSizeConfiguration configuration, 
+            long blockSize,  
+            long itemCount, 
+            uint hashFunctionCount, 
+            float errorRate)
         {
             var idealBlockSize = configuration.BestCompressedSize(
             itemCount,
@@ -46,7 +53,9 @@ namespace TBag.BloomFilters.Estimators
                 //false-positive rate. Which is the reason why this approach is not ideal to begin with. 
                 factor = 2 * factor * ((float)idealBlockSize / blockSize);
             }
-            return new Tuple<float, Func<long, long, long>>(idealErrorRate, (membershipCount, sampleCount) => (long)Math.Floor(membershipCount - factor * (sampleCount - membershipCount)));
+            return new Tuple<float, Func<long, long, long>>(
+                idealErrorRate, 
+                (membershipCount, sampleCount) => (long)Math.Floor(membershipCount - factor * (sampleCount - membershipCount)));
         }
 
         /// <summary>
@@ -73,37 +82,44 @@ namespace TBag.BloomFilters.Estimators
             if (otherSetSample == null) return setSize;
             if (setSize == 0L && otherSetSize.HasValue) return otherSetSize.Value;
             var membershipCount = 0L;
-            var sampleCount = 0L;
-            foreach (var isMember in otherSetSample.Select(membershipTest))
-            {
-                sampleCount++;
-                if (isMember)
-                {
-                    membershipCount++;
-                }
-            }
-            if (sampleCount == 0) return setSize;
-            if (setSize == 0L) return sampleCount;
+            Array r;
+            var samples = (otherSetSample is IList<TEntity>) ? (IList<TEntity>)otherSetSample :otherSetSample.ToArray();
+            Parallel.ForEach(
+                       Partitioner.Create(0, samples.Count),
+                       (range, state) =>
+
+                       {
+                           var rangeMemberCount = 0L;
+                           for (int i = range.Item1; i < range.Item2; i++)
+                           {
+                               if (membershipTest(samples[i]))
+
+                                   rangeMemberCount++;
+                           }
+                           Interlocked.Add(ref membershipCount, rangeMemberCount);
+                       });
+            if (samples.Count == 0) return setSize;
+            if (setSize == 0L) return samples.Count;
             if (otherSetSize.HasValue &&
-               otherSetSize.Value != sampleCount)
+               otherSetSize.Value != samples.Count)
             {
-                membershipCount = (long)Math.Ceiling(membershipCount * ((double)otherSetSize.Value / Math.Max(1, sampleCount)));
+                membershipCount = (long)Math.Ceiling(membershipCount * ((double)otherSetSize.Value / Math.Max(1, samples.Count)));
             }
-            if (sampleCount == membershipCount && 
-                    setSize != (otherSetSize ?? sampleCount))
+            if (samples.Count == membershipCount && 
+                    setSize != (otherSetSize ?? samples.Count))
             {
                 //Obviously there is a difference, but we didn't find one (each item was a member): do the best we can with the set sizes.
                 //assume the difference in set size is the major contributor (since we didn't detect many differences in value).
-                membershipCount = (otherSetSize ?? sampleCount) == 0L
+                membershipCount = (otherSetSize ?? samples.Count) == 0L
                     ? 0L
                     : (long)
                         (membershipCount*
-                         ((double) Math.Min(setSize, otherSetSize ?? sampleCount)/
-                          Math.Max(otherSetSize ?? sampleCount, setSize)));
+                         ((double) Math.Min(setSize, otherSetSize ?? samples.Count)/
+                          Math.Max(otherSetSize ?? samples.Count, setSize)));
             }        
             if (membershipCountAdjuster != null)
             {
-                membershipCount = membershipCountAdjuster(membershipCount, otherSetSize ?? sampleCount);
+                membershipCount = membershipCountAdjuster(membershipCount, otherSetSize ?? samples.Count);
             }
             if (membershipCount < 0)
             {
@@ -111,7 +127,7 @@ namespace TBag.BloomFilters.Estimators
             }
             //membership count can't exceed the set size.
             membershipCount = Math.Min(membershipCount, setSize);
-            otherSetSize = otherSetSize ?? sampleCount;
+            otherSetSize = otherSetSize ?? samples.Count;
             var difference = setSize - otherSetSize.Value +
                              2 * (otherSetSize.Value - membershipCount) / (1 - errorRate);
             //difference is capped by the count of all items.

@@ -12,6 +12,7 @@
     /// </summary>
     /// <typeparam name="TEntity">The entity type</typeparam>
     /// <typeparam name="TKey">The type of the key for <typeparamref name="TEntity"/></typeparam>
+    /// <remarks>The remove/removekey operations negatively impact membership tests (introduces false negatives). When removal is needed, use a counting Bloom filter instead.</remarks>
     public class BloomFilter<TEntity, TKey> : 
         IBloomFilter<TEntity, TKey> where TKey : struct
     {
@@ -120,7 +121,7 @@
         /// <remarks>Not the best thing to do. Use a counting Bloom filter instead when you need removal. Throw a not supported exception instead?</remarks>
         public virtual void RemoveKey(TKey value)
         {
-            RemoveKey(value, _configuration.IdHash(value));
+            RemoveKey(value, _configuration.IdHash(value), false);
         }
 
         /// <summary>
@@ -128,9 +129,9 @@
         /// </summary>
         /// <param name="key">The key to remove</param>
         /// <param name="hash">The entity hash</param>
-        protected virtual void RemoveKey(TKey key, int hash)
+        protected virtual void RemoveKey(TKey key, int hash, bool validate)
         {
-            if (ValidateConfiguration)
+            if (validate && ValidateConfiguration)
             {
                 IsValidConfiguration(Configuration.IdHash(key), hash);
             }
@@ -164,12 +165,12 @@
         /// <returns></returns>
         public virtual bool ContainsKey(TKey value)
         {
-            return ContainsKey(value, _configuration.IdHash(value));
+            return ContainsKey(value, _configuration.IdHash(value), false);
         }
 
-        protected virtual bool ContainsKey(TKey key, int hash)
+        protected virtual bool ContainsKey(TKey key, int hash, bool validate)
         {
-            if (ValidateConfiguration)
+            if (validate && ValidateConfiguration)
             {
                 IsValidConfiguration(Configuration.IdHash(key), hash);
             }
@@ -411,12 +412,12 @@
 
         public void Remove(TEntity value)
         {
-            RemoveKey(_configuration.GetId(value), _configuration.EntityHash(value));
+            RemoveKey(_configuration.GetId(value), _configuration.EntityHash(value), true);
         }
 
         public bool Contains(TEntity value)
         {
-            return ContainsKey(_configuration.GetId(value), _configuration.EntityHash(value));
+            return ContainsKey(_configuration.GetId(value), _configuration.EntityHash(value), true);
         }
 
         public void Intersect(IBloomFilter<TEntity, TKey> bloomFilterData)

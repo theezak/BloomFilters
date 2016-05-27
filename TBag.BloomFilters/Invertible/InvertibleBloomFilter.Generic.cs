@@ -194,7 +194,7 @@ namespace TBag.BloomFilters.Invertible
         /// <param name="item">The entity to remove</param>
         public virtual void Remove(TEntity item)
         {
-            RemoveKey(Configuration.GetId(item), Configuration.EntityHash(item));
+            RemoveKey(Configuration.GetId(item), Configuration.EntityHash(item), true);
         }
 
         /// <summary>
@@ -205,7 +205,7 @@ namespace TBag.BloomFilters.Invertible
         {
             ValidateData();
             //using that IdHash equals EntityHash for a regular IBF
-            RemoveKey(key, Configuration.IdHash(key));
+            RemoveKey(key, Configuration.IdHash(key), false);
         }
 
         /// <summary>
@@ -216,7 +216,7 @@ namespace TBag.BloomFilters.Invertible
         /// <remarks>Contains is purely based upon the identifier. An idea is however to utilize the empty hash array for an id hash to double check deletions.</remarks>
         public virtual bool Contains(TEntity item)
         {
-            return ContainsKey(Configuration.GetId(item), Configuration.EntityHash(item));
+            return ContainsKey(Configuration.GetId(item), Configuration.EntityHash(item), true);
         }
 
         /// <summary>
@@ -229,7 +229,7 @@ namespace TBag.BloomFilters.Invertible
         {
             ValidateData();
             //using that IdHash equals EntityHash for a regular IBF
-            return ContainsKey(key, Configuration.IdHash(key));
+            return ContainsKey(key, Configuration.IdHash(key), false);
         }
 
         /// <summary>
@@ -367,9 +367,9 @@ namespace TBag.BloomFilters.Invertible
         /// <param name="key">The key to add</param>
         /// <param name="hash">The entity hash</param>
         /// <returns></returns>
-        protected virtual bool ContainsKey(TId key, int hash)
+        protected virtual bool ContainsKey(TId key, int hash, bool validate)
         {
-            if (ValidateConfiguration)
+            if (validate && ValidateConfiguration)
             {
                 IsValidConfiguration(Configuration.IdHash(key), hash);
             }
@@ -412,9 +412,9 @@ namespace TBag.BloomFilters.Invertible
         /// </summary>
         /// <param name="key">The key to remove</param>
         /// <param name="hash">The entity hash</param>
-       protected virtual void RemoveKey(TId key, int hash)
+       protected virtual void RemoveKey(TId key, int hash, bool validate)
         {
-            if (ValidateConfiguration)
+            if (validate && ValidateConfiguration)
             {
                 IsValidConfiguration(Configuration.IdHash(key), hash);
             }
