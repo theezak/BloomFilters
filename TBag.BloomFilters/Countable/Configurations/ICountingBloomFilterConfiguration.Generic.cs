@@ -1,4 +1,6 @@
-﻿namespace TBag.BloomFilters.Configurations
+﻿using TBag.BloomFilters.Configurations;
+
+namespace TBag.BloomFilters.Countable.Configurations
 {
      /// <summary>
     /// Interface for configuration of a Bloom filter.

@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using Invertible;
     using BloomFilters.Configurations;
-
+    using Countable.Configurations;
     /// <summary>
     /// Base class for a Bloom filter configuration
     /// </summary>

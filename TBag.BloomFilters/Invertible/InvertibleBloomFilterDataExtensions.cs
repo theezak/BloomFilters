@@ -2,6 +2,7 @@
 {
     using BloomFilters.Configurations;
     using Configurations;
+    using Countable.Configurations;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;

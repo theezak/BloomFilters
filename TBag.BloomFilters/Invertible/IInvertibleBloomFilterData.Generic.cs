@@ -1,15 +1,19 @@
-﻿using TBag.BloomFilters.Configurations;
-using TBag.BloomFilters.Invertible.Configurations;
+﻿
 
 namespace TBag.BloomFilters.Invertible
 {
+    using Countable.Configurations;
+    using TBag.BloomFilters.Configurations;
+    using TBag.BloomFilters.Countable;
+    using TBag.BloomFilters.Invertible.Configurations;
+
     /// <summary>
     /// interface for invertible Bloom filter data.
     /// </summary>
     /// <typeparam name="TId">The entity identifier type</typeparam>  
     /// <typeparam name="THash">The hash type</typeparam>
     /// <typeparam name="TCount">The type for the count</typeparam>
-    public interface IInvertibleBloomFilterData<TId, THash, TCount>
+    public interface IInvertibleBloomFilterData<TId, THash, TCount> : IBloomFilterMetadata
         where TCount : struct
         where THash : struct
         where TId : struct
@@ -20,20 +24,9 @@ namespace TBag.BloomFilters.Invertible
         bool IsReverse { get; set; }
 
         /// <summary>
-        /// The block size 
-        /// </summary>
-        /// <remarks>Is the length of the arrays with hashes and counts, unless the Bloom filter was split by hash function, in which case the block size times the number of hash functions equals the size of the arrays.</remarks>
-        long BlockSize { get; set; }
-
-        /// <summary>
         /// The counts
         /// </summary>
         TCount[] Counts { get; set; }
-
-        /// <summary>
-        /// The number of hash functions used.
-        /// </summary>
-        uint HashFunctionCount { get; set; }
 
         /// <summary>
         /// The error rate
@@ -55,17 +48,7 @@ namespace TBag.BloomFilters.Invertible
         /// </summary>
         InvertibleBloomFilterData<TId, THash, TCount> SubFilter { get; set; }
 
-        /// <summary>
-        /// Number of items in the Bloom filter.
-        /// </summary>
-        long ItemCount { get; set; }
-
-        /// <summary>
-        /// The capacity
-        /// </summary>
-        long Capacity { get; set; }
-
-        /// <summary>
+       /// <summary>
         /// The hashSum provider.
         /// </summary>
         ICompressedArray<THash> HashSumProvider { get; }

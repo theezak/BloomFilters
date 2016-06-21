@@ -1,6 +1,7 @@
 ﻿namespace TBag.BloomFilters.Invertible.Configurations
 {
     using BloomFilters.Configurations;
+    using Countable.Configurations;
     using HashAlgorithms;
     using System;
 

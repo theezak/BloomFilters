@@ -1,5 +1,6 @@
 ﻿namespace TBag.BloomFilter.Test.Infrastructure
 {
+    using BloomFilters.Countable.Configurations;
     using System;
     using TBag.BloomFilters;
     using TBag.BloomFilters.Configurations;

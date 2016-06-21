@@ -6,7 +6,7 @@
     using Configurations;
     using Invertible;
     using BloomFilters.Configurations;
-
+    using Countable.Configurations;
     /// <summary>
     /// Derived Bloom filter configuration for an estimator
     /// </summary>

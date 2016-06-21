@@ -6,7 +6,7 @@
     using System.Linq;
     using Invertible;
     using BloomFilters.Configurations;
-
+    using Countable.Configurations;
     /// <summary>
     /// A standard Bloom filter configuration for storing keys (not key-value pairs).
     /// </summary>

@@ -8,7 +8,7 @@ namespace TBag.BloomFilters.Invertible
     using BloomFilters.Configurations;
     using System.Threading.Tasks;
     using System.Collections.Concurrent;
-    
+    using Countable.Configurations;
     /// <summary>
     /// Implementation of <see cref="IInvertibleBloomFilterData{TId, TEntityHash, TCount}"/>
     /// </summary>

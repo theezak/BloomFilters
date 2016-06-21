@@ -1,6 +1,7 @@
 ﻿namespace TBag.BloomFilters.Measurements.Test
 {
     using Configurations;
+    using Countable.Configurations;
     using Invertible.Configurations;
     /// <summary>
     /// A test Bloom filter configuration.

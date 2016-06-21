@@ -4,9 +4,10 @@
     using System.Text;
     using HashAlgorithms;
     using BloomFilters.Configurations;
-    using BloomFilters.Invertible.Configurations;    /// <summary>
-                                                     /// A test Bloom filter configuration.
-                                                     /// </summary>
+    using BloomFilters.Invertible.Configurations;
+    using BloomFilters.Countable.Configurations;/// <summary>
+                                                /// A test Bloom filter configuration.
+                                                /// </summary>
     internal class KeyValueLargeBloomFilterConfiguration : ReverseConfigurationBase<TestEntity, short>
     {
         private readonly IMurmurHash _murmurHash = new Murmur3();
