@@ -2,6 +2,7 @@
 {
     using BloomFilters;
     using BloomFilters.Configurations;
+    using BloomFilters.Countable.Configurations;
     using BloomFilters.Invertible.Configurations;
     using HashAlgorithms;
     using System;

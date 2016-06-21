@@ -71,7 +71,7 @@
     <Compile Include="Collections\BitArrayExtensions.cs" />
     <Compile Include="Configurations\IFoldingStrategy.cs" />
     <Compile Include="Countable\Configurations\ShortCountConfiguration.cs" />
-    <Compile Include="Configurations\ByteCountConfiguration.cs" />
+    <Compile Include="Countable\Configurations\ByteCountConfiguration.cs" />
     <Compile Include="Countable\Configurations\CountConfigurationBase.Generic.cs" />
     <Compile Include="Configurations\SmoothNumbersFoldingStrategy.cs" />
     <Compile Include="Estimators\BitMinwiseHashEstimatorDataFactory.cs" />

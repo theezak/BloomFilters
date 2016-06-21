@@ -82,7 +82,6 @@ namespace TBag.BloomFilters.Estimators
             if (otherSetSample == null) return setSize;
             if (setSize == 0L && otherSetSize.HasValue) return otherSetSize.Value;
             var membershipCount = 0L;
-            Array r;
             var samples = (otherSetSample is IList<TEntity>) ? (IList<TEntity>)otherSetSample :otherSetSample.ToArray();
             Parallel.ForEach(
                        Partitioner.Create(0, samples.Count),

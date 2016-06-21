@@ -4,6 +4,7 @@ using System.Runtime.Remoting.Messaging;
 namespace TBag.BloomFilter.Test.Infrastructure
 {
     using BloomFilters.Configurations;
+    using BloomFilters.Countable.Configurations;
     using BloomFilters.Invertible.Configurations;
     /// <summary>
     /// A test Bloom filter configuration.
