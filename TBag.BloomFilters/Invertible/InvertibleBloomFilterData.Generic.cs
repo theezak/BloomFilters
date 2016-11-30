@@ -22,6 +22,7 @@ namespace TBag.BloomFilters.Invertible
         where THash : struct
     {
         #region Fields
+        private ConcurrentDictionary<long, object> _locks = new ConcurrentDictionary<long, object>();
         private ICompressedArray<THash> _hashSumProvider;
         private ICompressedArray<TId> _idSumProvider;
          private THash[] _hashSums;
@@ -68,6 +69,22 @@ namespace TBag.BloomFilters.Invertible
                 }
                 _idSums = value;
                 _hasDirtyProvider = true;
+            }
+        }
+
+        public void ExecuteExclusively(long lockPosition, Action action)
+        {
+            lock (_locks.GetOrAdd(lockPosition, new object()))
+            {
+                try
+                {
+                    action?.Invoke();
+                }
+                finally
+                {
+                    object value;
+                    _locks.TryRemove(lockPosition, out value);
+                }
             }
         }
 
@@ -162,6 +179,13 @@ namespace TBag.BloomFilters.Invertible
             }
         }
 
+        /// <summary>
+        /// The given <paramref name="position"/> is not considered relevant when the count for that position equals the identity.
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="data"></param>
+        /// <param name="position"></param>
+        /// <returns></returns>
         private static bool IsMember(
             ICountConfiguration<TCount> configuration,
             InvertibleBloomFilterData<TId, THash, TCount> data, 

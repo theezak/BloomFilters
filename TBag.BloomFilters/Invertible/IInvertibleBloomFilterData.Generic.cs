@@ -3,8 +3,7 @@
 namespace TBag.BloomFilters.Invertible
 {
     using Countable.Configurations;
-    using TBag.BloomFilters.Configurations;
-    using TBag.BloomFilters.Countable;
+    using System;
     using TBag.BloomFilters.Invertible.Configurations;
 
     /// <summary>
@@ -69,5 +68,7 @@ namespace TBag.BloomFilters.Invertible
         /// Clear the Bloom filter data
         /// </summary>
         void Clear<TEntity>(IInvertibleBloomFilterConfiguration<TEntity, TId, THash, TCount> configuration);
+
+        void ExecuteExclusively(long lockPosition, Action action);
     }
 }

@@ -280,7 +280,7 @@ namespace TBag.BloomFilters.Estimators
         /// <summary>
         /// Compute the hash for the given element.
         /// </summary>
-        /// <param name="element"></param>
+        /// <param name="element">Entity to calculate a hash for.</param>
         private void ComputeMinHash(TEntity element)
         {
             var entityHash =_entityHash(element);

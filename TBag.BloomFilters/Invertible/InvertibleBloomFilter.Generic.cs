@@ -395,8 +395,7 @@ namespace TBag.BloomFilters.Invertible
                     if (countComparedToIdentity > 0 &&
                         countConfiguration.IsPure(countConfiguration.Subtract(count, countUnity)))
                     {
-                        Data.Remove(Configuration, key, hash, position);
-                        var pureAfterRemoval = Configuration.IsPure(Data, position);
+                        var pureAfterRemoval = Data.Remove(Configuration, key, hash, position);
                         Data.Add(Configuration, key, hash, position);
                         if (!pureAfterRemoval)
                         {

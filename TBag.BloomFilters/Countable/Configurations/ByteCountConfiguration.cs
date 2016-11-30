@@ -4,6 +4,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
 
     /// <summary>
     /// Count configuration for type <see cref="sbyte"/>.

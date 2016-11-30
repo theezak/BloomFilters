@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
 
     /// <summary>
     /// Count configuration with count type <see cref="int"/>.
@@ -31,7 +32,7 @@
 
         private static int IncreaseImpl(int c)
         {
-            return c == int.MaxValue ? int.MaxValue : c + 1;
+           return c == int.MaxValue ? int.MaxValue : c + 1;
         }
 
         /// <summary>
@@ -74,7 +75,7 @@
 
         private static int AddImpl(int c1, int c2)
         {
-            var res = (long)c1 + c2;
+           var res = (long)c1 + c2;
             if (res > int.MaxValue) return int.MaxValue;
             if (res < int.MinValue) return int.MinValue;
             return (int)res;

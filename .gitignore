@@ -3,3 +3,10 @@
 ################################################################################
 
 /packages
+/TBag.BloomFilter.Test/bin/Debug
+/TBag.BloomFilter.Test/obj/Debug
+/TBag.BloomFilters/bin/Debug
+/TBag.BloomFilters.Measurements.Test/bin/Debug
+/TBag.BloomFilters/obj/Debug
+/TBag.HashAlgorithms/obj/Debug
+/TBag.BloomFilters.Measurements.Test/obj/Debug

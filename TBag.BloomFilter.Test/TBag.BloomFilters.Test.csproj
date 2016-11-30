@@ -83,6 +83,7 @@
     <Compile Include="Invertible\Reverse\IntersectTest.cs" />
     <Compile Include="Invertible\Reverse\RemoveTest.cs" />
     <Compile Include="Invertible\Reverse\SetDiffTest.cs" />
+    <Compile Include="Invertible\Standard\ParallellAddTest.cs" />
     <Compile Include="Invertible\Standard\AddTest.cs" />
     <Compile Include="Invertible\Standard\CompressTest.cs" />
     <Compile Include="Invertible\Standard\ContainsTest.cs" />

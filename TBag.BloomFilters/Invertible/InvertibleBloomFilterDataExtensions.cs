@@ -1,6 +1,5 @@
 ﻿namespace TBag.BloomFilters.Invertible
 {
-    using BloomFilters.Configurations;
     using Configurations;
     using Countable.Configurations;
     using System;
@@ -112,7 +111,7 @@
         /// <param name="idValue">The identifier to remove</param>
         /// <param name="hashValue">The hash value to remove</param>
         /// <param name="position">The position of the cell to remove the identifier and hash from.</param>
-        internal static void Remove<TEntity, TId, TCount>(
+        internal static bool Remove<TEntity, TId, TCount>(
             this IInvertibleBloomFilterData<TId, int, TCount> filter,
             IInvertibleBloomFilterConfiguration<TEntity, TId, int, TCount> configuration,
             TId idValue,
@@ -121,10 +120,16 @@
             where TCount : struct
             where TId : struct
         {
-            if (filter == null) return;
-            filter.Counts[position] = configuration.CountConfiguration.Decrease(filter.Counts[position]);
-            filter.HashSumProvider[position] = configuration.HashRemove(filter.HashSumProvider[position], hashValue);
-            filter.IdSumProvider[position] = configuration.IdRemove(filter.IdSumProvider[position], idValue);
+            if (filter == null) return false;
+            var retVal = false;
+            filter.ExecuteExclusively(position, () =>
+            {
+                filter.Counts[position] = configuration.CountConfiguration.Decrease(filter.Counts[position]);
+                filter.HashSumProvider[position] = configuration.HashRemove(filter.HashSumProvider[position], hashValue);
+                filter.IdSumProvider[position] = configuration.IdRemove(filter.IdSumProvider[position], idValue);
+                retVal = configuration.IsPure(filter, position);
+            });
+            return retVal;
         }
 
         /// <summary>
@@ -148,9 +153,12 @@
             where TId : struct
         {
             if (filter == null) return;
-            filter.Counts[position] = configuration.CountConfiguration.Increase(filter.Counts[position]);
-            filter.HashSumProvider[position] = configuration.HashAdd(filter.HashSumProvider[position], hashValue);
-            filter.IdSumProvider[position] = configuration.IdAdd(filter.IdSumProvider[position], idValue);
+            filter.ExecuteExclusively(position, () =>
+            {
+                filter.Counts[position] = configuration.CountConfiguration.Increase(filter.Counts[position]);
+                filter.HashSumProvider[position] = configuration.HashAdd(filter.HashSumProvider[position], hashValue);
+                filter.IdSumProvider[position] = configuration.IdAdd(filter.IdSumProvider[position], idValue);
+            });
         }
 
         ///  <summary>

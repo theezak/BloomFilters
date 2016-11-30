@@ -7,7 +7,7 @@
     /// <summary>
     /// Generate smooth numbers.
     /// </summary>
-   public class SmoothNumberGenerator
+   internal class SmoothNumberGenerator
     {
      
         /// <summary>
