@@ -76,15 +76,7 @@ namespace TBag.BloomFilters.Invertible
         {
             lock (_locks.GetOrAdd(lockPosition, new object()))
             {
-                try
-                {
-                    action?.Invoke();
-                }
-                finally
-                {
-                    object value;
-                    _locks.TryRemove(lockPosition, out value);
-                }
+                action?.Invoke();
             }
         }
 
