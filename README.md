@@ -38,7 +38,7 @@ The estimators and Bloom filters themselves can in fact be pre-computed under ce
 
 ## A practical implementation of pre-calculated estimators and filters
 
-A practial scenario would be that all parties agree upon a pre-determined size for the estimator and the filter, typically larger than the maximum size anticipated. The following scenario's are possible:
+A practical scenario would be that all parties agree upon a pre-determined size for the estimator and the filter, typically larger than the maximum size anticipated. The following scenario's are possible:
 - The estimator sent has at least the required capacity and strata count needed by the receiver to represent its local set. The two estimators will decode correctly and provide an estimate.
 - The estimator sent does not have a large enough capacity or large enough strata for the dataset at the receiver. The receiving party has two options:
     - Send their local estimator back. This estimator will have the capacity needed and the other party will be able to calculate an estimate.
